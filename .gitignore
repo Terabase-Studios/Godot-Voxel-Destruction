@@ -1,3 +1,6 @@
+# Github-specific ignores
+.github/
+
 # Godot 4+ specific ignores
 .godot/
 
