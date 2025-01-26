@@ -4,6 +4,7 @@
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ne8fu"]
 friction = 0.5
+bounce = 0.2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_m0tjl"]
 
