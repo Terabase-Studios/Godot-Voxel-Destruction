@@ -60,16 +60,14 @@ func UpdateMesh():
 		var mdt = MeshDataTool.new()
 		
 		# Create MeshDataTool from the mesh
-		mdt.create_from_surface(MeshNode.mesh.duplicate(), 0)
+		mdt.create_from_surface(MeshNode.mesh, 0)
 		
 		var vertex_count = mdt.get_vertex_count()
 		
 		# Iterate over all vertices, modifying colors of matched points
 		for i in range(vertex_count):
-			var vertex = mdt.get_vertex(i)
-			if vertex in removedVerticies:
-				var color = mdt.get_vertex_color(i)
-				mdt.set_vertex_color(i, Color(color.r, color.g, color.b, 0))  # Make transparent
+			if mdt.get_vertex(i) in removedVerticies:
+				mdt.set_vertex_color(i, Color(0, 0, 0, 0))  # Make transparent
 		
 		# Clear and recreate the mesh with updated vertex data
 		new_mesh = ArrayMesh.new()
