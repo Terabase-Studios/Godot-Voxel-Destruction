@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://buuhsqkn1j1j3"
-path="res://.godot/imported/Warship.fbx-1b1c5d64ebddcbaf5d8e2082a04f3880.scn"
+path="res://.godot/imported/Warship.fbx-0acc4539468947441631072e1163e6ff.scn"
 
 [deps]
 
-source_file="res://Test Resources/Warship.fbx"
-dest_files=["res://.godot/imported/Warship.fbx-1b1c5d64ebddcbaf5d8e2082a04f3880.scn"]
+source_file="res://Example/Voxel Objects/Warship.fbx"
+dest_files=["res://.godot/imported/Warship.fbx-0acc4539468947441631072e1163e6ff.scn"]
 
 [params]
 

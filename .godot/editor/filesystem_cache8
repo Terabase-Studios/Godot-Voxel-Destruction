@@ -41,24 +41,24 @@ ShieldGradientGlow.tres::Gradient::193816329881375792::1737356200::0::1::::<><>:
 ShieldMaterial.tres::StandardMaterial3D::2906601939101046628::1737356200::0::1::::<><>::
 VoxelResource.gd::GDScript::-1::1737514886::0::1::::VoxelResource<>Resource<>::
 VoxelResource.tres::Resource::5079954387328423921::1737356200::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd
-::res://MicroRecon.vox/::1737757235
-MicroRecon.tres::Resource/VoxelResource::1130528197852226775::1737757244::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
-MicroRecon.tscn::PackedScene::6638097598859514678::1737757238::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelUpdater.gd
-::res://Test Resources/::1737080672
-MicroRecon.fbx::PackedScene::520615068087888587::1736736598::1737517810::1::::<><>::
-micro_recon.tscn::PackedScene::4278132131810172849::1737757244::0::1::::<><>::uid://hogpo7jwrt8v::::res://Test Resources/MicroRecon.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
-Warship.fbx::PackedScene::3831943131222033470::1737346778::1737347134::1::::<><>::
-warship.tscn::PackedScene::2841335947431148942::1737432988::0::1::::<><>::uid://buuhsqkn1j1j3::::res://Test Resources/Warship.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
-::res://Test World/::1737339089
-Test World.tscn::PackedScene::8806785464708465524::1737757244::0::1::::<><>::uid://cj8kklpak48o::::res://Test World/Player/Player.tscn<>uid://c1tsq6ii4ntja::::res://MicroRecon.vox/MicroRecon.tscn<>uid://bpa2gay6ugolr::::res://Warship.vox/Warship.tscn
-::res://Test World/Player/::1737339260
+::res://Example/::1737902094
+Test World.tscn::PackedScene::-1::1737757244::0::1::::<><>::
+::res://Example/Player/::1737339260
 player.gd::GDScript::-1::1737510272::0::1::::<>CharacterBody3D<>::
 Player.tscn::PackedScene::160979148671254100::1737346542::0::1::::<><>::res://Test World/Player/player.gd<>uid://dxrpcncr7el1f::::res://Test World/Player/Weapon/Weapon.tscn
-::res://Test World/Player/Weapon/::1737339296
+::res://Example/Player/Weapon/::1737339296
 bullet.gd::GDScript::-1::1737508116::0::1::::<>Node3D<>::
 Bullet.tscn::PackedScene::4484896910675895213::1737346542::0::1::::<><>::res://Test World/Player/Weapon/bullet.gd<>res://addons/VoxelDestruction/Nodes/VoxelDamager.gd
 weapon.gd::GDScript::-1::1737342004::0::1::::<>Node3D<>::
 Weapon.tscn::PackedScene::8809614889760867429::1737341760::0::1::::<><>::res://Test World/Player/Weapon/weapon.gd
-::res://Warship.vox/::1737496218
+::res://Example/Voxel Objects/::1737902171
+MicroRecon.fbx::PackedScene::520615068087888587::1736736598::1737902256::1::::<><>::
+micro_recon.tscn::PackedScene::4278132131810172849::1737757244::0::1::::<><>::uid://hogpo7jwrt8v::::res://Test Resources/MicroRecon.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
+Warship.fbx::PackedScene::3831943131222033470::1737346778::1737902472::1::::<><>::
+warship.tscn::PackedScene::2841335947431148942::1737432988::0::1::::<><>::uid://buuhsqkn1j1j3::::res://Test Resources/Warship.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
+::res://Example/Voxel Objects/MicroRecon.vox/::1737757235
+MicroRecon.tres::Resource/VoxelResource::1130528197852226775::1737757244::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
+MicroRecon.tscn::PackedScene::6638097598859514678::1737757238::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelUpdater.gd
+::res://Example/Voxel Objects/Warship.vox/::1737496218
 Warship.tres::Resource/VoxelResource::8617043808043227::1737756610::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
 Warship.tscn::PackedScene::3440903450342493967::1737496224::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelShield.gd<>uid://bhn8krr3f27ho::::res://addons/VoxelDestruction/Resources/ShieldMaterial.tres
