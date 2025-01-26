@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://hogpo7jwrt8v"
-path="res://.godot/imported/MicroRecon.fbx-1d4537fa13a8cb6830ea18c4395ef86b.scn"
+path="res://.godot/imported/MicroRecon.fbx-c6135b5b00d542cfa319da4f1276a131.scn"
 
 [deps]
 
-source_file="res://Example/Voxel Objects/MicroRecon.fbx"
-dest_files=["res://.godot/imported/MicroRecon.fbx-1d4537fa13a8cb6830ea18c4395ef86b.scn"]
+source_file="res://VD Extra Resources/Voxel Objects/MicroRecon.fbx"
+dest_files=["res://.godot/imported/MicroRecon.fbx-c6135b5b00d542cfa319da4f1276a131.scn"]
 
 [params]
 

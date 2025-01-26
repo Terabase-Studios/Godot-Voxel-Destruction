@@ -1,6 +1,6 @@
 [gd_scene load_steps=13 format=3 uid="uid://bgqmngpgttqta"]
 
-[ext_resource type="PackedScene" uid="uid://buuhsqkn1j1j3" path="res://Test Resources/Warship.fbx" id="1_8l1k5"]
+[ext_resource type="PackedScene" uid="uid://buuhsqkn1j1j3" path="res://VD Extra Resources/Voxel Objects/Warship.fbx" id="1_8l1k5"]
 [ext_resource type="Script" path="res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd" id="2_bt5cq"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vk256"]

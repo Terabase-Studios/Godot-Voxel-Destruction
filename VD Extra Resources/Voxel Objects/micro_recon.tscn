@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://b17mhgd0nalkb"]
 
-[ext_resource type="PackedScene" uid="uid://hogpo7jwrt8v" path="res://Test Resources/MicroRecon.fbx" id="1_k5ewc"]
+[ext_resource type="PackedScene" uid="uid://hogpo7jwrt8v" path="res://VD Extra Resources/Voxel Objects/MicroRecon.fbx" id="1_k5ewc"]
 [ext_resource type="Script" path="res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd" id="2_s4is8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ooxun"]

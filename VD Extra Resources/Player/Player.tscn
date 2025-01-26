@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://cj8kklpak48o"]
 
 [ext_resource type="Script" path="res://Test World/Player/player.gd" id="1_mbs4k"]
-[ext_resource type="PackedScene" uid="uid://dxrpcncr7el1f" path="res://Test World/Player/Weapon/Weapon.tscn" id="2_cw1d7"]
+[ext_resource type="PackedScene" uid="uid://dxrpcncr7el1f" path="res://VD Extra Resources/Player/Weapon/Weapon.tscn" id="2_cw1d7"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_snxvu"]
 
