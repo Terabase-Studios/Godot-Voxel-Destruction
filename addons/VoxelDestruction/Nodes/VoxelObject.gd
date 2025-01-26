@@ -75,7 +75,6 @@ func UpdateMesh():
 		new_mesh = ArrayMesh.new()
 		mdt.commit_to_surface(new_mesh)
 		MeshNode.set_deferred("mesh", new_mesh)
-		print('hey')
 		refreshed.emit.call_deferred()
 		
 		mutex.unlock()
@@ -100,5 +99,4 @@ func UpdateCooldown():
 			semaphore.post()
 			RegeningMesh = false
 			await refreshed
-			print(refreshed)
 		await get_tree().process_frame
