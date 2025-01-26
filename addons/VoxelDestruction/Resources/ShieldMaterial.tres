@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bhn8krr3f27ho"]
+
+[resource]
+render_priority = 1
+transparency = 1
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true
+emission_enabled = true

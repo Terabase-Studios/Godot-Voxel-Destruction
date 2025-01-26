@@ -1,0 +1,7 @@
+[gd_resource type="Resource" load_steps=2 format=3 uid="uid://cem1dvgts6ggv"]
+
+[ext_resource type="Script" path="res://addons/VoxelDestruction/Resources/VoxelResource.gd" id="1_cqhas"]
+
+[resource]
+script = ExtResource("1_cqhas")
+voxels = []

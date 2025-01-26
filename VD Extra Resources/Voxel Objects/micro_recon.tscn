@@ -1,0 +1,53 @@
+[gd_scene load_steps=10 format=3 uid="uid://b17mhgd0nalkb"]
+
+[ext_resource type="PackedScene" uid="uid://hogpo7jwrt8v" path="res://VD Extra Resources/Voxel Objects/MicroRecon.fbx" id="1_k5ewc"]
+[ext_resource type="Script" path="res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd" id="2_s4is8"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ooxun"]
+resource_name = "Voxel_mat185"
+vertex_color_use_as_albedo = true
+albedo_color = Color(1, 0.106893, 0, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_l8yve"]
+resource_name = "Voxel_mat193"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.237855, 0.237855, 0.237855, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ipvpc"]
+resource_name = "Voxel_mat209"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.168879, 0.168879, 0.168879, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_h8335"]
+resource_name = "Voxel_mat177"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.216477, 0.275988, 0.41275, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_t3ko7"]
+resource_name = "Voxel_mat201"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.203577, 0.203577, 0.203577, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d6vub"]
+resource_name = "Voxel_mat186"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0, 1, 0.800977, 1)
+emission_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0iiu4"]
+resource_name = "Voxel_mat169"
+vertex_color_use_as_albedo = true
+albedo_color = Color(0.338686, 0.338686, 0.338686, 1)
+emission_enabled = true
+
+[node name="MicroRecon" instance=ExtResource("1_k5ewc")]
+script = ExtResource("2_s4is8")
+SaveDirectory = "res://"
+Materials = [SubResource("StandardMaterial3D_ooxun"), SubResource("StandardMaterial3D_l8yve"), SubResource("StandardMaterial3D_ipvpc"), SubResource("StandardMaterial3D_h8335"), SubResource("StandardMaterial3D_t3ko7"), SubResource("StandardMaterial3D_d6vub"), SubResource("StandardMaterial3D_0iiu4")]
+DefenceModifiers = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+ArmorIds = PackedInt32Array(0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 1, 1, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 0, 0, 0, 0, 2, 2, 4, 5, 4, 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 6, 6, 6, 6, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 1, 1, 6, 6, 3, 3, 6, 6, 3, 3, 6, 6, 2, 2, 5, 5, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 6, 6, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 1, 1, 2, 2, 2, 2, 1, 1, 2, 2, 2, 2, 1, 1, 1, 1, 6, 6, 6, 6, 1, 1, 2, 2, 1, 1, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 1, 1, 0, 0, 1, 1, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4, 6, 6, 6, 6, 6, 6, 4, 4, 6, 6, 5, 5, 4, 4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 4, 4, 4, 4, 4, 4)
