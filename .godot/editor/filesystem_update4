@@ -1,0 +1,8 @@
+res://Test World/Test World.tscn
+res://MicroRecon.vox/MicroRecon.tres
+res://Warship.vox/Warship.tres
+res://MicroRecon.vox/MicroRecon.tscn
+res://addons/VoxelDestruction/Nodes/VoxelObject.gd
+res:///MicroRecon.vox/MicroRecon.tscn
+res://addons/VoxelDestruction/Nodes/VoxelCollection.gd
+res://Test Resources/micro_recon.tscn
