@@ -1,6 +1,6 @@
 [gd_scene load_steps=18 format=3 uid="uid://b45ruj8jd8kor"]
 
-[ext_resource type="Script" path="res://Test World/Player/Weapon/bullet.gd" id="1_j0ufm"]
+[ext_resource type="Script" path="res://VD Extra Resources/Player/Weapon/bullet.gd" id="1_1pt3k"]
 [ext_resource type="Script" path="res://addons/VoxelDestruction/Nodes/VoxelDamager.gd" id="2_05ex6"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_te251"]
@@ -100,7 +100,7 @@ height = 2.0
 
 [node name="Bullet" type="Node3D"]
 top_level = true
-script = ExtResource("1_j0ufm")
+script = ExtResource("1_1pt3k")
 
 [node name="Body" type="MeshInstance3D" parent="."]
 transform = Transform3D(1.91069e-15, 4.37114e-08, -1, 1, -4.37114e-08, 0, -4.37114e-08, -1, -4.37114e-08, 0, 0, 0)

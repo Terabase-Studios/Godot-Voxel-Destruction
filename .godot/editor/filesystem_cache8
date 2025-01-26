@@ -1,64 +1,65 @@
 ea4bc82a6ad023ab7ee23ee620429895
 ::res://::1736376074
-icon.svg::CompressedTexture2D::6487473272908825171::1736376074::1737517810::1::::<><>::
-::res://addons/::1736376868
-::res://addons/VoxelDestruction/::1737356197
-plugin.cfg::TextFile::-1::1737356200::0::1::::<><>::
-VoxelDestruction.gd::GDScript::-1::1737756416::0::1::::VoxelDestructionGodot<>EditorPlugin<>::
-VoxelManager.gd::GDScript::-1::1737356200::0::1::::<>Node3D<>::
-::res://addons/VoxelDestruction/Editor Widgets/::1737356198
-GenerateButton.gd::GDScript::-1::1737524868::0::1::::<>MarginContainer<>::
-GenerateButtonPlugin.gd::GDScript::-1::1737356200::0::1::::<>EditorInspectorPlugin<>::
-::res://addons/VoxelDestruction/Icons/::1737356198
-Voxel.svg::CompressedTexture2D::3982028971076465460::1737356200::1737517810::1::::<><>::
-VoxelBase.svg::CompressedTexture2D::104632222529013022::1737356200::1737517810::1::::<><>::
-VoxelCollection.svg::CompressedTexture2D::2285615086260645476::1737356200::1737517810::1::::<><>::
-VoxelComponent.svg::CompressedTexture2D::6230494269478460537::1737356200::1737517810::1::::<><>::
-VoxelGenerator.svg::CompressedTexture2D::9218692165010425428::1737356200::1737517810::1::::<><>::
-VoxelMultiplayerSynchronizer.svg::CompressedTexture2D::1811871361674515514::1737356200::1737517810::1::::<><>::
-VoxelObject.svg::CompressedTexture2D::8831205740145867552::1737356200::1737517810::1::::<><>::
-VoxelShield.svg::CompressedTexture2D::5783758330682397605::1737356200::1737517810::1::::<><>::
-VoxelUpdater.svg::CompressedTexture2D::8561094289176413542::1737521694::1737527546::1::::<><>::
-::res://addons/VoxelDestruction/Nodes/::1737356198
-Voxel.gd::GDScript::-1::1737510712::0::1::::Voxel<>VoxelBase<>::
-VoxelBase.gd::GDScript::-1::1737520452::0::1::::VoxelBase<>Node3D<>::
-VoxelCollection.gd::GDScript::-1::1737756784::0::1::::VoxelCollection<>VoxelComponent<>::
-VoxelComponent.gd::GDScript::-1::1737356200::0::1::::VoxelComponent<>VoxelBase<>::
-VoxelDamager.gd::GDScript::-1::1737510712::0::1::::VoxelDamager<>VoxelBase<>::
-VoxelGenerator.gd::GDScript::-1::1737529924::0::1::::VoxelGenerator<>VoxelBase<>::
-VoxelMultiplayerSynchronizer.gd::GDScript::-1::1737356200::0::1::::VoxelMultiplayerSynchronizer<>VoxelComponent<>::
-VoxelObject.gd::GDScript::-1::1737757120::0::1::::VoxelObject<>VoxelBase<>::
-VoxelShield.gd::GDScript::-1::1737356200::0::1::::VoxelShield<>VoxelComponent<>::
-VoxelUpdater.gd::GDScript::-1::1737529376::0::1::::VoxelUpdater<>VoxelGenerator<>::
-::res://addons/VoxelDestruction/Pop-Ups/::1737356199
-GeneratePopup.gd::GDScript::-1::1737526658::0::1::::<>Node<>::
-GeneratePopup.tscn::PackedScene::8801491587998661339::1737356200::0::1::::<><>::res://addons/VoxelDestruction/Pop-Ups/GeneratePopup.gd
-::res://addons/VoxelDestruction/Resources/::1737356199
-Dark.tres::StandardMaterial3D::3841615723634873190::1737356200::0::1::::<><>::
-debri.tscn::PackedScene::5148240887493440050::1737515462::0::1::::<><>::uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
-ShieldGradient.tres::Gradient::7326675775791338554::1737356200::0::1::::<><>::
-ShieldGradientGlow.tres::Gradient::193816329881375792::1737356200::0::1::::<><>::
-ShieldMaterial.tres::StandardMaterial3D::2906601939101046628::1737356200::0::1::::<><>::
-VoxelResource.gd::GDScript::-1::1737514886::0::1::::VoxelResource<>Resource<>::
-VoxelResource.tres::Resource::5079954387328423921::1737356200::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd
-::res://VD Extra Resources/::1737902094
-Test World.tscn::PackedScene::8806785464708465524::1737757244::0::1::::<><>::uid://cj8kklpak48o::::res://Test World/Player/Player.tscn<>uid://c1tsq6ii4ntja::::res://MicroRecon.vox/MicroRecon.tscn<>uid://bpa2gay6ugolr::::res://Warship.vox/Warship.tscn
-::res://VD Extra Resources/Player/::1737339260
-player.gd::GDScript::-1::1737510272::0::1::::<>CharacterBody3D<>::
-Player.tscn::PackedScene::160979148671254100::1737903676::0::1::::<><>::res://Test World/Player/player.gd<>uid://dxrpcncr7el1f::::res://VD Extra Resources/Player/Weapon/Weapon.tscn
-::res://VD Extra Resources/Player/Weapon/::1737339296
-bullet.gd::GDScript::-1::1737508116::0::1::::<>Node3D<>::
-Bullet.tscn::PackedScene::4484896910675895213::1737346542::0::1::::<><>::res://Test World/Player/Weapon/bullet.gd<>res://addons/VoxelDestruction/Nodes/VoxelDamager.gd
-weapon.gd::GDScript::-1::1737342004::0::1::::<>Node3D<>::
-Weapon.tscn::PackedScene::8809614889760867429::1737341760::0::1::::<><>::res://Test World/Player/Weapon/weapon.gd
-::res://VD Extra Resources/Voxel Objects/::1737902171
-MicroRecon.fbx::PackedScene::520615068087888587::1736736598::1737903678::1::::<><>::
-micro_recon.tscn::PackedScene::4278132131810172849::1737903676::0::1::::<><>::uid://hogpo7jwrt8v::::res://VD Extra Resources/Voxel Objects/MicroRecon.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
-Warship.fbx::PackedScene::3831943131222033470::1737346778::1737903860::1::::<><>::
-warship.tscn::PackedScene::2841335947431148942::1737903676::0::1::::<><>::uid://buuhsqkn1j1j3::::res://VD Extra Resources/Voxel Objects/Warship.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
-::res://VD Extra Resources/Voxel Objects/MicroRecon.vox/::1737757235
-MicroRecon.tres::Resource/VoxelResource::1130528197852226775::1737757244::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
-MicroRecon.tscn::PackedScene::6638097598859514678::1737757238::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelUpdater.gd
-::res://VD Extra Resources/Voxel Objects/Warship.vox/::1737496218
-Warship.tres::Resource/VoxelResource::8617043808043227::1737756610::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
-Warship.tscn::PackedScene::3440903450342493967::1737496224::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelShield.gd<>uid://bhn8krr3f27ho::::res://addons/VoxelDestruction/Resources/ShieldMaterial.tres
+icon.svg::CompressedTexture2D::6487473272908825171::1737918920::1737918972::1::::<><>::
+::res://addons/::1737918919
+::res://addons/VoxelDestruction/::1737918919
+plugin.cfg::TextFile::-1::1737918920::0::1::::<><>::
+VoxelDestruction.gd::GDScript::-1::1737918920::0::1::::VoxelDestructionGodot<>EditorPlugin<>::
+VoxelManager.gd::GDScript::-1::1737918920::0::1::::<>Node3D<>::
+::res://addons/VoxelDestruction/Editor Widgets/::1737918919
+GenerateButton.gd::GDScript::-1::1737918920::0::1::::<>MarginContainer<>::
+GenerateButtonPlugin.gd::GDScript::-1::1737918920::0::1::::<>EditorInspectorPlugin<>::
+::res://addons/VoxelDestruction/Icons/::1737918919
+Voxel.svg::CompressedTexture2D::3982028971076465460::1737918920::1737918972::1::::<><>::
+VoxelBase.svg::CompressedTexture2D::104632222529013022::1737918920::1737918972::1::::<><>::
+VoxelCollection.svg::CompressedTexture2D::2285615086260645476::1737918920::1737918972::1::::<><>::
+VoxelComponent.svg::CompressedTexture2D::6230494269478460537::1737918920::1737918972::1::::<><>::
+VoxelGenerator.svg::CompressedTexture2D::9218692165010425428::1737918920::1737918972::1::::<><>::
+VoxelMultiplayerSynchronizer.svg::CompressedTexture2D::1811871361674515514::1737918920::1737918972::1::::<><>::
+VoxelObject.svg::CompressedTexture2D::8831205740145867552::1737918920::1737918972::1::::<><>::
+VoxelShield.svg::CompressedTexture2D::5783758330682397605::1737918920::1737918972::1::::<><>::
+VoxelUpdater.svg::CompressedTexture2D::8561094289176413542::1737918920::1737918972::1::::<><>::
+::res://addons/VoxelDestruction/Nodes/::1737918919
+Voxel.gd::GDScript::-1::1737918920::0::1::::Voxel<>VoxelBase<>::
+VoxelBase.gd::GDScript::-1::1737918920::0::1::::VoxelBase<>Node3D<>::
+VoxelCollection.gd::GDScript::-1::1737918920::0::1::::VoxelCollection<>VoxelComponent<>::
+VoxelComponent.gd::GDScript::-1::1737918920::0::1::::VoxelComponent<>VoxelBase<>::
+VoxelDamager.gd::GDScript::-1::1737918920::0::1::::VoxelDamager<>VoxelBase<>::
+VoxelGenerator.gd::GDScript::-1::1737918920::0::1::::VoxelGenerator<>VoxelBase<>::
+VoxelMultiplayerSynchronizer.gd::GDScript::-1::1737918920::0::1::::VoxelMultiplayerSynchronizer<>VoxelComponent<>::
+VoxelObject.gd::GDScript::-1::1737918920::0::1::::VoxelObject<>VoxelBase<>::
+VoxelShield.gd::GDScript::-1::1737918920::0::1::::VoxelShield<>VoxelComponent<>::
+VoxelUpdater.gd::GDScript::-1::1737918920::0::1::::VoxelUpdater<>VoxelGenerator<>::
+::res://addons/VoxelDestruction/Pop-Ups/::1737918919
+GeneratePopup.gd::GDScript::-1::1737918920::0::1::::<>Node<>::
+GeneratePopup.tscn::PackedScene::8801491587998661339::1737918920::0::1::::<><>::res://addons/VoxelDestruction/Pop-Ups/GeneratePopup.gd
+::res://addons/VoxelDestruction/Resources/::1737918919
+Dark.tres::StandardMaterial3D::3841615723634873190::1737918920::0::1::::<><>::
+debri.tscn::PackedScene::5148240887493440050::1737918920::0::1::::<><>::uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
+ShieldGradient.tres::Gradient::7326675775791338554::1737918920::0::1::::<><>::
+ShieldGradientGlow.tres::Gradient::193816329881375792::1737918920::0::1::::<><>::
+ShieldMaterial.tres::StandardMaterial3D::2906601939101046628::1737918920::0::1::::<><>::
+VoxelResource.gd::GDScript::-1::1737918920::0::1::::VoxelResource<>Resource<>::
+VoxelResource.tres::Resource::5079954387328423921::1737918920::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd
+::res://MicroRecon.vox/::1737905150
+::res://VD Extra Resources/::1737918917
+Test World.tscn::PackedScene::8806785464708465524::1737918918::0::1::::<><>::uid://cj8kklpak48o::::res://Test World/Player/Player.tscn<>uid://c1tsq6ii4ntja::::res://MicroRecon.vox/MicroRecon.tscn<>uid://bpa2gay6ugolr::::res://Warship.vox/Warship.tscn
+::res://VD Extra Resources/Player/::1737918917
+player.gd::GDScript::-1::1737918918::0::1::::<>CharacterBody3D<>::
+Player.tscn::PackedScene::160979148671254100::1737918918::0::1::::<><>::res://Test World/Player/player.gd<>uid://dxrpcncr7el1f::::res://VD Extra Resources/Player/Weapon/Weapon.tscn
+::res://VD Extra Resources/Player/Weapon/::1737918917
+bullet.gd::GDScript::-1::1737918918::0::1::::<>Node3D<>::
+Bullet.tscn::PackedScene::4484896910675895213::1737918918::0::1::::<><>::res://Test World/Player/Weapon/bullet.gd<>res://addons/VoxelDestruction/Nodes/VoxelDamager.gd
+weapon.gd::GDScript::-1::1737918918::0::1::::<>Node3D<>::
+Weapon.tscn::PackedScene::8809614889760867429::1737918918::0::1::::<><>::res://Test World/Player/Weapon/weapon.gd
+::res://VD Extra Resources/Voxel Objects/::1737918917
+MicroRecon.fbx::PackedScene::520615068087888587::1737918920::1737918972::1::::<><>::
+micro_recon.tscn::PackedScene::4278132131810172849::1737918920::0::1::::<><>::uid://hogpo7jwrt8v::::res://VD Extra Resources/Voxel Objects/MicroRecon.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
+Warship.fbx::PackedScene::3831943131222033470::1737918920::1737919148::1::::<><>::
+warship.tscn::PackedScene::2841335947431148942::1737918920::0::1::::<><>::uid://buuhsqkn1j1j3::::res://VD Extra Resources/Voxel Objects/Warship.fbx<>res://addons/VoxelDestruction/Nodes/VoxelGenerator.gd
+::res://VD Extra Resources/Voxel Objects/MicroRecon.vox/::1737918918
+MicroRecon.tres::Resource/VoxelResource::1130528197852226775::1737918920::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
+MicroRecon.tscn::PackedScene::6638097598859514678::1737918920::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelUpdater.gd
+::res://VD Extra Resources/Voxel Objects/Warship.vox/::1737919387
+Warship.tres::Resource/VoxelResource::5938499853575700757::1737919422::0::1::::<><>::res://addons/VoxelDestruction/Resources/VoxelResource.gd<>res://addons/VoxelDestruction/Nodes/Voxel.gd<>uid://buy535iwjuxes::::res://addons/VoxelDestruction/Resources/Dark.tres
+Warship.tscn::PackedScene::4001877806876790894::1737919422::0::1::::<><>::res://addons/VoxelDestruction/Nodes/VoxelObject.gd<>res://addons/VoxelDestruction/Nodes/VoxelCollection.gd<>res://addons/VoxelDestruction/Nodes/VoxelShield.gd<>uid://bhn8krr3f27ho::::res://addons/VoxelDestruction/Resources/ShieldMaterial.tres<>res://addons/VoxelDestruction/Nodes/VoxelUpdater.gd

@@ -1,6 +1,6 @@
 [gd_scene load_steps=24 format=3 uid="uid://dxrpcncr7el1f"]
 
-[ext_resource type="Script" path="res://Test World/Player/Weapon/weapon.gd" id="1_sfrxs"]
+[ext_resource type="Script" path="res://VD Extra Resources/Player/Weapon/weapon.gd" id="1_36fhr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_phm87"]
 albedo_color = Color(0.7, 0.7, 0.7, 1)
@@ -130,7 +130,7 @@ _data = {
 }
 
 [node name="Weapon" type="Node3D"]
-script = ExtResource("1_sfrxs")
+script = ExtResource("1_36fhr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.927999, 0.372583, 0, -0.372583, 0.927999, 0, 0, 0.128556)

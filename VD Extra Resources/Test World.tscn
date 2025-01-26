@@ -1,8 +1,8 @@
 [gd_scene load_steps=9 format=3 uid="uid://dxqcp8hub3usq"]
 
-[ext_resource type="PackedScene" uid="uid://cj8kklpak48o" path="res://Test World/Player/Player.tscn" id="1_kteay"]
-[ext_resource type="PackedScene" uid="uid://c1tsq6ii4ntja" path="res://MicroRecon.vox/MicroRecon.tscn" id="2_oc88t"]
-[ext_resource type="PackedScene" uid="uid://bpa2gay6ugolr" path="res://Warship.vox/Warship.tscn" id="3_fbdwo"]
+[ext_resource type="PackedScene" uid="uid://cj8kklpak48o" path="res://VD Extra Resources/Player/Player.tscn" id="1_kteay"]
+[ext_resource type="PackedScene" uid="uid://c1tsq6ii4ntja" path="res://VD Extra Resources/Voxel Objects/MicroRecon.vox/MicroRecon.tscn" id="2_oc88t"]
+[ext_resource type="PackedScene" uid="uid://bxaslwjk1d5jm" path="res://VD Extra Resources/Voxel Objects/Warship.vox/Warship.tscn" id="3_fbdwo"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_slc1i"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)

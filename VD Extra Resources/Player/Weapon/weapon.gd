@@ -10,7 +10,7 @@ func _process(delta: float) -> void:
 
 func use():
 	if cooldown == 0:
-		var bullet = load("res://Test World/Player/Weapon/Bullet.tscn").instantiate()
+		var bullet = load("res://VD Extra Resources/Player/Weapon/Bullet.tscn").instantiate()
 		self.add_child(bullet)
 		bullet.name = 'Bullet'
 		bullet.target = %Aim.get_collision_point()
