@@ -21,6 +21,8 @@ var semaphore: Semaphore
 var thread: Thread
 var exit_thread := false
 
+signal refreshed
+
 
 func _ready() -> void:
 	if ShieldNode == null:
@@ -36,27 +38,24 @@ func _ready() -> void:
 		thread.start(UpdateMesh)
 		await CollectionNode.loaded
 		VoxelCount = CollectionNode.get_child_count()
+		UpdateCooldown()
 
 
 func remove_voxel_part():
-	if RegeningMesh:
-		return  # Skip if the function has already run this frame
 	RegeningMesh = true
-	semaphore.post()
-	UpdateCooldown()
 
 
 func UpdateMesh():
 	while true:
 		semaphore.wait() # Wait until posted.
-
+		
 		mutex.lock()
 		var should_exit = exit_thread # Protect with Mutex.
 		mutex.unlock()
-
+		
 		if should_exit:
 			break
-
+		
 		mutex.lock()
 		var mdt = MeshDataTool.new()
 		
@@ -76,6 +75,9 @@ func UpdateMesh():
 		new_mesh = ArrayMesh.new()
 		mdt.commit_to_surface(new_mesh)
 		MeshNode.set_deferred("mesh", new_mesh)
+		print('hey')
+		refreshed.emit.call_deferred()
+		
 		mutex.unlock()
 
 
@@ -93,5 +95,10 @@ func _exit_tree():
 		thread.wait_to_finish()
 
 func UpdateCooldown():
-	await get_tree().create_timer(VoxelCount/10000).timeout
-	RegeningMesh = true
+	while true:
+		if RegeningMesh:
+			semaphore.post()
+			RegeningMesh = false
+			await refreshed
+			print(refreshed)
+		await get_tree().process_frame
