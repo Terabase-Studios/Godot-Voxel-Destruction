@@ -6,5 +6,4 @@
 /addons    !export-ignore
 /addons/** !export-ignore
 /VD Extra Resources !export-ignore
-/VD Extra Resources\Player !export-ignore
-/VD Extra Resources\Voxel Objects !export-ignore
+/VD Extra Resources\** !export-ignore
