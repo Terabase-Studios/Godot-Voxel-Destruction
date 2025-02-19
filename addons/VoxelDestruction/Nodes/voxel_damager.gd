@@ -4,10 +4,10 @@ class_name VoxelDamager
 
 @export_enum("Ignore", "Blacklist", "Whitelist") var group_mode = 0
 @export var group: String
-@export_category("Damage")
+@export_subgroup("Damage")
 @export var base_damage: float
 @export var damage_curve: Curve
-@export_category("Power")
+@export_subgroup("Power")
 @export var base_power: int
 @export var power_curve: Curve
 var colliding_bodies = []
