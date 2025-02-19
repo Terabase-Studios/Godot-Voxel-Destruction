@@ -5,5 +5,3 @@
 /**        export-ignore
 /addons    !export-ignore
 /addons/** !export-ignore
-/VD Extra Resources !export-ignore
-/VD Extra Resources\** !export-ignore

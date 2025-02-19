@@ -1,0 +1,15 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="PackedScene"
+uid="uid://csju4yhbtyrb3"
+path="res://.godot/imported/MediumCube.vox-449e9a174ccdbf5d519011460d53c5bc.tscn"
+
+[deps]
+
+source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox"
+dest_files=["res://.godot/imported/MediumCube.vox-449e9a174ccdbf5d519011460d53c5bc.tscn"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)

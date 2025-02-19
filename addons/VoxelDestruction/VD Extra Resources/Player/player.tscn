@@ -1,0 +1,72 @@
+[gd_scene load_steps=8 format=3 uid="uid://cdk6hwb4hi2wc"]
+
+[ext_resource type="Script" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd" id="1_2f8j2"]
+[ext_resource type="Script" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="2_ehonj"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3rsb5"]
+radius = 0.3
+height = 1.8
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_71ahc"]
+size = Vector2(0.05, 0.05)
+
+[sub_resource type="Curve" id="Curve_wnqqp"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_u2815"]
+radius = 1.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_owlp4"]
+bg_color = Color(0.6, 0.6, 0.6, 0)
+border_width_left = 50
+border_width_top = 50
+border_width_right = 50
+border_width_bottom = 50
+border_color = Color(0, 0.506667, 0.8, 0.196078)
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_2f8j2")
+
+[node name="CShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_3rsb5")
+
+[node name="Camera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+fov = 80.0
+
+[node name="crosshair" type="MeshInstance3D" parent="Camera"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
+mesh = SubResource("PlaneMesh_71ahc")
+
+[node name="RayCast3D" type="RayCast3D" parent="Camera/crosshair"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, -4.37114e-08, 0, 4.37114e-08, 1, 0, 0, 0)
+target_position = Vector3(0, -10, 0)
+
+[node name="VoxelDamager" type="Area3D" parent="Camera"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
+top_level = true
+script = ExtResource("2_ehonj")
+base_damage = 120.0
+damage_curve = SubResource("Curve_wnqqp")
+base_power = 2
+power_curve = SubResource("Curve_wnqqp")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager"]
+shape = SubResource("SphereShape3D_u2815")
+
+[node name="Panel" type="Panel" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+mouse_force_pass_scroll_events = false
+theme_override_styles/panel = SubResource("StyleBoxFlat_owlp4")

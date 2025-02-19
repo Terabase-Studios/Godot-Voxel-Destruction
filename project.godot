@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="voxel-destruction-addon"
-run/main_scene="res://VD Extra Resources/Demo.tscn"
+run/main_scene="res://addons/VoxelDestruction/VD Extra Resources/Demo.tscn"
 config/features=PackedStringArray("4.3", "GL Compatibility")
 run/max_fps=60
 config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
