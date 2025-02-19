@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://cfl31mgn7y5vq"]
+
+[ext_resource type="BoxMesh" uid="uid://c0kdf4g27g0ux" path="res://addons/VoxelDestruction/Resources/debri.tres" id="1_bsxci"]
+
+[sub_resource type="PhysicsMaterial" id="PhysicsMaterial_ne8fu"]
+friction = 0.5
+bounce = 0.2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_m0tjl"]
+
+[node name="VoxelDebri" type="RigidBody3D"]
+physics_material_override = SubResource("PhysicsMaterial_ne8fu")
+freeze = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_m0tjl")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = ExtResource("1_bsxci")

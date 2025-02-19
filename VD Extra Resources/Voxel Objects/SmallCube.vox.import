@@ -1,0 +1,15 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="PackedScene"
+uid="uid://5tq6g3picvhx"
+path="res://.godot/imported/SmallCube.vox-ce6bd5e7220771e8162833df0ed55850.tscn"
+
+[deps]
+
+source_file="res://VD Extra Resources/Voxel Objects/SmallCube.vox"
+dest_files=["res://.godot/imported/SmallCube.vox-ce6bd5e7220771e8162833df0ed55850.tscn"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
