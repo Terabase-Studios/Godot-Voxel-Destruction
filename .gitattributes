@@ -1,7 +1,10 @@
 # Normalize EOL for all files that Git considers text files.
 * text=auto eol=lf
 
-# Only include the addons folder when downloading from the Asset Library.
+# Only include the addons folder and extra resources when downloading from the Asset Library.
 /**        export-ignore
 /addons    !export-ignore
 /addons/** !export-ignore
+/VD Extra Resources !export-ignore
+/VD Extra Resources\Player !export-ignore
+/VD Extra Resources\Voxel Objects !export-ignore
