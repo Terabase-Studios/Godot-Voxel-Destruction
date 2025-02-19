@@ -171,6 +171,7 @@ func _create_debri_rigid_bodies():
 		var shape = debri.get_child(0)
 		var mesh = debri.get_child(1)
 		# Set size/position in a single step
+		add_child(debri, true, Node.INTERNAL_MODE_BACK)
 		var debris_pos = debris_data.pos
 		debri.global_position = debris_pos
 		shape.shape.size = size
@@ -182,9 +183,6 @@ func _create_debri_rigid_bodies():
 		debri.apply_impulse(velocity)
 		# Add the debri to list
 		debri_objects.append(debri)
-	# Batch add debris objects
-	for debri in debri_objects:
-		add_child(debri, true, Node.INTERNAL_MODE_BACK)
 	debri_called = false
 	debri_queue.clear()
 	await get_tree().create_timer(debri_lifetime).timeout

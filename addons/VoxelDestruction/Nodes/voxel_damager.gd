@@ -1,4 +1,4 @@
-@icon("voxel_object.svg")
+@icon("voxel_damager.svg")
 extends Area3D
 class_name VoxelDamager
 
