@@ -3,6 +3,7 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 
+@export var darkening = true
 @export_subgroup("Debri")
 @export_enum("None", "Rigid Bodies", "Multimesh") var debri_type = 2
 @export var debri_weight = 1
@@ -92,7 +93,8 @@ func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 	health = clamp(health, 0, 100)
 	damage_resource.health[voxid] = health
 	if health != 0:
-		multimesh.set_instance_color(voxid, voxel_resource.colors[voxid].darkened(1.0 - (health * 0.01)))
+		if darkening:
+			multimesh.set_instance_color(voxid, voxel_resource.colors[voxid].darkened(1.0 - (health * 0.01)))
 	else:
 		if body.get_child(0).disabled == false:  # Avoid redundant operations
 			multimesh.set_instance_transform(voxid, Transform3D())
