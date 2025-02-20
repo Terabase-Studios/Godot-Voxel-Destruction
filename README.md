@@ -2,6 +2,9 @@
 
 Welcome to the official documentation for a **Voxel Destruction System** for Godot 4.1+. This addon provides a flexible and efficient voxel-based destruction system, allowing you to create dynamic, destructible objects from **.vox imports**.
 
+***
+
+![](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Rigid%20Body%20Demo.png)
 ## Features
 * **Custom importer** for .vox files
 
@@ -10,6 +13,10 @@ Welcome to the official documentation for a **Voxel Destruction System** for God
 * Multiple **debri modes** for realism or performence.
 
 * Voxel **destruction nodes** for easy implimentation
+
+* Adjustable **dithering effects** for added realism
+
+* **Seamless integration** with Godot projects
 
 ## Prerequisites
 
@@ -21,7 +28,7 @@ Before installing the Teardown-like Destruction System, ensure that you have:
 
 ## Installation Steps
 
-1. Download the latest version from the official repository or a provided download link.
+1. [Download the latest version](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/archive/e31b958b016c592f6190c72172b190fa685f60fe.zip) from the official repository or the Godot Asset Library.
 
 1. Copy the addon folder into your project's res://addons/ directory.
 
