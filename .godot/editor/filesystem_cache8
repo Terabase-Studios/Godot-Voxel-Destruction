@@ -4,7 +4,7 @@ README.md::TextFile::-1::1740086538::0::1::::<><>::
 ::res://addons/::1738181508
 ::res://addons/VoxelDestruction/::1738181508
 LICENCE.md::TextFile::-1::1740003224::0::1::::<><>::
-plugin.cfg::TextFile::-1::1740005372::0::1::::<><>::
+plugin.cfg::TextFile::-1::1740087346::0::1::::<><>::
 README.md::TextFile::-1::1740087290::0::1::::<><>::
 voxel_destruction.gd::GDScript::-1::1738709668::0::1::::VoxelDestructionGodot<>EditorPlugin<>::
 vox_importer.gd::GDScript::-1::1740015676::0::1::::<>EditorImportPlugin<>::
@@ -24,7 +24,7 @@ voxel_scene.gd::GDScript::-1::1739030618::0::1::::VoxelScene<>PackedScene<>res:/
 ::res://addons/VoxelDestruction/Scenes/::1738548186
 debri.tscn::PackedScene::5148240887493440050::1739997348::0::1::::<><>::uid://c0kdf4g27g0ux::::res://addons/VoxelDestruction/Resources/debri.tres
 ::res://addons/VoxelDestruction/VD Extra Resources/::1739060158
-Demo.tscn::PackedScene::443769324804499738::1740087290::0::1::::<><>::uid://cdk6hwb4hi2wc::::res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn<>uid://bi3gexsx62o87::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox<>uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>uid://csju4yhbtyrb3::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox<>uid://5tq6g3picvhx::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox
+Demo.tscn::PackedScene::443769324804499738::1740087914::0::1::::<><>::uid://cdk6hwb4hi2wc::::res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn<>uid://bi3gexsx62o87::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox<>uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>uid://csju4yhbtyrb3::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox<>uid://5tq6g3picvhx::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox
 ::res://addons/VoxelDestruction/VD Extra Resources/Player/::1739060158
 player.gd::GDScript::-1::1740086538::0::1::::Player<>CharacterBody3D<>::
 player.tscn::PackedScene::5005947561559827306::1740015684::0::1::::<><>::res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd<>res://addons/VoxelDestruction/Nodes/voxel_damager.gd
