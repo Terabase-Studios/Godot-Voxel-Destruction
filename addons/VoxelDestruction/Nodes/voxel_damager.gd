@@ -10,8 +10,7 @@ class_name VoxelDamager
 @export_subgroup("Power")
 @export var base_power: int
 @export var power_curve: Curve
-var colliding_bodies = []
-var collision_shape
+@export var knock_back_debri = false
 @onready var global_pos = global_position
 @onready var range: int = get_child(0).shape.radius
 
@@ -21,7 +20,7 @@ func hit():
 	if not get_overlapping_bodies().is_empty():
 		for body in get_overlapping_bodies():
 			if body.get_parent() is VoxelObject:
-				if "VoxelDebri" in body.name:
+				if "VoxelDebri" in body.name and knock_back_debri:
 					if is_instance_valid(body):
 						var decay = global_position.distance_to(body.global_position) / range
 						var power = float(base_power * power_curve.sample(decay))
