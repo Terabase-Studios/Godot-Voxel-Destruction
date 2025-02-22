@@ -3,8 +3,6 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 
-@export_subgroup("Features")
-@export var remove_floating_voxels = true
 @export var darkening = true
 @export_subgroup("Debri")
 @export_enum("None", "Rigid Bodies", "Multimesh") var debri_type = 2
@@ -28,6 +26,8 @@ class_name VoxelObject
 	set(value):
 		dithering_seed = value
 		populate_mesh()
+@export_subgroup("Experimental")
+@export var remove_floating_voxels = false
 @export_subgroup("Resources")
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
