@@ -28,7 +28,7 @@ Before installing the Teardown-like Destruction System, ensure that you have:
 
 ## Installation Steps
 
-1. [Download the latest version](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/archive/e31b958b016c592f6190c72172b190fa685f60fe.zip) from the official repository or the Godot Asset Library.
+1. [Download the latest version](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/releases/tag/v0.3-beta) from the official repository or the Godot Asset Library.
 
 1. Copy the addon folder into your project's res://addons/ directory.
 
