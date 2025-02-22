@@ -4,6 +4,7 @@ class_name DamageResource
 
 @export var health: PackedInt32Array
 @export var positions: PackedVector3Array
+@export var positions_dict: Dictionary
 var debri_pool = []
 
 # Debri handling
