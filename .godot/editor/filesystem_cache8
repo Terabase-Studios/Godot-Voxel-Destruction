@@ -4,31 +4,31 @@ README.md::TextFile::-1::1740086538::0::1::::<><>::
 ::res://addons/::1738181508
 ::res://addons/VoxelDestruction/::1738181508
 LICENCE.md::TextFile::-1::1740003224::0::1::::<><>::
-plugin.cfg::TextFile::-1::1740088650::0::1::::<><>::
-README.md::TextFile::-1::1740087290::0::1::::<><>::
+plugin.cfg::TextFile::-1::1740176040::0::1::::<><>::
+README.md::TextFile::-1::1740197920::0::1::::<><>::
 voxel_destruction.gd::GDScript::-1::1738709668::0::1::::VoxelDestructionGodot<>EditorPlugin<>::
-vox_importer.gd::GDScript::-1::1740093636::0::1::::<>EditorImportPlugin<>::
+vox_importer.gd::GDScript::-1::1740176040::0::1::::<>EditorImportPlugin<>::
 ::res://addons/VoxelDestruction/Nodes/::1738181742
-voxel_damager.gd::GDScript::-1::1740093636::0::1::::VoxelDamager<>Area3D<>res://addons/VoxelDestruction/Nodes/voxel_damager.svg::
+voxel_damager.gd::GDScript::-1::1740197890::0::1::::VoxelDamager<>Area3D<>res://addons/VoxelDestruction/Nodes/voxel_damager.svg::
 voxel_damager.svg::CompressedTexture2D::7513372598182373494::1738617742::1739998526::1::::<><>::
-voxel_object.gd::GDScript::-1::1740093636::0::1::::VoxelObject<>MultiMeshInstance3D<>res://addons/VoxelDestruction/Nodes/voxel_object.svg::
+voxel_object.gd::GDScript::-1::1740197890::0::1::::VoxelObject<>MultiMeshInstance3D<>res://addons/VoxelDestruction/Nodes/voxel_object.svg::
 voxel_object.svg::CompressedTexture2D::8831205740145867552::1738181508::1739998526::1::::<><>::
 ::res://addons/VoxelDestruction/Resources/::1738181510
-damage_resource.gd::GDScript::-1::1740093636::0::1::::DamageResource<>Resource<>res://addons/VoxelDestruction/Resources/debri_resource.svg::
+damage_resource.gd::GDScript::-1::1740197888::0::1::::DamageResource<>Resource<>res://addons/VoxelDestruction/Resources/debri_resource.svg::
 damage_resource.svg::CompressedTexture2D::1476849201544877212::1738983844::1739998526::1::::<><>::
-debri.tres::BoxMesh::6548398849541198643::1740087290::0::1::::<><>::
-voxel_material.tres::ShaderMaterial::3526293000166147589::1740087290::0::1::::<><>::
-voxel_resource.gd::GDScript::-1::1739997350::0::1::::VoxelResource<>Resource<>res://addons/VoxelDestruction/Resources/voxel_resource.svg::
+debri.tres::BoxMesh::6548398849541198643::1740197532::0::1::::<><>::
+voxel_material.tres::ShaderMaterial::3526293000166147589::1740197530::0::1::::<><>::
+voxel_resource.gd::GDScript::-1::1740176040::0::1::::VoxelResource<>Resource<>res://addons/VoxelDestruction/Resources/voxel_resource.svg::
 voxel_resource.svg::CompressedTexture2D::9218692165010425428::1738181508::1739998526::1::::<><>::
 voxel_scene.gd::GDScript::-1::1739030618::0::1::::VoxelScene<>PackedScene<>res://addons/VoxelDestruction/Resources/Nodes/voxel_object.svg::
 ::res://addons/VoxelDestruction/Scenes/::1738548186
 debri.tscn::PackedScene::5148240887493440050::1739997348::0::1::::<><>::uid://c0kdf4g27g0ux::::res://addons/VoxelDestruction/Resources/debri.tres
 ::res://addons/VoxelDestruction/VD Extra Resources/::1739060158
-Demo.tscn::PackedScene::443769324804499738::1740093636::0::1::::<><>::uid://cdk6hwb4hi2wc::::res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn<>uid://bi3gexsx62o87::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox<>uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>uid://csju4yhbtyrb3::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox<>uid://5tq6g3picvhx::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox
+Demo.tscn::PackedScene::443769324804499738::1740197918::0::1::::<><>::uid://cdk6hwb4hi2wc::::res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn<>uid://bi3gexsx62o87::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox<>uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>uid://csju4yhbtyrb3::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox<>uid://5tq6g3picvhx::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox
 ::res://addons/VoxelDestruction/VD Extra Resources/Player/::1739060158
-player.gd::GDScript::-1::1740086538::0::1::::Player<>CharacterBody3D<>::
-player.tscn::PackedScene::5005947561559827306::1740015684::0::1::::<><>::res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd<>res://addons/VoxelDestruction/Nodes/voxel_damager.gd
+player.gd::GDScript::-1::1740197354::0::1::::Player<>CharacterBody3D<>::
+player.tscn::PackedScene::5005947561559827306::1740197596::0::1::::<><>::res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd<>res://addons/VoxelDestruction/Nodes/voxel_damager.gd
 ::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/::1739060160
-LargeCube.vox::PackedScene::3006106691974304738::1739675078::1740093658::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd
-MediumCube.vox::PackedScene::6056087351981717458::1739675078::1740093658::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd
-SmallCube.vox::PackedScene::2145915677050372169::1739675078::1740093658::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd
+LargeCube.vox::PackedScene::3006106691974304738::1740196756::1740197502::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd
+MediumCube.vox::PackedScene::6056087351981717458::1740196756::1740197504::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd
+SmallCube.vox::PackedScene::2145915677050372169::1740196756::1740197504::1::::<><>::uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>res://addons/VoxelDestruction/Nodes/voxel_object.gd<>res://addons/VoxelDestruction/Resources/voxel_resource.gd<>res://addons/VoxelDestruction/Resources/damage_resource.gd

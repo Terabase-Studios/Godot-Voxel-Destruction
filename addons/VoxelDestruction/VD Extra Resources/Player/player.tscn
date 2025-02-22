@@ -59,7 +59,9 @@ power_curve = SubResource("Curve_wnqqp")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager"]
 shape = SubResource("SphereShape3D_u2815")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Panel" parent="CanvasLayer"]
 unique_name_in_owner = true
 visible = false
 anchors_preset = 15
@@ -70,3 +72,49 @@ grow_vertical = 2
 mouse_filter = 2
 mouse_force_pass_scroll_events = false
 theme_override_styles/panel = SubResource("StyleBoxFlat_owlp4")
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer"]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -164.0
+offset_top = -124.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Move - Arrow Keys"
+horizontal_alignment = 2
+
+[node name="Label5" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Look - Mouse"
+horizontal_alignment = 2
+
+[node name="Label3" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Jump - Space"
+horizontal_alignment = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Fire - Enter"
+horizontal_alignment = 2
+
+[node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Quit - Escape"
+horizontal_alignment = 2

@@ -30,9 +30,9 @@ class_name VoxelObject
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
 @export_storage var size = Vector3(.1, .1, .1)
-var collision_shapes = {}
-var debri_queue = []
-var debri_called = false
+var _collision_shapes = {}
+var _debri_queue = []
+var _debri_called = false
 
 
 func _ready() -> void:
@@ -46,7 +46,7 @@ func _ready() -> void:
 			body.position = voxel_resource.positions[i]*size
 			body.add_child(shapenode)
 			add_child(body, false, Node.INTERNAL_MODE_BACK)
-			collision_shapes[body] = i
+			_collision_shapes[body] = i
 			voxel_resource.colors[i] = multimesh.get_instance_color(i)
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
@@ -82,8 +82,8 @@ func populate_mesh():
 			multimesh.set_instance_color(i, dithered_color)
 
 
-func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
-	var voxid = collision_shapes[body]
+func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
+	var voxid = _collision_shapes[body]
 	if voxid == -1:
 		return  # Skip if voxel not found
 	var decay = damager.global_pos.distance_to(body.global_position) / damager.range
@@ -99,7 +99,7 @@ func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 		if body.get_child(0).disabled == false:  # Avoid redundant operations
 			multimesh.set_instance_transform(voxid, Transform3D())
 			body.get_child(0).disabled = true
-			debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
+			_debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
 			if debri_type == 1:
 				_start_debri("_create_debri_rigid_bodies")
 			if debri_type == 2:
@@ -107,9 +107,9 @@ func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 
 
 func _start_debri(function):
-	if debri_called or debri_lifetime == 0 or debri_density == 0:
+	if _debri_called or debri_lifetime == 0 or debri_density == 0:
 		return
-	debri_called = true
+	_debri_called = true
 	call_deferred(function)
 
 
@@ -124,10 +124,10 @@ func _create_debri_multimesh():
 	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
 	multi_mesh.mesh.size = size
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
-	multi_mesh.instance_count = debri_queue.size()
+	multi_mesh.instance_count = _debri_queue.size()
 	add_child(multi_mesh_instance)
 	var idx = 0
-	for debris_data in debri_queue:
+	for debris_data in _debri_queue:
 		# Control debri amount
 		if randf() > debri_density: continue
 		
@@ -142,8 +142,8 @@ func _create_debri_multimesh():
 		multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
 		idx += 1
 	var current_lifetime = debri_lifetime
-	debri_called = false
-	debri_queue.clear()
+	_debri_called = false
+	_debri_queue.clear()
 	while current_lifetime > 0:
 		var delta = get_physics_process_delta_time()
 		current_lifetime -= delta
@@ -161,7 +161,7 @@ func _create_debri_multimesh():
 func _create_debri_rigid_bodies():
 	# Pre-cache children
 	var debri_objects = []  # To store all the debris
-	for debris_data in debri_queue:
+	for debris_data in _debri_queue:
 		# Control debri amount
 		if randf() > debri_density: continue
 		# Retrieve/generate debri
@@ -185,8 +185,8 @@ func _create_debri_rigid_bodies():
 		debri.apply_impulse(velocity)
 		# Add the debri to list
 		debri_objects.append(debri)
-	debri_called = false
-	debri_queue.clear()
+	_debri_called = false
+	_debri_queue.clear()
 	await get_tree().create_timer(debri_lifetime).timeout
 	# Batch scale-down animation (single loop)
 	var tween = get_tree().create_tween()
