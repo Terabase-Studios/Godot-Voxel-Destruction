@@ -113,7 +113,6 @@ func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 			var damage_id = damage_resource.positions_dict[Vector3i(voxel_resource.positions[voxid])]
 			if damage_id != -1:
 				damage_resource.positions_dict.erase(vox_pos)
-				damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
 			multimesh.set_instance_transform(voxid, Transform3D())
 			body.get_child(0).disabled = true
 			_debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
@@ -132,6 +131,7 @@ func _start_debri(function, check_floating):
 		self.queue_free()
 	if check_floating and remove_floating_voxels:
 		call_deferred("_remove_detached_voxels_start")
+	damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
 	_debri_called = true
 	call_deferred(function)
 
@@ -291,16 +291,13 @@ func _flood_fill():
 		for vox in to_remove:
 			var voxid = voxel_resource.positions_dict[Vector3i(vox)]
 			if voxid != -1:
-				print(damage_resource.positions_dict.size())
-				print(vox)
 				damage_resource.positions_dict.erase(Vector3i(vox))
-				print(damage_resource.positions_dict.size())
-				damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
 				multimesh.set_instance_transform(voxid, Transform3D())
 				call_deferred("_remove_vox", voxid)
+		damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
 		_mutex.unlock()
 
 
 func _remove_vox(voxid):
 	var collision_shape = _collision_shapes.keys()[voxid].get_child(0)
-	collision_shape.disabled = true
+	collision_shape.queue_free()
