@@ -22,7 +22,7 @@ Welcome to the official documentation for a **Voxel Destruction System** for God
 
 Before installing the Teardown-like Destruction System, ensure that you have:
 
-* Godot 4.1+ installed.
+* Godot 4.3+ installed.
 
 * A project set up with GDScript or C#. Though addon is untested with C# and Godot's .net version
 
