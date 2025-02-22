@@ -3,6 +3,7 @@ extends Resource
 class_name DamageResource
 
 @export var health: PackedInt32Array
+@export var positions: PackedVector3Array
 var debri_pool = []
 
 # Debri handling

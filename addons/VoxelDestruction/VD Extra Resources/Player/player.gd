@@ -77,7 +77,7 @@ func _jump(delta: float) -> Vector3:
 	return jump_vel
 
 func _fire():
-	if %RayCast3D.is_colliding() and cooldown == 0:
+	if cooldown == 0:
 		if hit == true:
 			%Panel.visible = false
 			%VoxelDamager.call_deferred("hit")

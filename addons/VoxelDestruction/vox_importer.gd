@@ -171,6 +171,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		return ERR_FILE_CORRUPT
 	
 	# Modify object/add resource
+	damage_resource.positions = voxel_resource.positions.duplicate()
 	voxel_object.voxel_resource = voxel_resource
 	voxel_object.damage_resource = damage_resource
 	voxel_object.size = scale

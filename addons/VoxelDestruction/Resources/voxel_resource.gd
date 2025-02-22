@@ -6,4 +6,3 @@ class_name VoxelResource
 @export var colors: PackedColorArray
 @export var origin: Vector3
 @export var size: Vector3
-@export var collision: Array
