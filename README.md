@@ -22,13 +22,13 @@ Welcome to the official documentation for a **Voxel Destruction System** for God
 
 Before installing the Teardown-like Destruction System, ensure that you have:
 
-* Godot 4.1+ installed.
+* Godot 4.3+ installed.
 
 * A project set up with GDScript or C#. Though addon is untested with C# and Godot's .net version
 
 ## Installation Steps
 
-1. [Download the latest version](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/archive/e31b958b016c592f6190c72172b190fa685f60fe.zip) from the official repository or the Godot Asset Library.
+1. [Download the latest version](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/releases/tag/v0.3-beta) from the official repository or the Godot Asset Library.
 
 1. Copy the addon folder into your project's res://addons/ directory.
 

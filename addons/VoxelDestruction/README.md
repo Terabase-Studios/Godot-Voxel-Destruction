@@ -1,4 +1,4 @@
-	Welcome to the Voxel Destruction addon for Godot 4.1+. 
+	Welcome to the Voxel Destruction addon for Godot 4.3+. 
 This addon provides a flexible and efficient voxel-based destruction system, 
 allowing you to create dynamic, destructible objects from .vox imports.
 --------------------------------------------------------------------------------

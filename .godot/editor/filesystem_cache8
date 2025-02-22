@@ -19,11 +19,6 @@ damage_resource.svg::CompressedTexture2D::1476849201544877212::1738983844::17399
 debri.tres::BoxMesh::6548398849541198643::1740094898::0::1::::<><>::
 voxel_material.tres::ShaderMaterial::3526293000166147589::1740094898::0::1::::<><>::
 voxel_resource.gd::GDScript::-1::1740101180::0::1::::VoxelResource<>Resource<>res://addons/VoxelDestruction/Resources/voxel_resource.svg::
-voxel_resource.svg::CompressedTexture2D::9218692165010425428::1738181508::1739998526::1::::<><>::
-voxel_scene.gd::GDScript::-1::1739030618::0::1::::VoxelScene<>PackedScene<>res://addons/VoxelDestruction/Resources/Nodes/voxel_object.svg::
-::res://addons/VoxelDestruction/Scenes/::1738548186
-debri.tscn::PackedScene::5148240887493440050::1739997348::0::1::::<><>::uid://c0kdf4g27g0ux::::res://addons/VoxelDestruction/Resources/debri.tres
-::res://addons/VoxelDestruction/VD Extra Resources/::1739060158
 Demo.tscn::PackedScene::443769324804499738::1740175358::0::1::::<><>::uid://cdk6hwb4hi2wc::::res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn<>uid://bi3gexsx62o87::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox<>uid://bqifsbjmettt2::::res://addons/VoxelDestruction/Resources/voxel_material.tres<>uid://csju4yhbtyrb3::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox<>uid://5tq6g3picvhx::::res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox
 ::res://addons/VoxelDestruction/VD Extra Resources/Player/::1739060158
 player.gd::GDScript::-1::1740173090::0::1::::Player<>CharacterBody3D<>::

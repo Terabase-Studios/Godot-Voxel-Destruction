@@ -34,4 +34,4 @@ func hit():
 					elif group_mode == 2:
 						if group not in body.get_parent().get_groups():
 							continue
-					body.get_parent().call_deferred("damage_voxel", body, self)
+					body.get_parent().call_deferred("_damage_voxel", body, self)

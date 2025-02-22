@@ -5,6 +5,7 @@ class_name VoxelObject
 
 @export_subgroup("Features")
 @export var remove_floating_voxels = true
+@export var darkening = true
 @export_subgroup("Debri")
 @export_enum("None", "Rigid Bodies", "Multimesh") var debri_type = 2
 @export var debri_weight = 1
@@ -93,7 +94,7 @@ func populate_mesh():
 			multimesh.set_instance_color(i, dithered_color)
 
 
-func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
+func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 	var voxid = _collision_shapes[body]
 	if voxid == -1:
 		return  # Skip if voxel not found
@@ -104,7 +105,8 @@ func damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 	health = clamp(health, 0, 100)
 	damage_resource.health[voxid] = health
 	if health != 0:
-		multimesh.set_instance_color(voxid, voxel_resource.colors[voxid].darkened(1.0 - (health * 0.01)))
+		if darkening:
+			multimesh.set_instance_color(voxid, voxel_resource.colors[voxid].darkened(1.0 - (health * 0.01)))
 	else:
 		if body.get_child(0).disabled == false:
 			var damage_id = damage_resource.positions.find(voxel_resource.positions[voxid])
