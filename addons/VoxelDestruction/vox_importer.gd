@@ -147,6 +147,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	health.fill(100)
 	var origin: Vector3 = size/Vector3(round(2), round(2), round(2))
 	voxel_resource.positions = PackedVector3Array()
+	voxel_resource.positions_dict = {}
 	voxel_resource.colors = PackedColorArray(colors)
 	voxel_resource.origin = origin
 	voxel_resource.size = size
@@ -155,6 +156,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Create Object/Add colors
 	var voxel_object = VoxelObject.new()
 	var color_list = PackedColorArray()
+	var index = 0
 	for voxel in voxels:
 		var color = voxel["color"]
 		if color not in color_list:
@@ -164,6 +166,8 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		# Adjust position for godot
 		var adjusted_position = Vector3i(position.x, position.z, position.y)
 		voxel_resource.positions.append(adjusted_position)
+		voxel_resource.positions_dict[adjusted_position] = index
+		index += 1
 	
 	# Validate Voxels
 	if voxels.is_empty():
@@ -172,6 +176,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Modify object/add resource
 	damage_resource.positions = voxel_resource.positions.duplicate()
+	damage_resource.positions_dict = voxel_resource.positions_dict.duplicate()
 	voxel_object.voxel_resource = voxel_resource
 	voxel_object.damage_resource = damage_resource
 	voxel_object.size = scale
