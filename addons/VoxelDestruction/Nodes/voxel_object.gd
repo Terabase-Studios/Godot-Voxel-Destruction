@@ -131,8 +131,6 @@ func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 func _start_debri(function, check_floating):
 	if _debri_called or debri_lifetime == 0 or debri_density == 0:
 		return
-	if hp == 0:
-		visible = false
 	if check_floating and remove_floating_voxels:
 		call_deferred("_remove_detached_voxels_start")
 	damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
