@@ -139,7 +139,6 @@ func _start_debri(function, check_floating):
 	_debri_called = true
 	call_deferred(function)
 	_set_hp()
-	print(hp)
 
 
 func _no_debri():
