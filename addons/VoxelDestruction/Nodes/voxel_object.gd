@@ -46,19 +46,21 @@ var _exit_thread := false
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
+		if name != "SmallCube":
+			queue_free()
 		var shape = BoxShape3D.new()
 		shape.size = size
-		if not physics:
-			for i in multimesh.instance_count:
-				var body = StaticBody3D.new()
-				var shapenode = CollisionShape3D.new()
-				shapenode.shape = shape
-				body.position = voxel_resource.positions[i]*size
-				body.collision_layer = 0
-				body.add_child(shapenode)
-				add_child(body, false, Node.INTERNAL_MODE_BACK)
-				_collision_shapes[body] = i
-				voxel_resource.colors[i] = multimesh.get_instance_color(i)
+		for i in multimesh.instance_count:
+			var body = StaticBody3D.new()
+			var shapenode = CollisionShape3D.new()
+			shapenode.shape = shape
+			body.position = voxel_resource.positions[i]*size
+			if physics:
+				body.collision_mask = 0
+			body.add_child(shapenode)
+			add_child(body, false, Node.INTERNAL_MODE_BACK)
+			_collision_shapes[body] = i
+			voxel_resource.colors[i] = multimesh.get_instance_color(i)
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
 		
