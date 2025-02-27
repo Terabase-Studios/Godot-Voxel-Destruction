@@ -64,8 +64,6 @@ func _ready() -> void:
 
 		_thread = Thread.new()
 		_thread.start(_flood_fill)
-		await get_tree().create_timer(5).timeout
-		reset()
 
 
 func populate_mesh():
