@@ -80,7 +80,7 @@ func _fire():
 	if cooldown == 0:
 		if hit == true:
 			%Panel.visible = false
-			%VoxelDamager.call_deferred("hit")
+			print(%VoxelDamager.hit())
 			cooldown = .05
 		else:
 			%Panel.visible = true

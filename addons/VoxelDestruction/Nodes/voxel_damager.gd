@@ -29,12 +29,14 @@ func hit() -> Array:
 						var velocity = launch_vector.normalized() * power
 						body.apply_impulse(velocity*body.scale )
 				elif body is StaticBody3D:
+					var parent = body.get_parent()
 					if group_mode == 1:
-						if group in body.get_parent().get_groups():
+						if group in parent.get_groups():
 							continue
 					elif group_mode == 2:
-						if group not in body.get_parent().get_groups():
+						if group not in parent.get_groups():
 							continue
-					body.get_parent().call_deferred("_damage_voxel", body, self)
-					hit_objects.append(body.get_parent())
+					parent.call_deferred("_damage_voxel", body, self)
+					if parent not in hit_objects:
+						hit_objects.append(parent)
 	return hit_objects
