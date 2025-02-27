@@ -64,6 +64,8 @@ func _ready() -> void:
 
 		_thread = Thread.new()
 		_thread.start(_flood_fill)
+		await get_tree().create_timer(5).timeout
+		reset()
 
 
 func populate_mesh():
@@ -96,6 +98,16 @@ func populate_mesh():
 			multimesh.set_instance_color(i, dithered_color)
 
 
+func reset():
+	damage_resource.positions = voxel_resource.positions
+	damage_resource.positions_dict = voxel_resource.positions_dict
+	damage_resource.health.fill(100)
+	for body in _collision_shapes:
+		body.get_child(0).disabled = false
+	populate_mesh()
+	_set_hp()
+
+
 func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 	if invulnerable:
 		return
@@ -118,7 +130,7 @@ func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 			if damage_id != -1:
 				damage_resource.positions_dict.erase(vox_pos)
 			multimesh.set_instance_transform(voxid, Transform3D())
-			body.get_child(0).queue_free()
+			body.get_child(0).disabled = true
 			_debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
 			if debri_type == 0:
 				_start_debri("_no_debri", true)
@@ -304,7 +316,7 @@ func _flood_fill():
 
 func _remove_vox(voxid):
 	var collision_shape = _collision_shapes.keys()[voxid].get_child(0)
-	collision_shape.queue_free()
+	collision_shape.disabled = true
 
 
 func _set_hp():
