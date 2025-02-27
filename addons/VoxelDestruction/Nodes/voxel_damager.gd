@@ -14,8 +14,9 @@ class_name VoxelDamager
 @onready var global_pos = global_position
 @onready var range: int = get_child(0).shape.radius
 
-func hit():
+func hit() -> Array:
 	var VoxelObjectNode = null
+	var hit_objects = []
 	global_pos = global_position
 	if not get_overlapping_bodies().is_empty():
 		for body in get_overlapping_bodies():
@@ -35,3 +36,5 @@ func hit():
 						if group not in body.get_parent().get_groups():
 							continue
 					body.get_parent().call_deferred("_damage_voxel", body, self)
+					hit_objects.append(body.get_parent())
+	return hit_objects
