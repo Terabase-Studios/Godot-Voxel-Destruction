@@ -34,6 +34,7 @@ class_name VoxelObject
 @export var damage_resource: DamageResource
 @export_storage var size = Vector3(.1, .1, .1)
 var _collision_shapes = {}
+var _collision_shapes_list = []
 var _debri_queue = []
 var _debri_called = false
 var _mutex: Mutex
@@ -58,6 +59,7 @@ func _ready() -> void:
 			voxel_resource.colors[i] = multimesh.get_instance_color(i)
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
+		_collision_shapes_list = _collision_shapes.keys()
 		_mutex = Mutex.new()
 		_semaphore = Semaphore.new()
 		_exit_thread = false
@@ -227,19 +229,19 @@ func _create_debri_rigid_bodies():
 		debri_objects.append(debri)
 	_debri_called = false
 	_debri_queue.clear()
+	
 	await get_tree().create_timer(debri_lifetime).timeout
-	# Batch scale-down animation (single loop)
 	if not debri_objects.is_empty():
 		var tween = get_tree().create_tween()
 		for debri in debri_objects:
 			var shape = debri.get_child(0)
 			var mesh = debri.get_child(1)
-			tween.tween_property(shape, "scale", Vector3(.01, .01, .01), 1)
-			tween.tween_property(mesh, "scale", Vector3(.01, .01, .01), 1)
+			tween.parallel().tween_property(shape, "scale", Vector3(.01, .01, .01), 1)
+			tween.parallel().tween_property(mesh, "scale", Vector3(.01, .01, .01), 1)
 		await get_tree().create_timer(1).timeout
-	# Restore all debris in a batch
-	for debri in debri_objects:
-		_restore_debri_rigid_bodies(debri)
+	
+		for debri in debri_objects:
+			_restore_debri_rigid_bodies(debri)
 
 
 func _restore_debri_rigid_bodies(debri):
@@ -273,38 +275,39 @@ func _flood_fill():
 		
 		var queue = [voxel_resource.origin]
 		var visited = {}
-		var damage_positions = damage_resource.positions
 		var damage_positions_dict = damage_resource.positions_dict
 		
-		visited[voxel_resource.origin] = true
+		visited[voxel_resource.origin] = null
 		
-		var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
+		var offsets = [
+			Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
+			Vector3i(0, 1, 0), Vector3i(0, -1, 0),
+			Vector3i(0, 0, 1), Vector3i(0, 0, -1)
+		]
 		
-		
-					   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
-					   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
-		
-		while queue.size() > 0:
-			var vox = queue.pop_front()
+		var front = 0
+		while front < queue.size():
+			var vox = queue[front]
+			front += 1
 			
 			for offset in offsets:
-				var neighbor_vox: Vector3i = vox + offset
+				var neighbor_vox = vox + offset
 				
-				if not visited.get(neighbor_vox) and damage_positions.has(Vector3(neighbor_vox)):
-					visited[neighbor_vox] = true
+				if not visited.has(neighbor_vox) and damage_positions_dict.has(neighbor_vox):
+					visited[neighbor_vox] = null
 					queue.append(neighbor_vox)
 		
 		var to_remove = []
-		for vox in damage_positions:
-			if not visited.has(Vector3i(vox)):  
+		for vox in damage_positions_dict:
+			if not visited.has(vox):
 				to_remove.append(vox)
 		
-		# Process voxel removal inside the thread
+		
 		_mutex.lock()
 		for vox in to_remove:
-			var voxid = voxel_resource.positions_dict[Vector3i(vox)]
+			var voxid = voxel_resource.positions_dict.get(vox, -1)
 			if voxid != -1:
-				damage_resource.positions_dict.erase(Vector3i(vox))
+				damage_resource.positions_dict.erase(vox)
 				multimesh.set_instance_transform(voxid, Transform3D())
 				call_deferred("_remove_vox", voxid)
 		damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
@@ -313,8 +316,9 @@ func _flood_fill():
 
 
 func _remove_vox(voxid):
-	var collision_shape = _collision_shapes.keys()[voxid].get_child(0)
+	var collision_shape = _collision_shapes_list[voxid].get_child(0)
 	collision_shape.disabled = true
+
 
 
 func _set_hp():
