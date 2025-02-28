@@ -109,8 +109,6 @@ func reset():
 
 
 func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
-	if invulnerable:
-		return
 	var voxid = _collision_shapes[body]
 	if voxid == -1:
 		return  # Skip if voxel not found
@@ -126,12 +124,12 @@ func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
 	else:
 		if body.get_child(0).disabled == false:
 			var vox_pos = Vector3i(voxel_resource.positions[voxid])
-			var damage_id = damage_resource.positions_dict[Vector3i(voxel_resource.positions[voxid])]
+			var damage_id = damage_resource.positions_dict[vox_pos]
 			if damage_id != -1:
 				damage_resource.positions_dict.erase(vox_pos)
 			multimesh.set_instance_transform(voxid, Transform3D())
 			body.get_child(0).disabled = true
-			_debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
+			_debri_queue.append({ "pos": Vector3(vox_pos)*size + global_position, "origin": damager.global_pos, "power": power }) 
 			if debri_type == 0:
 				_start_debri("_no_debri", true)
 			elif debri_type == 1:

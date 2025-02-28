@@ -30,6 +30,8 @@ func hit() -> Array:
 						body.apply_impulse(velocity*body.scale )
 				elif body is StaticBody3D:
 					var parent = body.get_parent()
+					if parent.invulnerable:
+						continue
 					if group_mode == 1:
 						if group in parent.get_groups():
 							continue
