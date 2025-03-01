@@ -29,7 +29,7 @@ class_name VoxelObject
 		populate_mesh()
 @export_subgroup("Experimental")
 @export var remove_floating_voxels = false
-@export var physics = false
+var physics_object = false
 @export_subgroup("Resources")
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
@@ -46,31 +46,20 @@ var _exit_thread := false
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		if name != "SmallCube":
-			queue_free()
-		var shape = BoxShape3D.new()
-		shape.size = size
-		for i in multimesh.instance_count:
-			var body = StaticBody3D.new()
-			var shapenode = CollisionShape3D.new()
-			shapenode.shape = shape
-			body.position = voxel_resource.positions[i]*size
-			if physics:
-				body.collision_mask = 0
-			body.add_child(shapenode)
-			add_child(body, false, Node.INTERNAL_MODE_BACK)
-			_collision_shapes[body] = i
-			voxel_resource.colors[i] = multimesh.get_instance_color(i)
-		if debri_type == 1:
-			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
-		
 		_mutex = Mutex.new()
 		_semaphore = Semaphore.new()
 		_exit_thread = false
 		_thread = Thread.new()
 		_thread.start(_flood_fill)
-		if physics:
-			call_deferred("_create_physics")
+		if physics_object:
+			var physics_voxel_object = PhysicsVoxelObject.new()
+			add_sibling.call_deferred(physics_voxel_object)
+			physics_voxel_object.call_deferred("assimilate", self)
+		else:
+			if debri_type == 1:
+				damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
+			_collision_shapes_list = _collision_shapes.keys()
+			call_deferred("_finish_object")
 
 
 func populate_mesh():
@@ -101,6 +90,31 @@ func populate_mesh():
 			
 			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*size))
 			multimesh.set_instance_color(i, dithered_color)
+
+
+func reset():
+	damage_resource.positions = voxel_resource.positions
+	damage_resource.positions_dict = voxel_resource.positions_dict
+	damage_resource.health.fill(100)
+	for body in _collision_shapes:
+		body.get_child(0).disabled = false
+	populate_mesh()
+	_set_hp()
+
+
+func _finish_object():
+	var shape = BoxShape3D.new()
+	shape.size = size
+	for i in multimesh.instance_count:
+		var body = StaticBody3D.new()
+		var shapenode = CollisionShape3D.new()
+		shapenode.shape = shape
+		body.position = voxel_resource.positions[i]*size
+		body.add_child(shapenode)
+		add_child(body, false, Node.INTERNAL_MODE_BACK)
+		_collision_shapes[body] = i
+		voxel_resource.colors[i] = multimesh.get_instance_color(i)
+	await get_tree().process_frame
 
 
 func _damage_voxel(body: StaticBody3D, damager: VoxelDamager):
@@ -319,14 +333,12 @@ func _remove_vox(voxid):
 func _set_hp():
 	hp = float(int(float(damage_resource.positions.size())/float(voxel_resource.positions.size())*100))/100
 
-func _create_physics():
-	var rigid_body = RigidBody3D.new()
-	var shape = BoxShape3D.new()
-	shape.size = size
-	add_sibling(rigid_body)
-	reparent(rigid_body)
-	for i in multimesh.instance_count:
-		var shapenode = CollisionShape3D.new()
-		shapenode.shape = shape
-		shapenode.position = voxel_resource.positions[i]*size
-		rigid_body.add_child(shapenode)
+
+func _exit_tree():
+	_mutex.lock()
+	_exit_thread = true
+	_mutex.unlock()
+
+	_semaphore.post()
+
+	_thread.wait_to_finish()
