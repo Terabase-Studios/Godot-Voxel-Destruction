@@ -16,6 +16,10 @@ config/features=PackedStringArray("4.3", "GL Compatibility")
 run/max_fps=60
 config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
 
+[autoload]
+
+VoxelServer="*res://addons/VoxelDestruction/voxel_server.gd"
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/VoxelDestruction/plugin.cfg")
