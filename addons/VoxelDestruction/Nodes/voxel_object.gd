@@ -143,7 +143,7 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 			damage_resource.positions_dict.erase(vox_pos)
 		multimesh.set_instance_transform(voxid, Transform3D())
 		server.body_set_shape_disabled(body, 0, true)
-		_debri_queue.append({ "pos": voxel_resource.positions[voxid]*size + global_position, "origin": damager.global_pos, "power": power }) 
+		_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power }) 
 		if debri_type == 0:
 			_start_debri("_no_debri", true)
 		elif debri_type == 1:
@@ -358,4 +358,17 @@ func _set(property: StringName, value: Variant) -> bool:
 			_transform.origin += position - prev_pos
 			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
 		return true
+	elif property == "rotation":
+		var server = PhysicsServer3D
+		var prev_transform = Transform3D(Basis.from_euler(rotation), position)
+		rotation = value 
+		var new_transform = Transform3D(Basis.from_euler(rotation), position)
+		for rid in _body_rids_list:
+			var _transform = server.body_get_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM)
+			var local_pos = prev_transform.affine_inverse() * _transform.origin
+			_transform.origin = new_transform * local_pos
+			_transform.basis = new_transform.basis
+			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
+		return true
+
 	return false
