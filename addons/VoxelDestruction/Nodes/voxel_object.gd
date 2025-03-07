@@ -29,7 +29,7 @@ class_name VoxelObject
 		populate_mesh()
 @export_subgroup("Experimental")
 @export var remove_floating_voxels = false
-@export var physics_object = false
+var physics_object = false
 @export_subgroup("Resources")
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
@@ -43,7 +43,7 @@ var _semaphore: Semaphore
 var _thread: Thread
 var _exit_thread := false
 var _sleeping = false
-@onready var hp: float = 1
+var hp: float = 1
 
 
 func _ready() -> void:
