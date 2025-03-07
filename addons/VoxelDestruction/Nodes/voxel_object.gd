@@ -42,6 +42,7 @@ var _mutex: Mutex
 var _semaphore: Semaphore
 var _thread: Thread
 var _exit_thread := false
+var _sleeping = false
 @onready var hp: float = 1
 
 
@@ -54,7 +55,7 @@ func _ready() -> void:
 		_thread.start(_flood_fill)
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
-		call_deferred("_finish_object")
+		call_deferred("_create_collision")
 
 
 func populate_mesh():
@@ -92,12 +93,48 @@ func reset():
 	damage_resource.positions_dict = voxel_resource.positions_dict
 	damage_resource.health.fill(100)
 	for body in _body_rids:
-		body.get_child(0).disabled = false
+		PhysicsServer3D.body_set_shape_disabled(body, 0, false)
 	populate_mesh()
 	_set_hp()
 
 
-func _finish_object():
+func sleep():
+	_sleeping = true
+	var server = PhysicsServer3D
+	for rid in _body_rids:
+		server.free_rid(server.body_get_shape(rid, 0))
+		server.free_rid(rid)
+		VoxelServer.body_metadata.erase(rid)
+	_body_rids.clear()
+	_body_rids_list.clear()
+	await get_tree().create_timer(3).timeout
+	awake()
+
+
+func awake():
+	_sleeping = false
+	_create_collision()
+
+
+func _make_physics_object():
+	var server = PhysicsServer3D
+	var body = RigidBody3D.new()
+	var body_rid = body.get_rid()
+	body.freeze = true
+	body.name = name + " Physics"
+	body.global_position = global_position
+	position = Vector3.ZERO
+	add_sibling(body)
+	get_parent().remove_child(self)
+	body.add_child(self, true, Node.INTERNAL_MODE_FRONT)
+	await get_tree().process_frame
+	for rid in _body_rids:
+		server.body_add_collision_exception(rid, body_rid)
+	var mesh = Mesh.new()
+	body.freeze = false
+
+
+func _create_collision():
 	var server = PhysicsServer3D
 	var global_pos = global_position
 	for i in multimesh.instance_count:
@@ -117,10 +154,12 @@ func _finish_object():
 		_body_rids[bodyRID] = i
 		voxel_resource.colors[i] = multimesh.get_instance_color(i)
 	_body_rids_list = _body_rids.keys()
+	if physics_object:
+		_make_physics_object()
 
 
 func _damage_voxel(body: RID, damager: VoxelDamager):
-	if invulnerable:
+	if invulnerable or _sleeping:
 		return
 	var server = PhysicsServer3D
 	var voxid = _body_rids[body]
@@ -250,8 +289,8 @@ func _create_debri_rigid_bodies():
 		for debri in debri_objects:
 			var shape = debri.get_child(0)
 			var mesh = debri.get_child(1)
-			tween.tween_property(shape, "scale", Vector3(.01, .01, .01), 1)
-			tween.tween_property(mesh, "scale", Vector3(.01, .01, .01), 1)
+			tween.parallel().tween_property(shape, "scale", Vector3(.01, .01, .01), 1)
+			tween.parallel().tween_property(mesh, "scale", Vector3(.01, .01, .01), 1)
 		await get_tree().create_timer(1).timeout
 	# Restore all debris in a batch
 	for debri in debri_objects:
@@ -338,14 +377,23 @@ func _set_hp():
 
 
 func _exit_tree():
-	if _thread.is_started():
+	if _thread != null:
 		_mutex.lock()
 		_exit_thread = true
 		_mutex.unlock()
-
+		
 		_semaphore.post()
-
+		
 		_thread.wait_to_finish()
+	
+	var server = PhysicsServer3D
+	for rid in _body_rids:
+		server.free_rid(server.body_get_shape(rid, 0))
+		server.free_rid(rid)
+		VoxelServer.body_metadata.erase(rid)
+	
+	voxel_resource = null
+	damage_resource = null
 
 
 func _set(property: StringName, value: Variant) -> bool:
@@ -358,6 +406,7 @@ func _set(property: StringName, value: Variant) -> bool:
 			_transform.origin += position - prev_pos
 			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
 		return true
+	
 	elif property == "rotation":
 		var server = PhysicsServer3D
 		var prev_transform = Transform3D(Basis.from_euler(rotation), position)
@@ -370,5 +419,4 @@ func _set(property: StringName, value: Variant) -> bool:
 			_transform.basis = new_transform.basis
 			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
 		return true
-
 	return false

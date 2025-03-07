@@ -25,16 +25,17 @@ func hit():
 	var VoxelObjectNode = null
 	global_pos = global_position
 	for rid in target_objects:
-		var voxel_object = VoxelServer.body_metadata[rid]
-		if group_mode == 1:
-			if group in voxel_object.get_groups():
-				continue
-		elif group_mode == 2:
-			if group not in voxel_object.get_groups():
-				continue
-		voxel_object.call_deferred("_damage_voxel", rid, self)
-		if voxel_object not in hit_objects:
-			hit_objects.append(voxel_object)
+		if VoxelServer.body_metadata.get(rid):
+			var voxel_object = VoxelServer.body_metadata[rid]
+			if group_mode == 1:
+				if group in voxel_object.get_groups():
+					continue
+			elif group_mode == 2:
+				if group not in voxel_object.get_groups():
+					continue
+			voxel_object.call_deferred("_damage_voxel", rid, self)
+			if voxel_object not in hit_objects:
+				hit_objects.append(voxel_object)
 	for debri in get_overlapping_bodies():
 		if "VoxelDebri" in debri.name and knock_back_debri:
 			if is_instance_valid(debri):
