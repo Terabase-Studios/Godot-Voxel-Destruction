@@ -12,6 +12,8 @@ func get_body_transform(rid):
 	return body_metadata[rid][1]
 
 func remove_body(rid):
+	if not body_metadata.has(rid):
+		return
 	var server = PhysicsServer3D
 	for i: VoxelDamager in voxel_damagers:
 		i.target_objects.erase(rid)

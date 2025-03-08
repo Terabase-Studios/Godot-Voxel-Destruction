@@ -13,7 +13,7 @@ class_name VoxelDamager
 @export var knock_back_debri = false
 @onready var global_pos = global_position
 @onready var range: int = get_child(0).shape.radius
-var target_objects = []
+var target_objects = Array()
 
 func _ready() -> void:
 	connect("body_shape_entered", _on_body_shape_entered)

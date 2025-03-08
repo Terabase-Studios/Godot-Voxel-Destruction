@@ -5,6 +5,11 @@ class_name VoxelObject
 
 @export var invulnerable = false
 @export var darkening = true
+@export var stagger_functions = true
+@export_range(0, .5, .05) var stagger_after = .05:
+	set(value):
+		stagger_after = value
+		_stagger_threshold = voxel_resource.vox_count/stagger_after
 @export_subgroup("Debri")
 @export_enum("None", "Rigid Bodies", "Multimesh") var debri_type = 2
 @export var debri_weight = 1
@@ -33,10 +38,9 @@ var physics_object = false
 @export_subgroup("Resources")
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
-@export_storage 
-var _body_rids: Dictionary[RID, int] = {}
-var _body_rids_list = []
-var _debri_queue = []
+var _body_rids: Dictionary[RID, int]
+var _body_rids_list = Array()
+var _debri_queue = Array()
 var _debri_called = false
 var _mutex: Mutex
 var _semaphore: Semaphore
@@ -44,11 +48,15 @@ var _thread: Thread
 var _exit_thread := false
 var _sleeping = false
 var _locked = false
+var _multimesh_debri: Dictionary[MultiMeshInstance3D, Array]
+var _stagger_threshold
 var hp: float = 1
+@onready var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
+		_stagger_threshold = voxel_resource.vox_count/stagger_after
 		_mutex = Mutex.new()
 		_semaphore = Semaphore.new()
 		_exit_thread = false
@@ -56,8 +64,35 @@ func _ready() -> void:
 		_thread.start(_flood_fill)
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
-		call_deferred("_create_collision")
+		call_deferred("_create_collision", true)
 		VoxelServer.voxel_objects.append(self)
+		await get_tree().create_timer(10).timeout
+		#await add_sibling(self.duplicate())
+		#await get_tree().process_frame
+		queue_free()
+
+
+func _physics_process(delta: float) -> void:
+	var remove = []
+	for multimesh_instance in _multimesh_debri:
+		var debri_states = _multimesh_debri[multimesh_instance]
+		var _multimesh = multimesh_instance.multimesh
+		for i in debri_states.size():
+			var data = debri_states[i]
+			data["lifetime"] -= delta
+			data["velocity"].x *= .98
+			data["velocity"].z *= .98
+			data["velocity"].y -= (gravity_magnitude + debri_weight) / 80
+			data["position"] += data["velocity"] * delta * 2
+			_multimesh.set_instance_transform(i, Transform3D(Basis(), data["position"]))
+			if data["lifetime"] < 0 and multimesh_instance not in remove:
+				remove.append(multimesh_instance)
+	
+	for multimesh_instance in remove:
+		if is_instance_valid(multimesh_instance):
+			_multimesh_debri.erase(multimesh_instance)
+			multimesh_instance.queue_free()
+	remove.clear()
 
 
 func populate_mesh():
@@ -107,13 +142,11 @@ func sleep():
 		VoxelServer.remove_body(rid)
 	_body_rids.clear()
 	_body_rids_list.clear()
-	await get_tree().create_timer(3).timeout
-	awake()
 
 
 func awake():
 	_sleeping = false
-	_create_collision()
+	_create_collision(false)
 
 
 func get_vox_color(voxid):
@@ -138,10 +171,17 @@ func _make_physics_object():
 	body.freeze = false
 
 
-func _create_collision():
+func _create_collision(first_time):
+	var prev_rotation = rotation
+	rotation = Vector3.ZERO
 	var server = PhysicsServer3D
 	var global_pos = global_position
+	var offset = 0
 	for i in multimesh.instance_count:
+		if not first_time:
+			if voxel_resource.positions[i] not in damage_resource.positions:
+				offset += 1
+				continue
 		var bodyRID = server.body_create()
 		var shapeRID = server.box_shape_create()
 		var half_size = voxel_resource.vox_size / 2.0
@@ -155,7 +195,7 @@ func _create_collision():
 		server.body_set_mode(bodyRID, PhysicsServer3D.BODY_MODE_STATIC)
 		server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_SLEEPING, false)
 		VoxelServer.body_metadata[bodyRID] = [VoxelServer.voxel_objects.find(self), _transform]
-		_body_rids[bodyRID] = i
+		_body_rids[bodyRID] = i + offset
 		
 		# Update colors (they could be dithered)
 		var color = multimesh.get_instance_color(i)
@@ -163,12 +203,15 @@ func _create_collision():
 			voxel_resource.colors.append(color)
 		voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 	_body_rids_list = _body_rids.keys()
+	rotation = prev_rotation
 	if physics_object:
 		_make_physics_object()
 
 
 func _damage_voxel(body: RID, damager: VoxelDamager):
 	if invulnerable or _sleeping:
+		return
+	if not VoxelServer.body_metadata.has(body):
 		return
 	var server = PhysicsServer3D
 	var voxid = _body_rids[body]
@@ -222,18 +265,17 @@ func _no_debri():
 
 
 func _create_debri_multimesh():
-	var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
 	var debri_states = []
-	var multi_mesh_instance = MultiMeshInstance3D.new()
-	var multi_mesh = MultiMesh.new()
-	multi_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	multi_mesh_instance.top_level = true
-	multi_mesh_instance.multimesh = multi_mesh
-	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
-	multi_mesh.mesh.size = voxel_resource.vox_size
-	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
-	multi_mesh.instance_count = _debri_queue.size()
-	add_child(multi_mesh_instance)
+	var _multimesh_instance = MultiMeshInstance3D.new()
+	var _multimesh = MultiMesh.new()
+	_multimesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_multimesh_instance.top_level = true
+	_multimesh_instance.multimesh = _multimesh
+	_multimesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
+	_multimesh.mesh.size = voxel_resource.vox_size
+	_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	_multimesh.instance_count = _debri_queue.size()
+	add_child(_multimesh_instance)
 	var idx = 0
 	for debris_data in _debri_queue:
 		# Control debri amount
@@ -241,29 +283,19 @@ func _create_debri_multimesh():
 		
 		var debris_pos = debris_data.pos
 		
-		# Store data for manual physics update
 		debri_states.append({
 			"position": debris_pos,
 			"velocity": (debris_pos - debris_data.origin).normalized() * -debris_data.power,
+			"lifetime": debri_lifetime
 		})
 		
-		multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
+		_multimesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
 		idx += 1
 	var current_lifetime = debri_lifetime
 	_debri_called = false
 	_debri_queue.clear()
-	while current_lifetime > 0:
-		var delta = get_physics_process_delta_time()
-		current_lifetime -= delta
-		for i in debri_states.size():
-			var data = debri_states[i]
-			data["velocity"].x *= .98
-			data["velocity"].z *= .98
-			data["velocity"].y -= (gravity_magnitude + debri_weight) / 80
-			data["position"] += data["velocity"] * delta * 2
-			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data["position"]))
-			await get_tree().process_frame
-	multi_mesh_instance.queue_free()
+	_multimesh_debri[_multimesh_instance] = debri_states
+
 
 
 func _create_debri_rigid_bodies():
@@ -357,7 +389,7 @@ func _flood_fill():
 			
 			for offset in offsets:
 				var neighbor_vox: Vector3i = vox + offset
-				
+			
 				if not visited.get(neighbor_vox) and damage_positions.has(Vector3(neighbor_vox)):
 					visited[neighbor_vox] = true
 					queue.append(neighbor_vox)
@@ -389,27 +421,6 @@ func _set_hp():
 	hp = float(int(float(damage_resource.positions.size())/float(voxel_resource.vox_count)*100))/100
 
 
-func _exit_tree():
-	if Engine.is_editor_hint():
-		return
-	if _thread != null:
-		_mutex.lock()
-		_exit_thread = true
-		_mutex.unlock()
-		
-		_semaphore.post()
-		
-		_thread.wait_to_finish()
-	
-	var server = PhysicsServer3D
-	for rid in _body_rids:
-		VoxelServer.remove_body(rid)
-	
-	voxel_resource = null
-	damage_resource = null
-	VoxelServer.voxel_objects.erase(self)
-
-
 func _set(property: StringName, value: Variant) -> bool:
 	if property == "position":
 		var server = PhysicsServer3D
@@ -436,3 +447,26 @@ func _set(property: StringName, value: Variant) -> bool:
 			VoxelServer.body_metadata[rid][1] = [_transform]
 		return true
 	return false
+
+
+func _exit_tree():
+	if Engine.is_editor_hint():
+		return
+	if _thread != null:
+		_mutex.lock()
+		_exit_thread = true
+		_mutex.unlock()
+		
+		_semaphore.post()
+		
+		_thread.wait_to_finish()
+	
+	var server = PhysicsServer3D
+	var stagger = 0
+	for rid in _body_rids:
+		VoxelServer.remove_body(rid)
+		stagger += 1
+	
+	voxel_resource = null
+	damage_resource = null
+	VoxelServer.voxel_objects.erase(self)
