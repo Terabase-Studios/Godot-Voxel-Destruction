@@ -2,9 +2,9 @@
 extends Resource
 class_name DamageResource
 
-@export var health: PackedInt32Array
+@export var health: PackedByteArray
 @export var positions: PackedVector3Array
-@export var positions_dict: Dictionary
+@export var positions_dict: Dictionary[Vector3i, int]
 var debri_pool = []
 
 # Debri handling

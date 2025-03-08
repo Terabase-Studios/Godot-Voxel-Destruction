@@ -33,8 +33,8 @@ var physics_object = false
 @export_subgroup("Resources")
 @export var voxel_resource: VoxelResource
 @export var damage_resource: DamageResource
-@export_storage var size = Vector3(.1, .1, .1)
-var _body_rids = {}
+@export_storage 
+var _body_rids: Dictionary[RID, int] = {}
 var _body_rids_list = []
 var _debri_queue = []
 var _debri_called = false
@@ -43,6 +43,7 @@ var _semaphore: Semaphore
 var _thread: Thread
 var _exit_thread := false
 var _sleeping = false
+var _locked = false
 var hp: float = 1
 
 
@@ -56,17 +57,18 @@ func _ready() -> void:
 		if debri_type == 1:
 			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
 		call_deferred("_create_collision")
+		VoxelServer.voxel_objects.append(self)
 
 
 func populate_mesh():
-	if Engine.get_frames_drawn() != 0:
+	if Engine.is_editor_hint():
 		multimesh = MultiMesh.new()
 		multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		multimesh.use_colors = true
-		multimesh.instance_count = voxel_resource.positions.size()
+		multimesh.instance_count = voxel_resource.vox_count
 		var mesh = BoxMesh.new()
 		mesh.material = preload("res://addons/VoxelDestruction/Resources/voxel_material.tres")
-		mesh.size = size
+		mesh.size = voxel_resource.vox_size
 		multimesh.mesh = mesh
 		
 		var random = RandomNumberGenerator.new()
@@ -78,13 +80,13 @@ func populate_mesh():
 			var dithered_color = Color.WHITE
 			if dark_dithering == 0 or light_dithering == 0:
 				if dark_dithering == 0:
-					dithered_color = voxel_resource.colors[i].lightened(light_variation)
+					dithered_color = get_vox_color(i).lightened(light_variation)
 				elif light_dithering == 0:
-					dithered_color = voxel_resource.colors[i].darkened(dark_variation)
+					dithered_color = get_vox_color(i).darkened(dark_variation)
 			else:
-				dithered_color = voxel_resource.colors[i].darkened(dark_variation) if randf() > dithering_bias else voxel_resource.colors[i].lightened(light_variation)
+				dithered_color = get_vox_color(i).darkened(dark_variation) if randf() > dithering_bias else get_vox_color(i).lightened(light_variation)
 			
-			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*size))
+			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*voxel_resource.vox_size))
 			multimesh.set_instance_color(i, dithered_color)
 
 
@@ -102,9 +104,7 @@ func sleep():
 	_sleeping = true
 	var server = PhysicsServer3D
 	for rid in _body_rids:
-		server.free_rid(server.body_get_shape(rid, 0))
-		server.free_rid(rid)
-		VoxelServer.body_metadata.erase(rid)
+		VoxelServer.remove_body(rid)
 	_body_rids.clear()
 	_body_rids_list.clear()
 	await get_tree().create_timer(3).timeout
@@ -114,6 +114,10 @@ func sleep():
 func awake():
 	_sleeping = false
 	_create_collision()
+
+
+func get_vox_color(voxid):
+	return voxel_resource.colors[voxel_resource.color_index[voxid]]
 
 
 func _make_physics_object():
@@ -140,19 +144,24 @@ func _create_collision():
 	for i in multimesh.instance_count:
 		var bodyRID = server.body_create()
 		var shapeRID = server.box_shape_create()
-		var half_size = size / 2.0
+		var half_size = voxel_resource.vox_size / 2.0
 		server.shape_set_data(shapeRID, half_size)  
 		server.body_set_space(bodyRID, get_world_3d().space)
 		server.body_set_collision_layer(bodyRID, 1)
 		server.body_set_collision_mask(bodyRID, 1)
 		server.body_add_shape(bodyRID, shapeRID, Transform3D(), false)
-		var _transform = Transform3D(Basis(), (voxel_resource.positions[i] * size) + global_pos)
+		var _transform = Transform3D(Basis(), (voxel_resource.positions[i] * voxel_resource.vox_size) + global_pos)
 		server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
 		server.body_set_mode(bodyRID, PhysicsServer3D.BODY_MODE_STATIC)
 		server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_SLEEPING, false)
-		VoxelServer.body_metadata[bodyRID] = self
+		VoxelServer.body_metadata[bodyRID] = [VoxelServer.voxel_objects.find(self), _transform]
 		_body_rids[bodyRID] = i
-		voxel_resource.colors[i] = multimesh.get_instance_color(i)
+		
+		# Update colors (they could be dithered)
+		var color = multimesh.get_instance_color(i)
+		if color not in voxel_resource.colors:
+			voxel_resource.colors.append(color)
+		voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 	_body_rids_list = _body_rids.keys()
 	if physics_object:
 		_make_physics_object()
@@ -165,7 +174,7 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 	var voxid = _body_rids[body]
 	if voxid == -1:
 		return  # Skip if voxel not found
-	var location = server.body_get_state(body, PhysicsServer3D.BODY_STATE_TRANSFORM).origin
+	var location = VoxelServer.get_body_transform(body).origin
 	var decay = damager.global_pos.distance_to(location) / damager.range
 	var damage = damager.base_damage * damager.damage_curve.sample(decay)
 	var power = damager.base_power * damager.power_curve.sample(decay)/max(debri_weight, .1)
@@ -174,15 +183,15 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 	damage_resource.health[voxid] = health
 	if health != 0:
 		if darkening:
-			multimesh.set_instance_color(voxid, voxel_resource.colors[voxid].darkened(1.0 - (health * 0.01)))
+			multimesh.set_instance_color(voxid, get_vox_color(voxid).darkened(1.0 - (health * 0.01)))
 	else:
 		var vox_pos = Vector3i(voxel_resource.positions[voxid])
-		var damage_id = damage_resource.positions_dict[Vector3i(voxel_resource.positions[voxid])]
+		var damage_id = damage_resource.positions_dict.get(Vector3i(voxel_resource.positions[voxid]))
 		if damage_id != -1:
 			damage_resource.positions_dict.erase(vox_pos)
 		multimesh.set_instance_transform(voxid, Transform3D())
-		server.body_set_shape_disabled(body, 0, true)
-		_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power }) 
+		VoxelServer.remove_body(body)
+		_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power, "body": body }) 
 		if debri_type == 0:
 			_start_debri("_no_debri", true)
 		elif debri_type == 1:
@@ -192,12 +201,16 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 
 
 func _start_debri(function, check_floating):
+	await get_tree().process_frame
 	if _debri_called or debri_lifetime == 0 or debri_density == 0:
 		return
+	
 	if hp == 0:
 		visible = false
+	
 	if check_floating and remove_floating_voxels:
 		call_deferred("_remove_detached_voxels_start")
+	
 	damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
 	_debri_called = true
 	call_deferred(function)
@@ -217,7 +230,7 @@ func _create_debri_multimesh():
 	multi_mesh_instance.top_level = true
 	multi_mesh_instance.multimesh = multi_mesh
 	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
-	multi_mesh.mesh.size = size
+	multi_mesh.mesh.size = voxel_resource.vox_size
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
 	multi_mesh.instance_count = _debri_queue.size()
 	add_child(multi_mesh_instance)
@@ -249,7 +262,7 @@ func _create_debri_multimesh():
 			data["velocity"].y -= (gravity_magnitude + debri_weight) / 80
 			data["position"] += data["velocity"] * delta * 2
 			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data["position"]))
-		await get_tree().process_frame
+			await get_tree().process_frame
 	multi_mesh_instance.queue_free()
 
 
@@ -271,8 +284,8 @@ func _create_debri_rigid_bodies():
 		add_child(debri, true, Node.INTERNAL_MODE_BACK)
 		var debris_pos = debris_data.pos
 		debri.global_position = debris_pos
-		shape.shape.size = size
-		mesh.mesh.size = size
+		shape.shape.size = voxel_resource.vox_size
+		mesh.mesh.size = voxel_resource.vox_size
 		# Launch debri
 		var velocity = (debris_pos - debris_data.origin).normalized() * debris_data.power
 		debri.freeze = false
@@ -369,14 +382,16 @@ func _flood_fill():
 
 func _remove_vox(voxid):
 	var body_rid = _body_rids_list[voxid]
-	PhysicsServer3D.body_set_shape_disabled(body_rid, 0, true)
+	VoxelServer.remove_body(body_rid)
 
 
 func _set_hp():
-	hp = float(int(float(damage_resource.positions.size())/float(voxel_resource.positions.size())*100))/100
+	hp = float(int(float(damage_resource.positions.size())/float(voxel_resource.vox_count)*100))/100
 
 
 func _exit_tree():
+	if Engine.is_editor_hint():
+		return
 	if _thread != null:
 		_mutex.lock()
 		_exit_thread = true
@@ -388,12 +403,11 @@ func _exit_tree():
 	
 	var server = PhysicsServer3D
 	for rid in _body_rids:
-		server.free_rid(server.body_get_shape(rid, 0))
-		server.free_rid(rid)
-		VoxelServer.body_metadata.erase(rid)
+		VoxelServer.remove_body(rid)
 	
 	voxel_resource = null
 	damage_resource = null
+	VoxelServer.voxel_objects.erase(self)
 
 
 func _set(property: StringName, value: Variant) -> bool:
@@ -405,6 +419,7 @@ func _set(property: StringName, value: Variant) -> bool:
 			var _transform = server.body_get_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM)
 			_transform.origin += position - prev_pos
 			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
+			VoxelServer.body_metadata[rid][1] = [_transform]
 		return true
 	
 	elif property == "rotation":
@@ -418,5 +433,6 @@ func _set(property: StringName, value: Variant) -> bool:
 			_transform.origin = new_transform * local_pos
 			_transform.basis = new_transform.basis
 			server.body_set_state(rid, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
+			VoxelServer.body_metadata[rid][1] = [_transform]
 		return true
 	return false

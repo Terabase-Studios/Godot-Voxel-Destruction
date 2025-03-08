@@ -88,7 +88,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Read the file header
 	var magic = file.get_buffer(4).get_string_from_ascii()
 	if magic != "VOX ":
-		print("Invalid .vox file format!")
+		push_error("Invalid .vox file format!")
 		file.close()
 		return []
 	
@@ -139,52 +139,55 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	file.close()
 	
-	# Create resources
+	# Validate Voxels
+	if voxels.is_empty():
+		push_error("No voxel data found.")
+		return ERR_FILE_CORRUPT
+	
+	# Find the origin
+	var origin = size/Vector3(round(2), round(2), round(2))
+	
+	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
-	var damage_resource = DamageResource.new()
-	var health: PackedInt32Array
-	health.resize(positions.size())
-	health.fill(100)
-	var origin: Vector3 = size/Vector3(round(2), round(2), round(2))
-	voxel_resource.positions = PackedVector3Array()
-	voxel_resource.positions_dict = {}
-	voxel_resource.colors = PackedColorArray(colors)
+	voxel_resource.vox_count = voxels.size()
+	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
 	voxel_resource.size = size
-	damage_resource.health = PackedInt32Array(health)
 	
-	# Create Object/Add colors
+	# Create DamageResource, some variables will be set later.
+	var damage_resource = DamageResource.new()
+	damage_resource.health.resize(positions.size())
+	damage_resource.health.fill(100)
+	
+	
+	# Create Object/Add colors/Update Positions
 	var voxel_object = VoxelObject.new()
-	var color_list = PackedColorArray()
+	voxel_object._locked = true
+	var color_index = PackedByteArray()
 	var index = 0
 	for voxel in voxels:
 		var color = voxel["color"]
-		if color not in color_list:
-			color_list.append(color)
+		if color not in voxel_resource.colors:
+			voxel_resource.colors.append(color)
+		voxel_resource.color_index.append(voxel_resource.colors.find(color))
 		
 		var position = voxel["position"]
-		# Adjust position for godot
 		var adjusted_position = Vector3i(position.x, position.z, position.y)
 		voxel_resource.positions.append(adjusted_position)
 		voxel_resource.positions_dict[adjusted_position] = index
 		index += 1
 	
-	# Validate Voxels
-	if voxels.is_empty():
-		print_rich("[COLOR=red]Error: No voxel data found. Aborting save.[/COLOR]")
-		return ERR_FILE_CORRUPT
-	
-	# Modify object/add resource
-	damage_resource.positions = voxel_resource.positions.duplicate()
+	# Modify object/add resource/finish Damage Resourse
 	damage_resource.positions_dict = voxel_resource.positions_dict.duplicate()
+	damage_resource.positions = voxel_resource.positions.duplicate()
 	voxel_object.voxel_resource = voxel_resource
 	voxel_object.damage_resource = damage_resource
-	voxel_object.size = scale
 	voxel_object.position = origin * scale * Vector3(-1, 0, -1)
 	voxel_object.name = source_file.split('/')[source_file.split('/').size()-1].replace(".vox", "")
 	
 	# Populate mesh
 	voxel_object.multimesh = MultiMesh.new()
+	voxel_object.multimesh.instance_count = 0
 	voxel_object.multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	voxel_object.multimesh.use_colors = true
 	voxel_object.multimesh.instance_count = voxel_resource.positions.size()
@@ -195,14 +198,25 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Set the transform of the instances.
 	for i in voxel_object.multimesh.instance_count:
 		voxel_object.multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*scale))
-		voxel_object.multimesh.set_instance_color(i, voxel_resource.colors[i])
+		voxel_object.multimesh.set_instance_color(i, voxel_object.get_vox_color(i))
 	
 	# Save Scene
 	var voxel_scene = PackedScene.new()
 	voxel_scene.pack(voxel_object)
 	
+	
 	var err = ResourceSaver.save(voxel_scene, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
 		print(err)
+	#_add_custom_icon("%s.%s" % [save_path, _get_save_extension()])
 	return err
+
+func _add_custom_icon(scene_path: String):
+	var config = ConfigFile.new()
+	var err = config.load(scene_path)
 	
+	if err == OK:
+		config.set_value("meta", "editor_icon", "res://addons/VoxelDestruction/Nodes/voxel_object.svg")
+		config.save(scene_path)
+	else:
+		push_warning("Failed to modify scene icon:", scene_path)

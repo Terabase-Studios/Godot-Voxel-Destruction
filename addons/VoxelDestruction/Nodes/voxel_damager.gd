@@ -18,6 +18,7 @@ var target_objects = []
 func _ready() -> void:
 	connect("body_shape_entered", _on_body_shape_entered)
 	connect("body_shape_exited", _on_body_shape_exited)
+	VoxelServer.voxel_damagers.append(self)
 
 
 func hit():
@@ -26,7 +27,7 @@ func hit():
 	global_pos = global_position
 	for rid in target_objects:
 		if VoxelServer.body_metadata.get(rid):
-			var voxel_object = VoxelServer.body_metadata[rid]
+			var voxel_object = VoxelServer.get_body_object(rid)
 			if group_mode == 1:
 				if group in voxel_object.get_groups():
 					continue
@@ -46,6 +47,7 @@ func hit():
 				debri.apply_impulse(velocity*debri.scale)
 	return hit_objects
 
+
 func _on_body_shape_entered(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
 	if VoxelServer.body_metadata.has(body_rid):  # Check if we track it
 		target_objects.append(body_rid)
@@ -53,3 +55,7 @@ func _on_body_shape_entered(body_rid: RID, body: Node3D, body_shape_index: int, 
 func _on_body_shape_exited(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
 	if VoxelServer.body_metadata.has(body_rid) and target_objects.has(body_rid):
 		target_objects.remove_at(target_objects.find(body_rid))
+
+
+func _exit_tree() -> void:
+	VoxelServer.voxel_damagers.erase(self)

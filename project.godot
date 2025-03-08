@@ -20,6 +20,12 @@ config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
 
 VoxelServer="*res://addons/VoxelDestruction/voxel_server.gd"
 
+[display]
+
+window/size/viewport_width=2560
+window/size/viewport_height=1440
+window/size/mode=3
+
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/VoxelDestruction/plugin.cfg")
