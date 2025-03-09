@@ -3,13 +3,13 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 
+@export var voxel_resource: VoxelResource:
+	set(value):
+		voxel_resource = value
+		populate_mesh()
+		update_configuration_warnings()
 @export var invulnerable = false
 @export var darkening = true
-@export var stagger_functions = true
-@export_range(0, .5, .05) var stagger_after = .05:
-	set(value):
-		stagger_after = value
-		_stagger_threshold = voxel_resource.vox_count/stagger_after
 @export_subgroup("Debri")
 @export_enum("None", "Rigid Bodies", "Multimesh") var debri_type = 2
 @export var debri_weight = 1
@@ -32,12 +32,16 @@ class_name VoxelObject
 	set(value):
 		dithering_seed = value
 		populate_mesh()
+@export_subgroup("Staggering")
+@export var stagger_functions = true
+@export var stagger_collision = false
+@export_range(0, .5, .05) var stagger_after = .05:
+	set(value):
+		stagger_after = value
+		_stagger_threshold = max(stagger_after * voxel_resource.vox_count, 1000)
 @export_subgroup("Experimental")
 @export var remove_floating_voxels = false
 var physics_object = false
-@export_subgroup("Resources")
-@export var voxel_resource: VoxelResource
-@export var damage_resource: DamageResource
 var _body_rids: Dictionary[RID, int]
 var _body_rids_list = Array()
 var _debri_queue = Array()
@@ -49,31 +53,32 @@ var _exit_thread := false
 var _sleeping = false
 var _locked = false
 var _multimesh_debri: Dictionary[MultiMeshInstance3D, Array]
-var _stagger_threshold
+var _stagger_threshold: int
+var _collision_generated = false
 var hp: float = 1
 @onready var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
 
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		_stagger_threshold = voxel_resource.vox_count/stagger_after
+		if not voxel_resource:
+			push_warning("Voxel object has no VoxelResource")
+			return
+		_stagger_threshold = max(stagger_after * voxel_resource.vox_count, 1000)
 		_mutex = Mutex.new()
 		_semaphore = Semaphore.new()
 		_exit_thread = false
 		_thread = Thread.new()
 		_thread.start(_flood_fill)
 		if debri_type == 1:
-			damage_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
+			voxel_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
 		call_deferred("_create_collision", true)
 		VoxelServer.voxel_objects.append(self)
-		await get_tree().create_timer(10).timeout
-		#await add_sibling(self.duplicate())
-		#await get_tree().process_frame
-		queue_free()
 
 
 func _physics_process(delta: float) -> void:
 	var remove = []
+
 	for multimesh_instance in _multimesh_debri:
 		var debri_states = _multimesh_debri[multimesh_instance]
 		var _multimesh = multimesh_instance.multimesh
@@ -85,18 +90,31 @@ func _physics_process(delta: float) -> void:
 			data["velocity"].y -= (gravity_magnitude + debri_weight) / 80
 			data["position"] += data["velocity"] * delta * 2
 			_multimesh.set_instance_transform(i, Transform3D(Basis(), data["position"]))
-			if data["lifetime"] < 0 and multimesh_instance not in remove:
-				remove.append(multimesh_instance)
-	
+			if data["lifetime"] < 0:
+				# Track instances to remove
+				if not remove.has(multimesh_instance):
+					remove.append(multimesh_instance)
+
+	# Process removal of multimesh instances
 	for multimesh_instance in remove:
 		if is_instance_valid(multimesh_instance):
-			_multimesh_debri.erase(multimesh_instance)
-			multimesh_instance.queue_free()
-	remove.clear()
+			_multimesh_debri.erase(multimesh_instance)  # Erase instance once
+			multimesh_instance.queue_free()  # Free instance
+
+
+
+func _get_configuration_warnings():
+	var warnings = []
+	
+	if not voxel_resource:
+		warnings.append("Missing VoxelResource.")
+	
+	return warnings
+
 
 
 func populate_mesh():
-	if Engine.is_editor_hint():
+	if voxel_resource and Engine.is_editor_hint():
 		multimesh = MultiMesh.new()
 		multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		multimesh.use_colors = true
@@ -126,9 +144,9 @@ func populate_mesh():
 
 
 func reset():
-	damage_resource.positions = voxel_resource.positions
-	damage_resource.positions_dict = voxel_resource.positions_dict
-	damage_resource.health.fill(100)
+	voxel_resource.valid_positions = voxel_resource.positions
+	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
+	voxel_resource.health.fill(100)
 	for body in _body_rids:
 		PhysicsServer3D.body_set_shape_disabled(body, 0, false)
 	populate_mesh()
@@ -149,7 +167,7 @@ func awake():
 	_create_collision(false)
 
 
-func get_vox_color(voxid):
+func get_vox_color(voxid) -> Color:
 	return voxel_resource.colors[voxel_resource.color_index[voxid]]
 
 
@@ -174,28 +192,16 @@ func _make_physics_object():
 func _create_collision(first_time):
 	var prev_rotation = rotation
 	rotation = Vector3.ZERO
-	var server = PhysicsServer3D
 	var global_pos = global_position
 	var offset = 0
 	for i in multimesh.instance_count:
+		if stagger_functions and stagger_collision and i % _stagger_threshold == 0 and i > 0:
+			await get_tree().process_frame  # Wait for the next frame
 		if not first_time:
-			if voxel_resource.positions[i] not in damage_resource.positions:
+			if voxel_resource.positions[i] not in voxel_resource.valid_positions:
 				offset += 1
 				continue
-		var bodyRID = server.body_create()
-		var shapeRID = server.box_shape_create()
-		var half_size = voxel_resource.vox_size / 2.0
-		server.shape_set_data(shapeRID, half_size)  
-		server.body_set_space(bodyRID, get_world_3d().space)
-		server.body_set_collision_layer(bodyRID, 1)
-		server.body_set_collision_mask(bodyRID, 1)
-		server.body_add_shape(bodyRID, shapeRID, Transform3D(), false)
-		var _transform = Transform3D(Basis(), (voxel_resource.positions[i] * voxel_resource.vox_size) + global_pos)
-		server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
-		server.body_set_mode(bodyRID, PhysicsServer3D.BODY_MODE_STATIC)
-		server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_SLEEPING, false)
-		VoxelServer.body_metadata[bodyRID] = [VoxelServer.voxel_objects.find(self), _transform]
-		_body_rids[bodyRID] = i + offset
+		call_deferred("_create_body", i, global_pos, offset)
 		
 		# Update colors (they could be dithered)
 		var color = multimesh.get_instance_color(i)
@@ -206,6 +212,27 @@ func _create_collision(first_time):
 	rotation = prev_rotation
 	if physics_object:
 		_make_physics_object()
+	_collision_generated = true
+	return
+
+
+func _create_body(id, global_pos, offset):
+	var server = PhysicsServer3D
+	var bodyRID = server.body_create()
+	var shapeRID = server.box_shape_create()
+	var half_size = voxel_resource.vox_size / 2.0
+	server.shape_set_data(shapeRID, half_size)  
+	server.body_set_space(bodyRID, get_world_3d().space)
+	server.body_set_collision_layer(bodyRID, 1)
+	server.body_set_collision_mask(bodyRID, 1)
+	server.body_add_shape(bodyRID, shapeRID, Transform3D(), false)
+	var _transform = Transform3D(Basis(), (voxel_resource.positions[id] * voxel_resource.vox_size) + global_pos)
+	server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_TRANSFORM, _transform)
+	server.body_set_mode(bodyRID, PhysicsServer3D.BODY_MODE_STATIC)
+	server.body_set_state(bodyRID, PhysicsServer3D.BODY_STATE_SLEEPING, false)
+	VoxelServer.body_metadata[bodyRID] = [VoxelServer.voxel_objects.find(self), _transform]
+	_body_rids[bodyRID] = id + offset
+	return bodyRID
 
 
 func _damage_voxel(body: RID, damager: VoxelDamager):
@@ -213,34 +240,45 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 		return
 	if not VoxelServer.body_metadata.has(body):
 		return
-	var server = PhysicsServer3D
-	var voxid = _body_rids[body]
+	
+	var voxid = _body_rids.get(body, -1)  
 	if voxid == -1:
 		return  # Skip if voxel not found
-	var location = VoxelServer.get_body_transform(body).origin
-	var decay = damager.global_pos.distance_to(location) / damager.range
-	var damage = damager.base_damage * damager.damage_curve.sample(decay)
-	var power = damager.base_power * damager.power_curve.sample(decay)/max(debri_weight, .1)
-	var health = damage_resource.health[voxid] - damage
+
+	# Cache values to avoid repeated lookups
+	var location := VoxelServer.get_body_transform(body).origin
+	var decay := damager.global_pos.distance_to(location) / damager.range
+	var base_damage := damager.base_damage
+	var base_power := damager.base_power
+
+	# Sample curves once instead of multiple times
+	var decay_sample := damager.damage_curve.sample(decay)
+	if decay_sample <= 0.01:
+		return  # Skip processing if damage is negligible
+
+	var power_sample := damager.power_curve.sample(decay)
+	var damage := base_damage * decay_sample
+	var power = (base_power * power_sample) / max(debri_weight, 0.1)
+	var health := voxel_resource.health[voxid] - damage
 	health = clamp(health, 0, 100)
-	damage_resource.health[voxid] = health
-	if health != 0:
+	voxel_resource.health[voxid] = health
+
+	if health > 0:
 		if darkening:
 			multimesh.set_instance_color(voxid, get_vox_color(voxid).darkened(1.0 - (health * 0.01)))
 	else:
-		var vox_pos = Vector3i(voxel_resource.positions[voxid])
-		var damage_id = damage_resource.positions_dict.get(Vector3i(voxel_resource.positions[voxid]))
-		if damage_id != -1:
-			damage_resource.positions_dict.erase(vox_pos)
+		var vox_pos := Vector3i(voxel_resource.positions[voxid])
+		voxel_resource.valid_positions_dict.erase(vox_pos)
 		multimesh.set_instance_transform(voxid, Transform3D())
 		VoxelServer.remove_body(body)
-		_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power, "body": body }) 
-		if debri_type == 0:
-			_start_debri("_no_debri", true)
-		elif debri_type == 1:
-			_start_debri("_create_debri_rigid_bodies", true)
-		elif debri_type == 2:
-			_start_debri("_create_debri_multimesh", true)
+		if power > 0.01:
+			_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power, "body": body }) 
+			match debri_type:
+				0: _start_debri("_no_debri", true)
+				1: _start_debri("_create_debri_rigid_bodies", true)
+				2: _start_debri("_create_debri_multimesh", true)
+
+
 
 
 func _start_debri(function, check_floating):
@@ -254,7 +292,7 @@ func _start_debri(function, check_floating):
 	if check_floating and remove_floating_voxels:
 		call_deferred("_remove_detached_voxels_start")
 	
-	damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
+	voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
 	_debri_called = true
 	call_deferred(function)
 	_set_hp()
@@ -305,7 +343,7 @@ func _create_debri_rigid_bodies():
 		# Control debri amount
 		if randf() > debri_density: continue
 		# Retrieve/generate debri
-		var debri = damage_resource.get_debri()
+		var debri = voxel_resource.get_debri()
 		debri.name = "VoxelDebri"
 		debri.top_level = true
 		debri.show()
@@ -348,15 +386,15 @@ func _restore_debri_rigid_bodies(debri):
 		debri.get_child(0).scale = Vector3(1, 1, 1)
 		debri.get_child(1).scale = Vector3(1, 1, 1)
 		debri.hide()
-		damage_resource.debri_pool.append(debri)
+		voxel_resource.debri_pool.append(debri)
 
 
 func _remove_detached_voxels_start():
-	var res = damage_resource
+	var res = voxel_resource
 	var origin: Vector3i
 	if not voxel_resource.origin in res.positions_dict:
-		if not damage_resource.positions.is_empty():
-			voxel_resource.origin = Vector3i(Array(damage_resource.positions).pick_random())
+		if not voxel_resource.valid_positions.is_empty():
+			voxel_resource.origin = Vector3i(Array(voxel_resource.valid_positions).pick_random())
 	_semaphore.post()
 
 
@@ -373,8 +411,8 @@ func _flood_fill():
 		
 		var queue = [voxel_resource.origin]
 		var visited = {}
-		var damage_positions = damage_resource.positions
-		var damage_positions_dict = damage_resource.positions_dict
+		var damage_positions = voxel_resource.valid_positions
+		var damage_positions_dict = voxel_resource.valid_positions_dict
 		
 		visited[voxel_resource.origin] = true
 		
@@ -404,10 +442,10 @@ func _flood_fill():
 		for vox in to_remove:
 			var voxid = voxel_resource.positions_dict[Vector3i(vox)]
 			if voxid != -1:
-				damage_resource.positions_dict.erase(Vector3i(vox))
+				voxel_resource.valid_positions_dict.erase(Vector3i(vox))
 				multimesh.set_instance_transform(voxid, Transform3D())
 				call_deferred("_remove_vox", voxid)
-		damage_resource.positions = PackedVector3Array(damage_resource.positions_dict.keys())
+		voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
 		_set_hp()
 		_mutex.unlock()
 
@@ -418,7 +456,7 @@ func _remove_vox(voxid):
 
 
 func _set_hp():
-	hp = float(int(float(damage_resource.positions.size())/float(voxel_resource.vox_count)*100))/100
+	hp = float(int(float(voxel_resource.valid_positions.size())/float(voxel_resource.vox_count)*100))/100
 
 
 func _set(property: StringName, value: Variant) -> bool:
@@ -461,12 +499,14 @@ func _exit_tree():
 		
 		_thread.wait_to_finish()
 	
+	if not  _collision_generated:
+		push_error("Queue_freed a VoxelObject before its collision was generated")
 	var server = PhysicsServer3D
-	var stagger = 0
-	for rid in _body_rids:
-		VoxelServer.remove_body(rid)
-		stagger += 1
+	for i in _body_rids.size():
+		if stagger_functions and i % _stagger_threshold == 0 and i > 0:
+			await get_tree().process_frame
+		VoxelServer.remove_body(_body_rids_list[i])
 	
 	voxel_resource = null
-	damage_resource = null
+	voxel_resource = null
 	VoxelServer.voxel_objects.erase(self)

@@ -5,13 +5,16 @@ var body_metadata: Dictionary[RID, Array] = {}
 var voxel_objects: Array
 var voxel_damagers: Array
 
-func get_body_object(rid):
+
+func get_body_object(rid) -> VoxelObject:
 	return voxel_objects[body_metadata[rid][0]]
 
-func get_body_transform(rid):
+
+func get_body_transform(rid) -> Transform3D:
 	return body_metadata[rid][1]
 
-func remove_body(rid):
+
+func remove_body(rid) -> void:
 	if not body_metadata.has(rid):
 		return
 	var server = PhysicsServer3D

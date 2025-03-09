@@ -1,14 +1,14 @@
 [remap]
 
 importer="vox_object.voxel_destruction"
-type="PackedScene"
+type="VoxelResource"
 uid="uid://5tq6g3picvhx"
-path="res://.godot/imported/SmallCube.vox-980efb8fdacca07a71b06a2091b6a252.tscn"
+path="res://.godot/imported/SmallCube.vox-980efb8fdacca07a71b06a2091b6a252.tres"
 
 [deps]
 
 source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox"
-dest_files=["res://.godot/imported/SmallCube.vox-980efb8fdacca07a71b06a2091b6a252.tscn"]
+dest_files=["res://.godot/imported/SmallCube.vox-980efb8fdacca07a71b06a2091b6a252.tres"]
 
 [params]
 
