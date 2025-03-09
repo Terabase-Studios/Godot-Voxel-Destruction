@@ -1,14 +1,14 @@
 [remap]
 
 importer="vox_object.voxel_destruction"
-type="PackedScene"
+type="VoxelResource"
 uid="uid://cd0stms3h2ojg"
-path="res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e33.tscn"
+path="res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e33.tres"
 
 [deps]
 
 source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox"
-dest_files=["res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e33.tscn"]
+dest_files=["res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e33.tres"]
 
 [params]
 

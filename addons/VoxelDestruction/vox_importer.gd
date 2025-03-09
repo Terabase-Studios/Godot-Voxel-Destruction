@@ -59,11 +59,11 @@ func _get_recognized_extensions():
 
 
 func _get_save_extension():
-	return "tscn"
+	return "tres"
 
 
 func _get_resource_type():
-	return "PackedScene"
+	return "VoxelResource"
 
 
 func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
@@ -153,16 +153,11 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
 	voxel_resource.size = size
-	
-	# Create DamageResource, some variables will be set later.
-	var damage_resource = DamageResource.new()
-	damage_resource.health.resize(positions.size())
-	damage_resource.health.fill(100)
+	voxel_resource.health.resize(positions.size())
+	voxel_resource.health.fill(100)
 	
 	
 	# Create Object/Add colors/Update Positions
-	var voxel_object = VoxelObject.new()
-	voxel_object._locked = true
 	var color_index = PackedByteArray()
 	var index = 0
 	for voxel in voxels:
@@ -177,46 +172,65 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		voxel_resource.positions_dict[adjusted_position] = index
 		index += 1
 	
-	# Modify object/add resource/finish Damage Resourse
-	damage_resource.positions_dict = voxel_resource.positions_dict.duplicate()
-	damage_resource.positions = voxel_resource.positions.duplicate()
-	voxel_object.voxel_resource = voxel_resource
-	voxel_object.damage_resource = damage_resource
-	voxel_object.position = origin * scale * Vector3(-1, 0, -1)
-	voxel_object.name = source_file.split('/')[source_file.split('/').size()-1].replace(".vox", "")
-	
-	# Populate mesh
-	voxel_object.multimesh = MultiMesh.new()
-	voxel_object.multimesh.instance_count = 0
-	voxel_object.multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	voxel_object.multimesh.use_colors = true
-	voxel_object.multimesh.instance_count = voxel_resource.positions.size()
-	var mesh = BoxMesh.new()
-	mesh.material = preload("res://addons/VoxelDestruction/Resources/voxel_material.tres")
-	mesh.size = scale
-	voxel_object.multimesh.mesh = mesh
-	# Set the transform of the instances.
-	for i in voxel_object.multimesh.instance_count:
-		voxel_object.multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*scale))
-		voxel_object.multimesh.set_instance_color(i, voxel_object.get_vox_color(i))
-	
-	# Save Scene
-	var voxel_scene = PackedScene.new()
-	voxel_scene.pack(voxel_object)
+	# Modify object/add resource/finish Voxel Resource
+	voxel_resource.valid_positions_dict = voxel_resource.positions_dict.duplicate()
+	voxel_resource.valid_positions = voxel_resource.positions.duplicate()
 	
 	
-	var err = ResourceSaver.save(voxel_scene, "%s.%s" % [save_path, _get_save_extension()])
+	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
-		print(err)
-	#_add_custom_icon("%s.%s" % [save_path, _get_save_extension()])
+		print(ERROR_DESCRIPTIONS[err])
 	return err
 
-func _add_custom_icon(scene_path: String):
-	var config = ConfigFile.new()
-	var err = config.load(scene_path)
-	
-	if err == OK:
-		config.set_value("meta", "editor_icon", "res://addons/VoxelDestruction/Nodes/voxel_object.svg")
-		config.save(scene_path)
-	else:
-		push_warning("Failed to modify scene icon:", scene_path)
+
+const ERROR_DESCRIPTIONS = {
+	0: "OK: No error, operation was successful.",
+	1: "FAILED: Generic error, the operation failed but no specific reason is given.",
+	2: "ERR_UNAVAILABLE: The requested resource or operation is unavailable.",
+	3: "ERR_UNCONFIGURED: The object is not properly configured for use.",
+	4: "ERR_UNAUTHORIZED: Operation not allowed due to permission restrictions.",
+	5: "ERR_PARAMETER_RANGE_ERROR: A given parameter is out of the expected range.",
+	6: "ERR_OUT_OF_MEMORY: Memory allocation failed due to lack of memory.",
+	7: "ERR_FILE_NOT_FOUND: The specified file does not exist.",
+	8: "ERR_FILE_BAD_DRIVE: The specified drive is invalid or does not exist.",
+	9: "ERR_FILE_BAD_PATH: The provided file path is malformed.",
+	10: "ERR_FILE_NO_PERMISSION: No permission to read/write the file.",
+	11: "ERR_FILE_ALREADY_IN_USE: The file is locked or being used by another process.",
+	12: "ERR_FILE_CANT_OPEN: The file could not be opened (cause unknown).",
+	13: "ERR_FILE_CANT_WRITE: The file cannot be written to.",
+	14: "ERR_FILE_CANT_READ: The file cannot be read.",
+	15: "ERR_FILE_UNRECOGNIZED: The file format is not recognized.",
+	16: "ERR_FILE_CORRUPT: The file is corrupt or unreadable.",
+	17: "ERR_FILE_MISSING_DEPENDENCIES: The file requires missing dependencies.",
+	18: "ERR_FILE_EOF: End of file reached unexpectedly.",
+	19: "ERR_CANT_OPEN: A resource or connection cannot be opened.",
+	20: "ERR_CANT_CREATE: A resource or file cannot be created.",
+	21: "ERR_QUERY_FAILED: A query operation failed.",
+	22: "ERR_ALREADY_IN_USE: The resource or operation is already in use.",
+	23: "ERR_LOCKED: The resource is locked and cannot be modified.",
+	24: "ERR_TIMEOUT: The operation timed out.",
+	25: "ERR_CANT_CONNECT: Failed to establish a connection.",
+	26: "ERR_CANT_RESOLVE: Unable to resolve a network address.",
+	27: "ERR_CONNECTION_ERROR: Generic connection failure.",
+	28: "ERR_CANT_ACQUIRE_RESOURCE: Cannot acquire the required resource.",
+	29: "ERR_CANT_FORK: Forking a process failed (not commonly used in Godot).",
+	30: "ERR_INVALID_DATA: Invalid data format or structure.",
+	31: "ERR_INVALID_PARAMETER: An invalid parameter was passed to a function.",
+	32: "ERR_ALREADY_EXISTS: The resource already exists and cannot be duplicated.",
+	33: "ERR_DOES_NOT_EXIST: The requested resource does not exist.",
+	34: "ERR_DATABASE_CANT_READ: Unable to read from the database.",
+	35: "ERR_DATABASE_CANT_WRITE: Unable to write to the database.",
+	36: "ERR_COMPILATION_FAILED: Compilation error in script or shader.",
+	37: "ERR_METHOD_NOT_FOUND: The requested method does not exist.",
+	38: "ERR_LINK_FAILED: Linking process failed.",
+	39: "ERR_SCRIPT_FAILED: The script execution encountered an error.",
+	40: "ERR_CYCLIC_LINK: A cyclic link dependency was detected.",
+	41: "ERR_INVALID_DECLARATION: Invalid declaration syntax in script.",
+	42: "ERR_DUPLICATE_SYMBOL: A duplicate symbol was found in code.",
+	43: "ERR_PARSE_ERROR: Parsing error in script or file.",
+	44: "ERR_BUSY: The requested resource is busy.",
+	45: "ERR_SKIP: The operation was intentionally skipped.",
+	46: "ERR_HELP: Help command error (rarely used).",
+	47: "ERR_BUG: Internal bug encountered.",
+	48: "ERR_PRINTER_ON_FIRE: Printer is on fire! (joke error, rarely used)."
+}
