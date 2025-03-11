@@ -13,6 +13,7 @@ class_name VoxelResource
 @export var valid_positions: PackedVector3Array
 @export var positions_dict: Dictionary[Vector3i, int]
 @export var valid_positions_dict: Dictionary[Vector3i, int]
+@export var collision_buffer: Dictionary
 var debri_pool = []
 
 # Debri handling

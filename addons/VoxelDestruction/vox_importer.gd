@@ -176,6 +176,28 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.valid_positions_dict = voxel_resource.positions_dict.duplicate()
 	voxel_resource.valid_positions = voxel_resource.positions.duplicate()
 	
+	var l := size.max_axis_index()
+	
+	var sorted_voxel_positions: Array = voxel_resource.valid_positions.duplicate()
+	sorted_voxel_positions.sort_custom(func(a, b): return a[l] > b[l])
+	
+	var layers = {}
+	
+	for voxel: Vector3i in sorted_voxel_positions:
+		var key = voxel[l]  # Get value of the chosen axis (x=0, y=1, z=2)
+		if not layers.has(key):
+			layers[key] = PackedVector2Array()
+			print(key)
+		match l:
+			0:
+				layers[key].append(Vector2(voxel.y, voxel.z))
+			1:
+				layers[key].append(Vector2(voxel.x, voxel.z))
+			2:
+				layers[key].append(Vector2(voxel.x, voxel.y))
+	
+	voxel_resource.collision_buffer = {"axis": l, "points": layers}
+	
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
