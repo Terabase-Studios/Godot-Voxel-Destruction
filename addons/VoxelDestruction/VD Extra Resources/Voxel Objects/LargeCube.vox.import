@@ -12,4 +12,4 @@ dest_files=["res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e3
 
 [params]
 
-Scale=Vector3(0.1, 0.1, 0.1)
+Scale=Vector3(6, 9, 2)
