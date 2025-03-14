@@ -20,7 +20,7 @@ Welcome to the official documentation for a **Voxel Destruction System** for God
 
 ## Prerequisites
 
-Before installing the Teardown-like Destruction System, ensure that you have:
+Before installing the addon, ensure that you have:
 
 * Godot 4.3+ installed.
 
