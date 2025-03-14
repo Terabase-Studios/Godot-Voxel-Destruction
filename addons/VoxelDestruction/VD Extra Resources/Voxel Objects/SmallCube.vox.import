@@ -12,4 +12,4 @@ dest_files=["res://.godot/imported/SmallCube.vox-980efb8fdacca07a71b06a2091b6a25
 
 [params]
 
-Scale=Vector3(0.1, 0.1, 0.1)
+Scale=Vector3(6, 9, 2)

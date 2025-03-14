@@ -8,13 +8,12 @@ class_name VoxelResource
 @export var vox_size: Vector3
 @export var size: Vector3
 @export var origin: Vector3i
-
-
 @export var _data := {
 	"colors": PackedColorArray(), 
 	"color_index": PackedByteArray(), "health": PackedByteArray(),
 	"positions": PackedVector3Array(), "valid_positions": PackedVector3Array(),
-	"positions_dict": Dictionary(), "valid_positions_dict": Dictionary()
+	"positions_dict": Dictionary(), "valid_positions_dict": Dictionary(),
+  "data_buffer": Dictionary()
 }:
 	get: return _data
 	set(value): _data = value
@@ -22,10 +21,9 @@ class_name VoxelResource
 @export var _property_size := {
 	"colors": 0, "color_index": 0, "health": 0,
 	"positions": 0, "valid_positions": 0,
-	"positions_dict": 0, "valid_positions_dict": 0
+	"positions_dict": 0, "valid_positions_dict": 0,
+  "data_buffer": 0
 }
-
-var data_buffer = Dictionary()
 
 
 ## Public getters/setters (return different types) ##
@@ -57,7 +55,14 @@ var valid_positions_dict:
 	get: return _get("valid_positions_dict")
 	set(value): _set("valid_positions_dict", value)
 
+var collision_buffer: Dictionary
+	get: return _get("collision_buffer")
+	set(value): _set("collision_buffer", value)
+
+
+var data_buffer = Dictionary()
 var debri_pool = []
+
 
 ## Retrieves decompressed values and returns them in the intended format ##
 func _get(property: StringName):

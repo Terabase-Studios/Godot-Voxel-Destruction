@@ -176,11 +176,67 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.debuffer_all()
 	
+	# Sort axes
+	var values = {0: size.x, 1: size.y, 2: size.z}
+	var sorted_keys = values.keys()
+	sorted_keys.sort_custom(func(a, b): return values[a] < values[b])
+
+	var l: int = sorted_keys[2]
+	var m: int = sorted_keys[1]
+	var s: int = sorted_keys[0]
+	
+	# Organize voxel array
+	var sorted_voxel_positions: Array = voxel_resource.valid_positions.duplicate()
+	sorted_voxel_positions.sort_custom(func(a, b): return a[l] < b[l])
+	sorted_voxel_positions.sort_custom(func(a, b): return a[m] < b[m])
+	sorted_voxel_positions.sort_custom(func(a, b): return a[s] < b[s])
+	var vox_chunk_index: PackedByteArray
+	var orginized_voxels: Dictionary[int, Dictionary] = {}
+	
+	# Create voxel dictionary
+	for voxel: Vector3i in voxel_resource.valid_positions:
+		var key = voxel[l]  # Get value of the chosen axis (x=0, y=1, z=2)
+		var lock = voxel[m]
+		vox_chunk_index.append(key)
+		if not orginized_voxels.has(key):
+			orginized_voxels[key] = Dictionary()
+		if not orginized_voxels[key].has(lock):
+			orginized_voxels[key][lock] = PackedVector3Array()
+		orginized_voxels[key][lock].append(voxel)
+	
+	# Sort voxel dictionary
+	var sorted_voxels = sort_dictionary(orginized_voxels)
+	for x in orginized_voxels:
+		sorted_voxels[x] = sort_dictionary(orginized_voxels[x])
+		for y in orginized_voxels[x]:
+			var line = orginized_voxels[x][y].duplicate()
+			line.sort()
+			sorted_voxels[x][y] = line
+		
+	voxel_resource.collision_buffer = {"axes": PackedByteArray([l, m, s]), "vox grid": orginized_voxels}
+	
+	var shapes = Array()
+	for length in orginized_voxels:
+		for width in orginized_voxels[length]:
+			for vox in orginized_voxels[length][width]:
+				print(vox)
+	
+	
+	
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
 		print(ERROR_DESCRIPTIONS[err])
 	return err
+
+
+func sort_dictionary(dict: Dictionary):
+	var keys = dict.keys()
+	keys.sort()
+	var sorted_array = []
+	for key in keys:
+		sorted_array.append([key, dict[key]]) 
+	return sorted_array
 
 
 const ERROR_DESCRIPTIONS = {

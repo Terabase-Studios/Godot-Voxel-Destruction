@@ -11,50 +11,68 @@ class_name VoxelDamager
 @export var base_power: int
 @export var power_curve: Curve
 @export var knock_back_debri = false
+var range: int
 @onready var global_pos = global_position
-@onready var range: int = get_child(0).shape.radius
-var target_objects = Array()
+
 
 func _ready() -> void:
-	connect("body_shape_entered", _on_body_shape_entered)
-	connect("body_shape_exited", _on_body_shape_exited)
 	VoxelServer.voxel_damagers.append(self)
+	var collision_shape = get_child(0).shape
+	if collision_shape is not BoxShape3D:
+		push_warning("VoxelDamager collision shape must be BoxShape3D")
+	var size = collision_shape.size
+	range = min(size.x, min(size.y, size.z))
 
 
 func hit():
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
-	for rid in target_objects:
-		if VoxelServer.body_metadata.get(rid):
-			var voxel_object = VoxelServer.get_body_object(rid)
-			if group_mode == 1:
-				if group in voxel_object.get_groups():
-					continue
-			elif group_mode == 2:
-				if group not in voxel_object.get_groups():
-					continue
-			voxel_object.call_deferred("_damage_voxel", rid, self)
-			if voxel_object not in hit_objects:
-				hit_objects.append(voxel_object)
-	for debri in get_overlapping_bodies():
-		if "VoxelDebri" in debri.name and knock_back_debri:
-			if is_instance_valid(debri):
-				var decay = global_position.distance_to(debri.global_position) / range
+	for body in get_overlapping_bodies():
+		if body is StaticBody3D or body is RigidBody3D:
+			var parent = body.get_parent()
+			if parent is VoxelObject:
+				if group_mode == 1:
+					if group in parent.get_groups():
+						continue
+				elif group_mode == 2:
+					if group not in parent.get_groups():
+						continue
+				var aabb = get_area_aabb(self)
+				var inside_voxels = get_voxels_in_aabb(aabb, parent)
+				for vox in inside_voxels:
+					parent._damage_voxel(vox[0], vox[1], self)
+				if parent not in hit_objects:
+					hit_objects.append(parent)
+		elif "VoxelDebri" in body.name and knock_back_debri:
+			if is_instance_valid(body):
+				var decay = global_position.distance_to(body.global_position) / range
 				var power = float(base_power * power_curve.sample(decay))
-				var launch_vector = debri.global_position - global_position
+				var launch_vector = body.global_position - global_position
 				var velocity = launch_vector.normalized() * power
-				debri.apply_impulse(velocity*debri.scale)
+				body.apply_impulse(velocity*body.scale)
 	return hit_objects
 
 
-func _on_body_shape_entered(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
-	if VoxelServer.body_metadata.has(body_rid):  # Check if we track it
-		target_objects.append(body_rid)
+func get_area_aabb(area: Area3D) -> AABB:
+	var collision_shape = area.get_child(0) as CollisionShape3D
+	if collision_shape and collision_shape.shape is BoxShape3D:
+		var box_shape = collision_shape.shape as BoxShape3D
+		var size = box_shape.size * 2
+		var position = collision_shape.global_position - (size * 0.5)
+		return AABB(position, size)
+	return AABB()
 
-func _on_body_shape_exited(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
-	if VoxelServer.body_metadata.has(body_rid) and target_objects.has(body_rid):
-		target_objects.remove_at(target_objects.find(body_rid))
+
+func get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
+	var inside_voxels = []
+	var voxel_resource: VoxelResource = object.voxel_resource
+	for voxel_pos in voxel_resource.valid_positions_dict.keys():
+		var voxel_global_pos = Vector3(voxel_pos)*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
+		if aabb.has_point(voxel_global_pos):
+			inside_voxels.append([voxel_resource.valid_positions_dict[voxel_pos], voxel_global_pos])
+	
+	return inside_voxels
 
 
 func _exit_tree() -> void:
