@@ -12,7 +12,6 @@ func _get_preset_count():
 	return Presets.size()
 
 
-
 func _get_preset_name(preset_index):
 	match preset_index:
 		Presets.SCALE:
@@ -149,6 +148,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
+	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
@@ -158,7 +158,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	
 	# Create Object/Add colors/Update Positions
-	var color_index = PackedByteArray()
 	var index = 0
 	for voxel in voxels:
 		var color = voxel["color"]
@@ -173,8 +172,9 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		index += 1
 	
 	# Modify object/add resource/finish Voxel Resource
-	voxel_resource.valid_positions_dict = voxel_resource.positions_dict.duplicate()
-	voxel_resource.valid_positions = voxel_resource.positions.duplicate()
+	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
+	voxel_resource.valid_positions = voxel_resource.positions
+	voxel_resource.debuffer_all()
 	
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
