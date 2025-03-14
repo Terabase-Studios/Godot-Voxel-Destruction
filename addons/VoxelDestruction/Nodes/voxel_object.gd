@@ -75,6 +75,9 @@ func _ready() -> void:
 			voxel_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
 		call_deferred("_create_collision", true)
 		VoxelServer.voxel_objects.append(self)
+		VoxelServer.total_active_voxels += voxel_resource.vox_count
+		await get_tree().create_timer(randi_range(1, 5)).timeout
+		queue_free()
 
 
 func _get_configuration_warnings():
@@ -179,6 +182,7 @@ func _create_collision(first_time):
 	if physics_object:
 		_make_physics_object()
 	_collision_generated = true
+	VoxelServer.call_deferred("set_voxel_object_memory", self)
 	return
 
 
@@ -229,6 +233,7 @@ func _damage_voxel(body: RID, damager: VoxelDamager):
 		var vox_pos := Vector3i(voxel_resource.positions[voxid])
 		voxel_resource.valid_positions_dict.erase(vox_pos)
 		multimesh.set_instance_transform(voxid, Transform3D())
+		VoxelServer.total_active_voxels -= 1
 		VoxelServer.remove_body(body)
 		if power > 0.01:
 			_debri_queue.append({ "pos": location, "origin": damager.global_pos, "power": power, "body": body }) 
@@ -255,6 +260,7 @@ func _start_debri(function, check_floating):
 	_debri_called = true
 	call_deferred(function)
 	_set_hp()
+	VoxelServer.call_deferred("set_voxel_object_memory", self)
 
 
 func _no_debri():
@@ -421,7 +427,8 @@ func _flood_fill():
 
 
 func _remove_vox(voxid):
-	var body_rid = _body_rids_list.get(voxid)	
+	var body_rid = _body_rids_list.get(voxid)
+	VoxelServer.total_active_voxels -= 1
 	VoxelServer.remove_body(body_rid)
 
 
@@ -430,6 +437,7 @@ func _set_hp():
 
 
 func _set(property: StringName, value: Variant) -> bool:
+	VoxelServer.call_deferred("set_voxel_object_memory", self)
 	if property == "position":
 		var server = PhysicsServer3D
 		var prev_pos = position
@@ -468,13 +476,16 @@ func _exit_tree():
 		_semaphore.post()
 		
 		_thread.wait_to_finish()
+	VoxelServer.total_active_voxels -= voxel_resource.valid_positions.size()
+	VoxelServer.voxel_memory.erase(self)
 	
 	if not _collision_generated:
 		push_error("Queue_freed a VoxelObject before its collision was generated")
 	var server = PhysicsServer3D
-	for i in _body_rids.size():
+	for i in _body_rids.size()-1:
 		VoxelServer.remove_body(_body_rids_list[i])
 	
 	voxel_resource = null
 	voxel_resource = null
 	VoxelServer.voxel_objects.erase(self)
+	

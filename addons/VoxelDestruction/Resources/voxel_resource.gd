@@ -15,6 +15,8 @@ class_name VoxelResource
 @export var valid_positions_dict: Dictionary[Vector3i, int]
 var debri_pool = []
 
+signal data_changed
+
 # Debri handling
 func pool_rigid_bodies(vox_amount) -> void:
 	for i in range(0, vox_amount):
