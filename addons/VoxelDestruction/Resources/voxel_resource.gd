@@ -59,10 +59,10 @@ var collision_buffer: Dictionary
 	get: return _get("collision_buffer")
 	set(value): _set("collision_buffer", value)
 
-
 var data_buffer = Dictionary()
 var debri_pool = []
 
+signal data_changed
 
 ## Retrieves decompressed values and returns them in the intended format ##
 func _get(property: StringName):
