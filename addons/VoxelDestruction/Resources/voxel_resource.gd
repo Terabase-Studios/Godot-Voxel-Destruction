@@ -3,26 +3,30 @@
 extends Resource
 class_name VoxelResource
 
+enum compression_mode {
+	FAST = 0,
+	Compact = 1
+}
 
 @export var vox_count: int
 @export var vox_size: Vector3
 @export var size: Vector3
 @export var origin: Vector3i
+@export_enum("Fast", "Compact") var compression_type = 0
+@export var compression: float
 @export var _data := {
-	"colors": PackedColorArray(), 
-	"color_index": PackedByteArray(), "health": PackedByteArray(),
-	"positions": PackedVector3Array(), "valid_positions": PackedVector3Array(),
-	"positions_dict": Dictionary(), "valid_positions_dict": Dictionary(),
-  "data_buffer": Dictionary()
-}:
-	get: return _data
-	set(value): _data = value
+	"colors": null, 
+	"color_index": null, "health": null,
+	"positions": null, "valid_positions": null,
+	"positions_dict": null, "valid_positions_dict": null,
+  "collision_buffer": null
+}
 
 @export var _property_size := {
 	"colors": 0, "color_index": 0, "health": 0,
 	"positions": 0, "valid_positions": 0,
 	"positions_dict": 0, "valid_positions_dict": 0,
-  "data_buffer": 0
+  "collision_buffer": 0
 }
 
 
@@ -55,7 +59,7 @@ var valid_positions_dict:
 	get: return _get("valid_positions_dict")
 	set(value): _set("valid_positions_dict", value)
 
-var collision_buffer: Dictionary
+var collision_buffer: Dictionary:
 	get: return _get("collision_buffer")
 	set(value): _set("collision_buffer", value)
 
@@ -70,8 +74,14 @@ func _get(property: StringName):
 		var result
 		if property not in data_buffer:
 			var compressed_bytes = _data[property]
-			if compressed_bytes.size() > 0:
-				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], 1)
+			if compressed_bytes != null and compressed_bytes.size() > 0:
+				var compress_mode: int
+				match compression_type:
+					0:
+						compress_mode = 0
+					1:
+						compress_mode = 2
+				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], compress_mode)
 				result = bytes_to_var(decompressed_bytes)
 				if property in ["color_index", "health"]:
 					return PackedByteArray(result)
@@ -100,7 +110,13 @@ func _set(property: StringName, value: Variant) -> bool:
 	if property in _property_size:
 		if property not in data_buffer:
 			var bytes = var_to_bytes(value)
-			var compressed_bytes = bytes.compress(1)
+			var compress_mode: int
+			match compression_type:
+				0:
+					compress_mode = 0
+				1:
+					compress_mode = 2
+			var compressed_bytes = bytes.compress(compress_mode)
 			_property_size[property] = bytes.size()
 			_data[property] = compressed_bytes
 		else:
@@ -110,14 +126,18 @@ func _set(property: StringName, value: Variant) -> bool:
 
 ## Controls data in buffer ##
 func buffer(property):
-	if property in _data:
-		data_buffer[property] = _get(property)
+	if property not in _data:
+		push_warning("Cannot Buffer "+property+": Does not exist")
+		return
+	data_buffer[property] = _get(property)
 
 func debuffer(property):
-	if property in data_buffer:
-		var buffer = data_buffer[property]
-		data_buffer.erase(property)
-		_set(property, buffer)
+	if property not in data_buffer:
+		push_warning("Cannot Debuffer "+property+": Does not exist")
+		return
+	var buffer = data_buffer[property]
+	data_buffer.erase(property)
+	_set(property, buffer)
 
 func buffer_all():
 	for property in _data.keys():
@@ -126,6 +146,24 @@ func buffer_all():
 func debuffer_all():
 	for property in data_buffer.keys():
 		debuffer(property)
+
+## Changes Compression Type ##
+func set_compression(type: compression_mode):
+	var old_data = Dictionary()
+	for property in _data:
+		old_data[property] = _get(property)
+	compression_type = type
+	var compress_mode: int
+	match compression_type:
+		0:
+			compress_mode = 0
+		1:
+			compress_mode = 2
+	for property in old_data:
+		var bytes = var_to_bytes(old_data[property])
+		var compressed_bytes = bytes.compress(compress_mode)
+		_data[property] = compressed_bytes
+
 
 ## Pools debris ##
 func pool_rigid_bodies(vox_amount) -> void:

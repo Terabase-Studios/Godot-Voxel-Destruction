@@ -2,9 +2,15 @@
 @tool
 extends EditorImportPlugin
 
+enum compression_types {
+	FAST = 0,
+	COMPACT = 1
+}
 
 enum Presets { 
-	SCALE
+	SCALE,
+	CHUNK_SIZE,
+	COMPRESSION_TYPE
 }
 
 
@@ -16,17 +22,29 @@ func _get_preset_name(preset_index):
 	match preset_index:
 		Presets.SCALE:
 			return "Scale"
+		Presets.CHUNK_SIZE:
+			return "Chunk Size"
+		Presets.COMPRESSION_TYPE:
+			return "Compression Type"
 		_:
 			return "Unknown"
 
 
 func _get_import_options(path, preset_index):
-	match preset_index:
-		Presets.SCALE:
-			return [{
-					   "name": "Scale",
-					   "default_value": Vector3(.1, .1, .1)
-					}]
+	return [{
+			   "name": "Scale",
+			   "default_value": Vector3(.1, .1, .1)
+			},
+			{
+			   "name": "Chunk_Size",
+			   "default_value": Vector3(16, 16, 16)
+			},
+			{
+			   "name": "Compression_Type",
+			   "default_value": compression_types.FAST,
+			   "property_hint": PROPERTY_HINT_ENUM,
+			   "hint_string": "Fast,Compact"
+			}]
 
 
 func _get_option_visibility(path, option_name, options):
@@ -148,6 +166,10 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
+	if options.Compression_Type:
+		voxel_resource.compression_type = options.Compression_Type
+	else:
+		voxel_resource.compression_type = 0
 	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
@@ -176,6 +198,12 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.debuffer_all()
 	
+	var chunk_size
+	if options.Chunk_Size:
+		chunk_size = options.Chunk_Size
+	else:
+		chunk_size = Vector3(16, 16, 16)
+	
 	# Sort axes
 	var values = {0: size.x, 1: size.y, 2: size.z}
 	var sorted_keys = values.keys()
@@ -195,34 +223,51 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create voxel dictionary
 	for voxel: Vector3i in voxel_resource.valid_positions:
-		var key = voxel[l]  # Get value of the chosen axis (x=0, y=1, z=2)
+		var key = voxel[l]
 		var lock = voxel[m]
-		vox_chunk_index.append(key)
-		if not orginized_voxels.has(key):
-			orginized_voxels[key] = Dictionary()
-		if not orginized_voxels[key].has(lock):
-			orginized_voxels[key][lock] = PackedVector3Array()
-		orginized_voxels[key][lock].append(voxel)
+		var chunk = int(voxel.x/chunk_size.x) + int(voxel.y/chunk_size.y) + int(voxel.z/chunk_size.z)
+		vox_chunk_index.append(chunk)
+		if not orginized_voxels.has(chunk):
+			orginized_voxels[chunk] = Dictionary()
+		if not orginized_voxels[chunk].has(key):
+			orginized_voxels[chunk][key] = Dictionary()
+		if not orginized_voxels[chunk][key].has(lock):
+			orginized_voxels[chunk][key][lock] = PackedVector3Array()
+		orginized_voxels[chunk][key][lock].append(voxel)
 	
 	# Sort voxel dictionary
 	var sorted_voxels = sort_dictionary(orginized_voxels)
-	for x in orginized_voxels:
-		sorted_voxels[x] = sort_dictionary(orginized_voxels[x])
-		for y in orginized_voxels[x]:
-			var line = orginized_voxels[x][y].duplicate()
-			line.sort()
-			sorted_voxels[x][y] = line
-		
-	voxel_resource.collision_buffer = {"axes": PackedByteArray([l, m, s]), "vox grid": orginized_voxels}
+	for chunk in orginized_voxels:
+		sorted_voxels[chunk] = sort_dictionary(orginized_voxels[chunk])
+		for key in orginized_voxels[chunk]:
+			sorted_voxels[chunk][key] = sort_dictionary(orginized_voxels[chunk][key])
+			for lock in orginized_voxels[chunk][key]:
+				var pin = orginized_voxels[chunk][key][lock].duplicate()
+				pin.sort()
+				sorted_voxels[chunk][key][lock] = pin
 	
+	# Create collision
 	var shapes = Array()
-	for length in orginized_voxels:
-		for width in orginized_voxels[length]:
-			for vox in orginized_voxels[length][width]:
-				print(vox)
+	var collision_shapes: Dictionary[int, Array] = {}
+	for chunk in sorted_voxels:
+		collision_shapes[chunk] = Array()
+		for key in sorted_voxels[chunk]:
+			for lock in sorted_voxels[chunk][key]:
+				for pin in sorted_voxels[chunk][key][lock].size():
+					continue
 	
+	# Create collision buffer
+	voxel_resource.collision_buffer = {"axes": PackedByteArray([l, m, s]), "vox grid": sorted_voxels, "shapes": collision_shapes}
 	
-	
+	# Set data size
+	var initial_data_size: float = 0
+	var compressed_data_size: float = 0
+	for bytes in voxel_resource._property_size.values():
+		initial_data_size += bytes
+	for property in voxel_resource._data:
+		var bytes = voxel_resource._data[property].size()
+		compressed_data_size += bytes
+	voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
@@ -233,10 +278,10 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 func sort_dictionary(dict: Dictionary):
 	var keys = dict.keys()
 	keys.sort()
-	var sorted_array = []
+	var sorted_dict = Dictionary()
 	for key in keys:
-		sorted_array.append([key, dict[key]]) 
-	return sorted_array
+		sorted_dict[key] = dict[key]
+	return sorted_dict
 
 
 const ERROR_DESCRIPTIONS = {

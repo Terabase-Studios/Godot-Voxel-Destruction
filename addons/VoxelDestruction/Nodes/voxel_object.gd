@@ -6,8 +6,11 @@ class_name VoxelObject
 @export var voxel_resource: VoxelResource:
 	set(value):
 		voxel_resource = value
-		populate_mesh()
 		update_configuration_warnings()
+		if value:
+			populate_mesh()
+		else:
+			multimesh.instance_count = 0
 @export var invulnerable = false
 @export var darkening = true
 @export_subgroup("Debri")
@@ -61,7 +64,7 @@ func _ready() -> void:
 		_thread = Thread.new()
 		_thread.start(_flood_fill)
 		if debri_type == 2:
-			voxel_resource.pool_rigid_bodies(min(multimesh.instance_count, 1000))
+			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 		call_deferred("_set_voxel_object")
 		VoxelServer.voxel_objects.append(self)
 
@@ -81,6 +84,8 @@ func _get_configuration_warnings():
 
 func populate_mesh():
 	if voxel_resource and Engine.is_editor_hint():
+		voxel_resource.buffer("positions")
+		print(voxel_resource.data_buffer)
 		multimesh = MultiMesh.new()
 		multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		multimesh.use_colors = true
@@ -107,6 +112,7 @@ func populate_mesh():
 			
 			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*voxel_resource.vox_size))
 			multimesh.set_instance_color(i, dithered_color)
+		voxel_resource.debuffer("positions")
 
 func reset():
 	voxel_resource.valid_positions = voxel_resource.positions
@@ -170,7 +176,7 @@ func _damage_voxel(voxid: int, vox_postion: Vector3, damager: VoxelDamager):
 	var power_sample := damager.power_curve.sample(decay)
 	var damage := base_damage * decay_sample
 	var power = (base_power * power_sample) / max(debri_weight, 0.1)
-	var health := voxel_resource.health[voxid] - damage
+	var health = voxel_resource.health[voxid] - damage
 	health = clamp(health, 0, 100)
 	voxel_resource.health[voxid] = health
 	if health > 0:

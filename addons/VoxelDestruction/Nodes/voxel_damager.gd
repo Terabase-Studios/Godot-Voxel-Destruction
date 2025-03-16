@@ -28,6 +28,7 @@ func hit():
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
+	var aabb = get_area_aabb(self)
 	for body in get_overlapping_bodies():
 		if body is StaticBody3D or body is RigidBody3D:
 			var parent = body.get_parent()
@@ -38,7 +39,6 @@ func hit():
 				elif group_mode == 2:
 					if group not in parent.get_groups():
 						continue
-				var aabb = get_area_aabb(self)
 				var inside_voxels = get_voxels_in_aabb(aabb, parent)
 				for vox in inside_voxels:
 					parent._damage_voxel(vox[0], vox[1], self)
@@ -67,11 +67,12 @@ func get_area_aabb(area: Area3D) -> AABB:
 func get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
 	var inside_voxels = []
 	var voxel_resource: VoxelResource = object.voxel_resource
+	voxel_resource.buffer("valid_positions_dict")
 	for voxel_pos in voxel_resource.valid_positions_dict.keys():
 		var voxel_global_pos = Vector3(voxel_pos)*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
 		if aabb.has_point(voxel_global_pos):
 			inside_voxels.append([voxel_resource.valid_positions_dict[voxel_pos], voxel_global_pos])
-	
+	voxel_resource.debuffer("valid_positions_dict")
 	return inside_voxels
 
 
