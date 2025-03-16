@@ -76,8 +76,6 @@ func _ready() -> void:
 		call_deferred("_create_collision", true)
 		VoxelServer.voxel_objects.append(self)
 		VoxelServer.total_active_voxels += voxel_resource.vox_count
-		await get_tree().create_timer(randi_range(1, 5)).timeout
-		queue_free()
 
 
 func _get_configuration_warnings():
@@ -483,7 +481,8 @@ func _exit_tree():
 		push_error("Queue_freed a VoxelObject before its collision was generated")
 	var server = PhysicsServer3D
 	for i in _body_rids.size()-1:
-		VoxelServer.remove_body(_body_rids_list[i])
+		if _body_rids_list.has(i):
+			VoxelServer.remove_body(_body_rids_list[i])
 	
 	voxel_resource = null
 	voxel_resource = null
