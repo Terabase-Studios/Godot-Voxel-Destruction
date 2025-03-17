@@ -85,7 +85,8 @@ func _get_configuration_warnings():
 func populate_mesh():
 	if voxel_resource and Engine.is_editor_hint():
 		voxel_resource.buffer("positions")
-		print(voxel_resource.data_buffer)
+		voxel_resource.buffer("color_index")
+		voxel_resource.buffer("colors")
 		multimesh = MultiMesh.new()
 		multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		multimesh.use_colors = true
@@ -113,11 +114,15 @@ func populate_mesh():
 			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*voxel_resource.vox_size))
 			multimesh.set_instance_color(i, dithered_color)
 		voxel_resource.debuffer("positions")
+		voxel_resource.debuffer("color_index")
+		voxel_resource.debuffer("colors")
 
 func reset():
 	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
+	voxel_resource.buffer("health")
 	voxel_resource.health.fill(100)
+	voxel_resource.debuffer("health")
 	_update_collision()
 	populate_mesh()
 	_set_hp()
@@ -149,8 +154,19 @@ func get_vox_color(voxid) -> Color:
 
 
 func _set_voxel_object():
+	voxel_resource.buffer("colors")
+	voxel_resource.buffer("color_index")
 	var static_body = StaticBody3D.new()
 	add_child(static_body)
+	for shape_info in voxel_resource.starting_shapes:
+		var shape_node = CollisionShape3D.new()
+		var shape = BoxShape3D.new()
+		shape_node.shape = shape
+		shape.extents = shape_info["extents"]
+		
+		static_body.add_child(shape_node)
+		shape_node.position = shape_info["position"]
+		
 	for i in multimesh.instance_count:
 		# Update colors (they could be dithered)
 		var color = multimesh.get_instance_color(i)
@@ -159,6 +175,8 @@ func _set_voxel_object():
 		voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 	#if physics_object:
 		#_make_physics_object()
+	voxel_resource.debuffer("colors")
+	voxel_resource.debuffer("color_index")
 	return
 
 
@@ -196,6 +214,53 @@ func _damage_voxel(voxid: int, vox_postion: Vector3, damager: VoxelDamager):
 
 func _update_collision():
 	return
+
+
+func create_boxes(chunk: PackedVector3Array) -> Array:
+	var visited: Dictionary[Vector3, bool]
+	var boxes = []
+
+	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
+		var start
+		var end
+		match axis:
+			0: start = Vector3(pos, box_min.y, box_min.z); end = Vector3(pos, box_max.y, box_max.z)
+			1: start = Vector3(box_min.x, pos, box_min.z); end = Vector3(box_max.x, pos, box_max.z)
+			2: start = Vector3(box_min.x, box_min.y, pos); end = Vector3(box_max.x, box_max.y, pos)
+
+		for x in range(int(start.x), int(end.x) + 1):
+			for y in range(int(start.y), int(end.y) + 1):
+				for z in range(int(start.z), int(end.z) + 1):
+					var check_pos = Vector3(x, y, z)
+					if not chunk.has(check_pos) or visited.get(check_pos, false):
+						return false
+		return true
+	
+	for pos in chunk:
+		if visited.get(pos, false):
+			continue
+		
+		var box_min = pos
+		var box_max = pos
+		
+		# Expand along X, Y, Z greedily
+		for axis in range(3):
+			while true:
+				var next_pos = box_max[axis] + 1
+				if can_expand.call(box_min, box_max, axis, next_pos):
+					box_max[axis] = next_pos
+				else:
+					break
+
+		# Mark visited voxels
+		for x in range(int(box_min.x), int(box_max.x) + 1):
+			for y in range(int(box_min.y), int(box_max.y) + 1):
+				for z in range(int(box_min.z), int(box_max.z) + 1):
+					visited[Vector3(x, y, z)] = true
+
+		boxes.append({"min": box_min, "max": box_max})
+
+	return boxes
 
 
 func _start_debri(function, check_floating):
@@ -369,14 +434,20 @@ func _flood_fill():
 		# Process voxel removal inside the thread
 		if not to_remove.is_empty():
 			_mutex.lock()
+			voxel_resource.buffer("positions_dict")
+			voxel_resource.buffer("valid_positions_dict")
+			voxel_resource.buffer("valid_positions")
 			for vox in to_remove:
 				var voxid = voxel_resource.positions_dict[Vector3i(vox)]
 				if voxid != -1:
 					voxel_resource.valid_positions_dict.erase(Vector3i(vox))
 					multimesh.set_instance_transform(voxid, Transform3D())
 			voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
+			voxel_resource.debuffer("positions_dict")
+			voxel_resource.debuffer("valid_positions_dict")
+			voxel_resource.debuffer("valid_positions")
 			_mutex.unlock()
-			call_deferred("update_collision")
+			call_deferred("_update_collision")
 			call_deferred("_set_hp")
 
 

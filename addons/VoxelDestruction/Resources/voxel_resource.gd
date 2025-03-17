@@ -12,21 +12,22 @@ enum compression_mode {
 @export var vox_size: Vector3
 @export var size: Vector3
 @export var origin: Vector3i
-@export_enum("Fast", "Compact") var compression_type = 0
+@export var starting_shapes: Array
+@export_enum("None", "Fast", "Compact") var compression_type = 0
 @export var compression: float
 @export var _data := {
 	"colors": null, 
 	"color_index": null, "health": null,
 	"positions": null, "valid_positions": null,
 	"positions_dict": null, "valid_positions_dict": null,
-  "collision_buffer": null
+  "vox_chunk_indices": null, "chunks": null
 }
 
 @export var _property_size := {
 	"colors": 0, "color_index": 0, "health": 0,
 	"positions": 0, "valid_positions": 0,
 	"positions_dict": 0, "valid_positions_dict": 0,
-  "collision_buffer": 0
+  "vox_chunk_indices": 0, "chunks": 0
 }
 
 
@@ -59,9 +60,13 @@ var valid_positions_dict:
 	get: return _get("valid_positions_dict")
 	set(value): _set("valid_positions_dict", value)
 
-var collision_buffer: Dictionary:
-	get: return _get("collision_buffer")
-	set(value): _set("collision_buffer", value)
+var vox_chunk_indices:
+	get: return _get("vox_chunk_indices")
+	set(value): _set("vox_chunk_indices", value)
+
+var chunks:
+	get: return _get("chunks")
+	set(value): _set("chunks", value)
 
 var data_buffer = Dictionary()
 var debri_pool = []
@@ -78,19 +83,28 @@ func _get(property: StringName):
 				var compress_mode: int
 				match compression_type:
 					0:
-						compress_mode = 0
+						compress_mode = -1
 					1:
+						compress_mode = 0
+					2:
 						compress_mode = 2
-				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], compress_mode)
+				var decompressed_bytes
+				if compress_mode != -1:
+					decompressed_bytes = compressed_bytes.decompress(_property_size[property], compress_mode)
+				else:
+					decompressed_bytes = compressed_bytes
 				result = bytes_to_var(decompressed_bytes)
 				if property in ["color_index", "health"]:
 					return PackedByteArray(result)
 				elif property in ["colors"]:
 					return PackedColorArray(result)
-				elif property in ["positions", "valid_positions"]:
+				elif property in ["positions", "valid_positions", "vox_chunk_indices"]:
 					return PackedVector3Array(result)
 				elif property in ["positions_dict", "valid_positions_dict"]:
 					var dictionary: Dictionary[Vector3i, int] = result
+					return (dictionary)
+				elif property in ["chunks"]:
+					var dictionary: Dictionary[Vector3, PackedVector3Array] = result
 					return (dictionary)
 		else:
 			return data_buffer[property]
@@ -113,10 +127,16 @@ func _set(property: StringName, value: Variant) -> bool:
 			var compress_mode: int
 			match compression_type:
 				0:
-					compress_mode = 0
+					compress_mode = -1
 				1:
+					compress_mode = 0
+				2:
 					compress_mode = 2
-			var compressed_bytes = bytes.compress(compress_mode)
+			var compressed_bytes
+			if compress_mode != -1:
+				compressed_bytes = bytes.compress(compress_mode)
+			else:
+				compressed_bytes = bytes
 			_property_size[property] = bytes.size()
 			_data[property] = compressed_bytes
 		else:

@@ -3,8 +3,9 @@
 extends EditorImportPlugin
 
 enum compression_types {
-	FAST = 0,
-	COMPACT = 1
+	NONE = 0,
+	FAST = 1,
+	COMPACT = 2
 }
 
 enum Presets { 
@@ -41,9 +42,9 @@ func _get_import_options(path, preset_index):
 			},
 			{
 			   "name": "Compression_Type",
-			   "default_value": compression_types.FAST,
+			   "default_value": compression_types.COMPACT,
 			   "property_hint": PROPERTY_HINT_ENUM,
-			   "hint_string": "Fast,Compact"
+			   "hint_string": "None,Fast,Compact"
 			}]
 
 
@@ -205,59 +206,26 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		chunk_size = Vector3(16, 16, 16)
 	
 	# Sort axes
-	var values = {0: size.x, 1: size.y, 2: size.z}
-	var sorted_keys = values.keys()
-	sorted_keys.sort_custom(func(a, b): return values[a] < values[b])
-
-	var l: int = sorted_keys[2]
-	var m: int = sorted_keys[1]
-	var s: int = sorted_keys[0]
-	
-	# Organize voxel array
-	var sorted_voxel_positions: Array = voxel_resource.valid_positions.duplicate()
-	sorted_voxel_positions.sort_custom(func(a, b): return a[l] < b[l])
-	sorted_voxel_positions.sort_custom(func(a, b): return a[m] < b[m])
-	sorted_voxel_positions.sort_custom(func(a, b): return a[s] < b[s])
-	var vox_chunk_index: PackedByteArray
-	var orginized_voxels: Dictionary[int, Dictionary] = {}
+	var vox_chunk_indices: PackedVector3Array
+	var chunks: Dictionary[Vector3, PackedVector3Array]
 	
 	# Create voxel dictionary
 	for voxel: Vector3i in voxel_resource.valid_positions:
-		var key = voxel[l]
-		var lock = voxel[m]
-		var chunk = int(voxel.x/chunk_size.x) + int(voxel.y/chunk_size.y) + int(voxel.z/chunk_size.z)
-		vox_chunk_index.append(chunk)
-		if not orginized_voxels.has(chunk):
-			orginized_voxels[chunk] = Dictionary()
-		if not orginized_voxels[chunk].has(key):
-			orginized_voxels[chunk][key] = Dictionary()
-		if not orginized_voxels[chunk][key].has(lock):
-			orginized_voxels[chunk][key][lock] = PackedVector3Array()
-		orginized_voxels[chunk][key][lock].append(voxel)
-	
-	# Sort voxel dictionary
-	var sorted_voxels = sort_dictionary(orginized_voxels)
-	for chunk in orginized_voxels:
-		sorted_voxels[chunk] = sort_dictionary(orginized_voxels[chunk])
-		for key in orginized_voxels[chunk]:
-			sorted_voxels[chunk][key] = sort_dictionary(orginized_voxels[chunk][key])
-			for lock in orginized_voxels[chunk][key]:
-				var pin = orginized_voxels[chunk][key][lock].duplicate()
-				pin.sort()
-				sorted_voxels[chunk][key][lock] = pin
+		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
+		vox_chunk_indices.append(chunk)
+		if not chunks.has(chunk):
+			chunks[chunk] = PackedVector3Array()
+		chunks[chunk].append(voxel)
 	
 	# Create collision
-	var shapes = Array()
-	var collision_shapes: Dictionary[int, Array] = {}
-	for chunk in sorted_voxels:
-		collision_shapes[chunk] = Array()
-		for key in sorted_voxels[chunk]:
-			for lock in sorted_voxels[chunk][key]:
-				for pin in sorted_voxels[chunk][key][lock].size():
-					continue
+	var starting_shapes = Array()
+	for chunk in chunks:
+		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale))
 	
-	# Create collision buffer
-	voxel_resource.collision_buffer = {"axes": PackedByteArray([l, m, s]), "vox grid": sorted_voxels, "shapes": collision_shapes}
+	# Set final VoxelResource Vars
+	voxel_resource.vox_chunk_indices = vox_chunk_indices
+	voxel_resource.chunks = chunks
+	voxel_resource.starting_shapes = starting_shapes
 	
 	# Set data size
 	var initial_data_size: float = 0
@@ -275,13 +243,65 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	return err
 
 
-func sort_dictionary(dict: Dictionary):
-	var keys = dict.keys()
-	keys.sort()
-	var sorted_dict = Dictionary()
-	for key in keys:
-		sorted_dict[key] = dict[key]
-	return sorted_dict
+func create_boxes(chunk: PackedVector3Array) -> Array:
+	var visited: Dictionary[Vector3, bool]
+	var boxes = []
+
+	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
+		var start
+		var end
+		match axis:
+			0: start = Vector3(pos, box_min.y, box_min.z); end = Vector3(pos, box_max.y, box_max.z)
+			1: start = Vector3(box_min.x, pos, box_min.z); end = Vector3(box_max.x, pos, box_max.z)
+			2: start = Vector3(box_min.x, box_min.y, pos); end = Vector3(box_max.x, box_max.y, pos)
+
+		for x in range(int(start.x), int(end.x) + 1):
+			for y in range(int(start.y), int(end.y) + 1):
+				for z in range(int(start.z), int(end.z) + 1):
+					var check_pos = Vector3(x, y, z)
+					if not chunk.has(check_pos) or visited.get(check_pos, false):
+						return false
+		return true
+	
+	for pos in chunk:
+		if visited.get(pos, false):
+			continue
+		
+		var box_min = pos
+		var box_max = pos
+		
+		# Expand along X, Y, Z greedily
+		for axis in range(3):
+			while true:
+				var next_pos = box_max[axis] + 1
+				if can_expand.call(box_min, box_max, axis, next_pos):
+					box_max[axis] = next_pos
+				else:
+					break
+
+		# Mark visited voxels
+		for x in range(int(box_min.x), int(box_max.x) + 1):
+			for y in range(int(box_min.y), int(box_max.y) + 1):
+				for z in range(int(box_min.z), int(box_max.z) + 1):
+					visited[Vector3(x, y, z)] = true
+
+		boxes.append({"min": box_min, "max": box_max})
+
+	return boxes
+
+
+func create_shapes(boxes: Array, voxel_size: Vector3) -> Array:
+	var shapes = []
+	for box in boxes:
+		var min_pos = box["min"]
+		var max_pos = box["max"]
+		
+		var center = (min_pos + max_pos) * 0.5 * voxel_size
+		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_size
+		shapes.append({"extents": size * 0.5, "position": center})
+	
+	return shapes
+
 
 
 const ERROR_DESCRIPTIONS = {
