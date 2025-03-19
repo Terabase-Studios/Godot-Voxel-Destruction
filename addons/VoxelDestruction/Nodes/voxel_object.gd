@@ -67,6 +67,11 @@ func _ready() -> void:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 		call_deferred("_set_voxel_object")
 		VoxelServer.voxel_objects.append(self)
+		VoxelServer.total_active_voxels += voxel_resource.vox_count
+
+
+func _process(delta: float) -> void:
+	_debri_called = false
 
 
 func _get_configuration_warnings():
@@ -79,7 +84,6 @@ func _get_configuration_warnings():
 		warnings.append("Όσοι το χρησιμοποιούν έχουν τις ευχαριστίες μου.")
 	
 	return warnings
-
 
 
 func populate_mesh():
@@ -113,19 +117,16 @@ func populate_mesh():
 			
 			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*voxel_resource.vox_size))
 			multimesh.set_instance_color(i, dithered_color)
-		voxel_resource.debuffer("positions")
-		voxel_resource.debuffer("color_index")
-		voxel_resource.debuffer("colors")
 
 func reset():
 	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
 	voxel_resource.buffer("health")
 	voxel_resource.health.fill(100)
-	voxel_resource.debuffer("health")
 	_update_collision()
 	populate_mesh()
 	_set_hp()
+	VoxelServer.call_deferred("set_object_memory", self)
 
 
 func get_vox_color(voxid) -> Color:
@@ -173,18 +174,13 @@ func _set_voxel_object():
 		if color not in voxel_resource.colors:
 			voxel_resource.colors.append(color)
 		voxel_resource.color_index[i] = voxel_resource.colors.find(color)
+	VoxelServer.call_deferred("set_object_memory", self)
 	#if physics_object:
 		#_make_physics_object()
-	voxel_resource.debuffer("colors")
-	voxel_resource.debuffer("color_index")
 	return
 
 
 func _damage_voxel(voxid: int, vox_postion: Vector3, damager: VoxelDamager):
-	if invulnerable:
-		return
-	if voxid == -1:
-		return  # Skip if voxel not found
 	var decay := damager.global_pos.distance_to(vox_postion) / damager.range
 	var base_damage := damager.base_damage
 	var base_power := damager.base_power
@@ -204,16 +200,41 @@ func _damage_voxel(voxid: int, vox_postion: Vector3, damager: VoxelDamager):
 		var vox_pos := Vector3i(voxel_resource.positions[voxid])
 		voxel_resource.valid_positions_dict.erase(vox_pos)
 		multimesh.set_instance_transform(voxid, Transform3D())
+		VoxelServer.total_active_voxels -= 1
 		if power > 0.01:
 			_debri_queue.append({ "pos": vox_postion, "origin": damager.global_pos, "power": power}) 
 			match debri_type:
-				0: _start_debri("_no_debri", true)
-				1: _start_debri("_create_debri_multimesh", true)
-				2: _start_debri("_create_debri_rigid_bodies", true)
+				1: 
+					_start_debri("_create_debri_multimesh", true)
+					_debri_called = true
+				2: 
+					_start_debri("_create_debri_rigid_bodies", true)
+					_debri_called = true
 
 
 func _update_collision():
 	return
+
+
+func _start_debri(function, check_floating):
+	if _debri_called or debri_lifetime == 0 or debri_density == 0:
+		return
+	await get_tree().process_frame
+	VoxelServer.call_deferred("set_object_memory", self)
+	
+	if hp == 0:
+		visible = false
+	
+	if check_floating and remove_floating_voxels:
+		call_deferred("_remove_detached_voxels_start")
+	
+	voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
+	
+	call_deferred(function)
+	call_deferred("_update_collision")
+	_set_hp()
+	await get_tree().process_frame
+	VoxelServer.call_deferred("set_object_memory", self)
 
 
 func create_boxes(chunk: PackedVector3Array) -> Array:
@@ -262,29 +283,6 @@ func create_boxes(chunk: PackedVector3Array) -> Array:
 
 	return boxes
 
-
-func _start_debri(function, check_floating):
-	await get_tree().process_frame
-	if _debri_called or debri_lifetime == 0 or debri_density == 0:
-		return
-	
-	if hp == 0:
-		visible = false
-	
-	if check_floating and remove_floating_voxels:
-		call_deferred("_remove_detached_voxels_start")
-	
-	voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
-	_debri_called = true
-	call_deferred(function)
-	call_deferred("_update_collision")
-	_set_hp()
-
-
-func _no_debri():
-	_debri_called = false
-
-
 func _create_debri_multimesh():
 	var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
 	var debri_states = []
@@ -314,7 +312,6 @@ func _create_debri_multimesh():
 		multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
 		idx += 1
 	var current_lifetime = debri_lifetime
-	_debri_called = false
 	_debri_queue.clear()
 	while current_lifetime > 0:
 		var delta = get_physics_process_delta_time()
@@ -405,14 +402,13 @@ func _flood_fill():
 		
 		var queue = [voxel_resource.origin]
 		var visited = {}
+		
 		var damage_positions = voxel_resource.valid_positions
 		var damage_positions_dict = voxel_resource.valid_positions_dict
 		
 		visited[voxel_resource.origin] = true
 		
 		var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
-		
-		
 					   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
 					   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 		
@@ -443,12 +439,15 @@ func _flood_fill():
 					voxel_resource.valid_positions_dict.erase(Vector3i(vox))
 					multimesh.set_instance_transform(voxid, Transform3D())
 			voxel_resource.valid_positions = PackedVector3Array(voxel_resource.valid_positions_dict.keys())
-			voxel_resource.debuffer("positions_dict")
-			voxel_resource.debuffer("valid_positions_dict")
-			voxel_resource.debuffer("valid_positions")
 			_mutex.unlock()
 			call_deferred("_update_collision")
 			call_deferred("_set_hp")
+		damage_positions.clear()
+		damage_positions_dict.clear()
+		to_remove.clear()
+		visited.clear()
+		queue.clear()
+		VoxelServer.call_deferred("set_object_memory", self)
 
 
 func _set_hp():
@@ -469,4 +468,6 @@ func _exit_tree():
 	
 	voxel_resource = null
 	voxel_resource = null
+	VoxelServer.total_active_voxels -= voxel_resource.valid_positions.size()
 	VoxelServer.voxel_objects.erase(self)
+	VoxelServer.call_deferred("set_object_memory", self)

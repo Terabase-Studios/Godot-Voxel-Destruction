@@ -3,17 +3,14 @@
 extends Resource
 class_name VoxelResource
 
-enum compression_mode {
-	FAST = 0,
-	Compact = 1
-}
+const BUFFER_LIFETIME = 1
+const COMPRESSION_MODE = 2
 
 @export var vox_count: int
 @export var vox_size: Vector3
 @export var size: Vector3
 @export var origin: Vector3i
 @export var starting_shapes: Array
-@export_enum("None", "Fast", "Compact") var compression_type = 0
 @export var compression: float
 @export var _data := {
 	"colors": null, 
@@ -69,9 +66,11 @@ var chunks:
 	set(value): _set("chunks", value)
 
 var data_buffer = Dictionary()
-var debri_pool = []
+var buffer_life = Dictionary()
+var debri_pool = Array()
 
 signal data_changed
+
 
 ## Retrieves decompressed values and returns them in the intended format ##
 func _get(property: StringName):
@@ -80,19 +79,8 @@ func _get(property: StringName):
 		if property not in data_buffer:
 			var compressed_bytes = _data[property]
 			if compressed_bytes != null and compressed_bytes.size() > 0:
-				var compress_mode: int
-				match compression_type:
-					0:
-						compress_mode = -1
-					1:
-						compress_mode = 0
-					2:
-						compress_mode = 2
 				var decompressed_bytes
-				if compress_mode != -1:
-					decompressed_bytes = compressed_bytes.decompress(_property_size[property], compress_mode)
-				else:
-					decompressed_bytes = compressed_bytes
+				decompressed_bytes = compressed_bytes.decompress(_property_size[property], COMPRESSION_MODE)
 				result = bytes_to_var(decompressed_bytes)
 				if property in ["color_index", "health"]:
 					return PackedByteArray(result)
@@ -124,19 +112,8 @@ func _set(property: StringName, value: Variant) -> bool:
 	if property in _property_size:
 		if property not in data_buffer:
 			var bytes = var_to_bytes(value)
-			var compress_mode: int
-			match compression_type:
-				0:
-					compress_mode = -1
-				1:
-					compress_mode = 0
-				2:
-					compress_mode = 2
 			var compressed_bytes
-			if compress_mode != -1:
-				compressed_bytes = bytes.compress(compress_mode)
-			else:
-				compressed_bytes = bytes
+			compressed_bytes = bytes.compress(COMPRESSION_MODE)
 			_property_size[property] = bytes.size()
 			_data[property] = compressed_bytes
 		else:
@@ -145,17 +122,28 @@ func _set(property: StringName, value: Variant) -> bool:
 	return false
 
 ## Controls data in buffer ##
-func buffer(property):
+func buffer(property, auto_debuffer: bool = true):
 	if property not in _data:
 		push_warning("Cannot Buffer "+property+": Does not exist")
 		return
 	data_buffer[property] = _get(property)
+	if auto_debuffer:
+		if buffer_life.has(property):
+			buffer_life[property] += 1
+		else:
+			buffer_life[property] = 1
+		await Engine.get_main_loop().create_timer(BUFFER_LIFETIME).timeout
+		buffer_life[property] -= 1
+		if buffer_life[property] == 0 and property in data_buffer:
+			debuffer(property)
+
 
 func debuffer(property):
 	if property not in data_buffer:
 		push_warning("Cannot Debuffer "+property+": Does not exist")
 		return
 	var buffer = data_buffer[property]
+	data_buffer[property] = null
 	data_buffer.erase(property)
 	_set(property, buffer)
 
@@ -166,23 +154,6 @@ func buffer_all():
 func debuffer_all():
 	for property in data_buffer.keys():
 		debuffer(property)
-
-## Changes Compression Type ##
-func set_compression(type: compression_mode):
-	var old_data = Dictionary()
-	for property in _data:
-		old_data[property] = _get(property)
-	compression_type = type
-	var compress_mode: int
-	match compression_type:
-		0:
-			compress_mode = 0
-		1:
-			compress_mode = 2
-	for property in old_data:
-		var bytes = var_to_bytes(old_data[property])
-		var compressed_bytes = bytes.compress(compress_mode)
-		_data[property] = compressed_bytes
 
 
 ## Pools debris ##

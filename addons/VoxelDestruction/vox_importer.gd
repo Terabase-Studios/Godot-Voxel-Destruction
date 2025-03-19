@@ -2,16 +2,15 @@
 @tool
 extends EditorImportPlugin
 
-enum compression_types {
-	NONE = 0,
-	FAST = 1,
+enum Resource_type {
+	DEFAULT = 0,
 	COMPACT = 2
 }
 
 enum Presets { 
 	SCALE,
 	CHUNK_SIZE,
-	COMPRESSION_TYPE
+	RESOURCE_TYPE
 }
 
 
@@ -25,8 +24,8 @@ func _get_preset_name(preset_index):
 			return "Scale"
 		Presets.CHUNK_SIZE:
 			return "Chunk Size"
-		Presets.COMPRESSION_TYPE:
-			return "Compression Type"
+		Presets.RESOURCE_TYPE:
+			return "Resource Type"
 		_:
 			return "Unknown"
 
@@ -42,9 +41,9 @@ func _get_import_options(path, preset_index):
 			},
 			{
 			   "name": "Compression_Type",
-			   "default_value": compression_types.COMPACT,
+			   "default_value": Resource_type.COMPACT,
 			   "property_hint": PROPERTY_HINT_ENUM,
-			   "hint_string": "None,Fast,Compact"
+			   "hint_string": "Default,Compact"
 			}]
 
 
@@ -167,15 +166,19 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
-	if options.Compression_Type:
-		voxel_resource.compression_type = options.Compression_Type
+	if options.Compression_Type == 1:
+		voxel_resource = VoxelResource.new()
 	else:
-		voxel_resource.compression_type = 0
+		voxel_resource = VoxelResource.new()
 	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
 	voxel_resource.size = size
+	voxel_resource.vox_count.make_read_only()
+	voxel_resource.vox_size.make_read_only()
+	voxel_resource.origin.make_read_only()
+	voxel_resource.size.make_read_only()
 	voxel_resource.health.resize(positions.size())
 	voxel_resource.health.fill(100)
 	

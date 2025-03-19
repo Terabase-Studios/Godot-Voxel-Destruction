@@ -33,6 +33,8 @@ func hit():
 		if body is StaticBody3D or body is RigidBody3D:
 			var parent = body.get_parent()
 			if parent is VoxelObject:
+				if parent.invulnerable:
+					continue
 				if group_mode == 1:
 					if group in parent.get_groups():
 						continue
@@ -40,6 +42,12 @@ func hit():
 					if group not in parent.get_groups():
 						continue
 				var inside_voxels = get_voxels_in_aabb(aabb, parent)
+				parent.voxel_resource.buffer("health")
+				parent.voxel_resource.buffer("colors")
+				parent.voxel_resource.buffer("color_index")
+				parent.voxel_resource.buffer("positions")
+				parent.voxel_resource.buffer("valid_positions_dict")
+				parent.voxel_resource.buffer("vox_chunk_indices")
 				for vox in inside_voxels:
 					parent._damage_voxel(vox[0], vox[1], self)
 				if parent not in hit_objects:
@@ -71,8 +79,9 @@ func get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
 	for voxel_pos in voxel_resource.valid_positions_dict.keys():
 		var voxel_global_pos = Vector3(voxel_pos)*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
 		if aabb.has_point(voxel_global_pos):
-			inside_voxels.append([voxel_resource.valid_positions_dict[voxel_pos], voxel_global_pos])
-	voxel_resource.debuffer("valid_positions_dict")
+			var voxid = voxel_resource.valid_positions_dict.get(voxel_pos, -1)
+			if voxid != -1:
+				inside_voxels.append([voxid, voxel_global_pos])
 	return inside_voxels
 
 
