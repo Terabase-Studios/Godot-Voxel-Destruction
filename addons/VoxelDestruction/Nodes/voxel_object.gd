@@ -3,7 +3,7 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 
-@export var voxel_resource: VoxelResource:
+@export var voxel_resource: VoxelResourceBase:
 	set(value):
 		voxel_resource = value
 		update_configuration_warnings()
