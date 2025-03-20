@@ -25,7 +25,7 @@ func _get_preset_name(preset_index):
 		Presets.CHUNK_SIZE:
 			return "Chunk Size"
 		Presets.RESOURCE_TYPE:
-			return "Resource Type"
+			return "Resource"
 		_:
 			return "Unknown"
 
@@ -40,7 +40,7 @@ func _get_import_options(path, preset_index):
 			   "default_value": Vector3(16, 16, 16)
 			},
 			{
-			   "name": "Compression_Type",
+			   "name": "Resource_type",
 			   "default_value": Resource_type.COMPACT,
 			   "property_hint": PROPERTY_HINT_ENUM,
 			   "hint_string": "Default,Compact"
@@ -166,8 +166,8 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
-	if options.Compression_Type == 1:
-		voxel_resource = VoxelResource.new()
+	if options.Resource_type == 1:
+		voxel_resource = CompactVoxelResource.new()
 	else:
 		voxel_resource = VoxelResource.new()
 	voxel_resource.buffer_all()
@@ -175,10 +175,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
 	voxel_resource.size = size
-	voxel_resource.vox_count.make_read_only()
-	voxel_resource.vox_size.make_read_only()
-	voxel_resource.origin.make_read_only()
-	voxel_resource.size.make_read_only()
 	voxel_resource.health.resize(positions.size())
 	voxel_resource.health.fill(100)
 	
@@ -230,15 +226,16 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.chunks = chunks
 	voxel_resource.starting_shapes = starting_shapes
 	
-	# Set data size
-	var initial_data_size: float = 0
-	var compressed_data_size: float = 0
-	for bytes in voxel_resource._property_size.values():
-		initial_data_size += bytes
-	for property in voxel_resource._data:
-		var bytes = voxel_resource._data[property].size()
-		compressed_data_size += bytes
-	voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
+	# Set data size if compressed voxel obj:
+	if options.Resource_type == 1:
+		var initial_data_size: float = 0
+		var compressed_data_size: float = 0
+		for bytes in voxel_resource._property_size.values():
+			initial_data_size += bytes
+		for property in voxel_resource._data:
+			var bytes = voxel_resource._data[property].size()
+			compressed_data_size += bytes
+		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:

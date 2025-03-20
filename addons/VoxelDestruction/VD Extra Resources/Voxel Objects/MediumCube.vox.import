@@ -14,4 +14,4 @@ dest_files=["res://.godot/imported/MediumCube.vox-449e9a174ccdbf5d519011460d53c5
 
 Scale=Vector3(0.1, 0.1, 0.1)
 Chunk_Size=Vector3(16, 16, 16)
-Compression_Type=2
+Compression_Type=1
