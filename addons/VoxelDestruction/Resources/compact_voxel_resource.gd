@@ -114,6 +114,9 @@ func _get(property: StringName) -> Variant:
 
 ## Sets values in _data after compression or sets data in data_buffer
 func _set(property: StringName, value: Variant) -> bool:
+	# Return if value null
+	if value == null:
+		return false
 	if property in _property_size:
 		# Prevents compressing data if it is in the buffer
 		if property not in data_buffer:

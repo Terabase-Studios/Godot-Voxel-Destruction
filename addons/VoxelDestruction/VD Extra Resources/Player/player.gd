@@ -21,7 +21,6 @@ var grav_vel: Vector3 # Gravity velocity
 var jump_vel: Vector3 # Jumping velocity
 
 var cooldown: float = 0
-var hit = false
 
 @onready var camera: Camera3D = $Camera
 
@@ -32,17 +31,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		look_dir = event.relative * 0.001
 		if mouse_captured: _rotate_camera()
-	if hit != true:
-		if Input.is_action_just_pressed("ui_text_completion_replace"): jumping = true
+	if Input.is_action_just_pressed("ui_text_completion_replace"): jumping = true
 	if Input.is_action_just_pressed("ui_cancel"): get_tree().quit()
 	if Input.is_action_just_pressed("ui_select"): _fire()
 
 func _physics_process(delta: float) -> void:
 	#if mouse_captured: _handle_joypad_camera_rotation(delta)
 	cooldown = clamp(cooldown-delta, 0, .1)
-	if hit != true:
-		velocity = _walk(delta) + _gravity(delta) + _jump(delta)
-		move_and_slide()
+	velocity = _walk(delta) + _gravity(delta) + _jump(delta)
+	move_and_slide()
 
 func capture_mouse() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -53,9 +50,8 @@ func release_mouse() -> void:
 	mouse_captured = false
 
 func _rotate_camera(sens_mod: float = 1.0) -> void:
-	if hit != true:
-		camera.rotation.y -= look_dir.x * camera_sens * sens_mod
-		camera.rotation.x = clamp(camera.rotation.x - look_dir.y * camera_sens * sens_mod, -1.5, 1.5)
+	camera.rotation.y -= look_dir.x * camera_sens * sens_mod
+	camera.rotation.x = clamp(camera.rotation.x - look_dir.y * camera_sens * sens_mod, -1.5, 1.5)
 
 func _walk(delta: float) -> Vector3:
 	move_dir = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -78,13 +74,6 @@ func _jump(delta: float) -> Vector3:
 
 func _fire():
 	if cooldown == 0:
-		if hit == true:
-			%Panel.visible = false
-			%VoxelDamager.hit()
-			cooldown = .05
-		else:
-			%Panel.visible = true
-			%VoxelDamager.global_position = %RayCast3D.get_collision_point()
-			cooldown = .05 
-		hit = !hit
-		pass
+		%VoxelDamager.global_position = %RayCast3D.get_collision_point()
+		%VoxelDamager.hit()
+		cooldown = .05

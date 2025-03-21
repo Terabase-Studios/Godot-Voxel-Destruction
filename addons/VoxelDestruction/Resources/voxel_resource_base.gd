@@ -11,21 +11,21 @@ class_name VoxelResourceBase
 @export var starting_shapes: Array ## Array of shapes used at VoxelObject start
 @export var compression: float ## Size reduction of data compression
 
-## Pool of debri nodes
-var debri_pool = Array()
+## Pool of debris nodes
+var debris_pool: Array[RigidBody3D]
 
 ## Creates debris and saves them to debri_pool
 func pool_rigid_bodies(vox_amount) -> void:
 	for i in range(0, vox_amount):
 		var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
 		debri.hide()
-		debri_pool.append(debri)
+		debris_pool.append(debri)
 
 
 ## Returns a debri from the debri_pool
 func get_debri() -> RigidBody3D:
-	if debri_pool.size() > 0:
-		return debri_pool.pop_front()
+	if debris_pool.size() > 0:
+		return debris_pool.pop_front()
 	var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
 	debri.hide()
 	return debri

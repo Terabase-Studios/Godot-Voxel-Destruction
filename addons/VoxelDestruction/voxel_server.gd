@@ -64,7 +64,7 @@ func _get_object_memory(object: Object, processed = {}):
 		var value = object.get(property_name)
 		if value != null:
 			var memory = var_to_bytes_with_objects(value).size()
-			if value is VoxelResource:
+			if value is VoxelResourceBase:
 				memory += var_to_bytes(value._data).size()
 				memory += var_to_bytes(value.data_buffer).size()
 			elif value is MultiMesh:

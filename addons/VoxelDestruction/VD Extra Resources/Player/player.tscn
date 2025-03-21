@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://cdk6hwb4hi2wc"]
+[gd_scene load_steps=7 format=3 uid="uid://cdk6hwb4hi2wc"]
 
 [ext_resource type="Script" uid="uid://dyi37ehqm4dff" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd" id="1_2f8j2"]
 [ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="2_ehonj"]
@@ -15,14 +15,6 @@ _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bcjde"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_owlp4"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 50
-border_width_top = 50
-border_width_right = 50
-border_width_bottom = 50
-border_color = Color(0, 0.506667, 0.8, 0.196078)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_2f8j2")
@@ -59,18 +51,6 @@ power_curve = SubResource("Curve_wnqqp")
 shape = SubResource("BoxShape3D_bcjde")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
-
-[node name="Panel" type="Panel" parent="CanvasLayer"]
-unique_name_in_owner = true
-visible = false
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-mouse_force_pass_scroll_events = false
-theme_override_styles/panel = SubResource("StyleBoxFlat_owlp4")
 
 [node name="PanelContainer" type="PanelContainer" parent="CanvasLayer"]
 anchors_preset = 3
