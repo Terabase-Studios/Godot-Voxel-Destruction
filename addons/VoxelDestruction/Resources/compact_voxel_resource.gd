@@ -63,7 +63,7 @@ var buffer_life = Dictionary()
 
 ## Retrieves values from _data and returns them in the intended decompressed format [br]
 ## or returns data from data_buffer
-func _get(property: StringName) -> Variant:
+func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
 	# Prevents decompressing missing data
 	if property in _data:
 		var result
@@ -72,6 +72,8 @@ func _get(property: StringName) -> Variant:
 			var compressed_bytes = _data[property]
 			# Prevents decompressing non existant data
 			if compressed_bytes != null and compressed_bytes.size() > 0:
+				if not ignore_buffer_error:
+					push_warning("Accessing unbuffered variable \""+str(property)+"\"! This can severly reduce performance. Please Report with expanded error information.")
 				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], COMPRESSION_MODE)
 				result = bytes_to_var(decompressed_bytes)
 				# Properly type variable if bytes_to_var() returns incorrect type
@@ -123,17 +125,17 @@ func _set(property: StringName, value: Variant) -> bool:
 
 ## Adds property to data_buffer if found in _data. [br]
 ## can optionaly prevent debuffering for BUFFER_LIFTIME 
-func buffer(property, auto_debuffer: bool = true):
+func buffer(property, auto_debuffer: bool = true, lifetime = BUFFER_LIFETIME):
 	if property not in _data:
-		push_warning("Cannot Buffer: Property is not a compressed variable")
+		push_warning("Cannot Buffer \""+str(buffer)+"\": Property is not a compressed variable")
 		return
-	data_buffer[property] = _get(property)
+	data_buffer[property] = _get(property, true)
 	if auto_debuffer:
 		if buffer_life.has(property):
 			buffer_life[property] += 1
 		else:
 			buffer_life[property] = 1
-		await Engine.get_main_loop().create_timer(BUFFER_LIFETIME).timeout
+		await Engine.get_main_loop().create_timer(lifetime).timeout
 		buffer_life[property] -= 1
 		if buffer_life[property] == 0 and property in data_buffer:
 			debuffer(property)

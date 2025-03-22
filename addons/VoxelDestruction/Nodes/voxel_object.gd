@@ -144,6 +144,10 @@ func get_vox_color(voxid: int) -> Color:
 
 ## Damage voxels
 func damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
+	voxel_resource.buffer("health")
+	voxel_resource.buffer("positions_dict")
+	voxel_resource.buffer("vox_chunk_indices")
+	voxel_resource.buffer("chunks")
 	# record damage results and create task pool
 	var damage_results: Array
 	# resize to make modifing thread-safe
@@ -153,6 +157,7 @@ func damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pac
 		voxel_count, -1, false, "Calculating Voxel Damage"
 	)
 	while not WorkerThreadPool.is_group_task_completed(group_id):
+		# Keep information in buffer
 		voxel_resource.buffer("health")
 		voxel_resource.buffer("positions_dict")
 		voxel_resource.buffer("vox_chunk_indices")
@@ -180,7 +185,7 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 	
 	var power_sample: float = damager.power_curve.sample(decay)
 	var damage: float = damager.base_damage * decay_sample
-
+	
 	# Compute new voxel health
 	var new_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
 	
