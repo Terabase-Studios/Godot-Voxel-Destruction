@@ -49,7 +49,8 @@ class_name VoxelObject
 	set(value):
 		dithering_seed = value
 		populate_mesh()
-
+var _collision_shapes = Dictionary()
+var _collision_body: PhysicsBody3D
 
 ## Runs on node start
 func _ready() -> void:
@@ -69,15 +70,21 @@ func _ready() -> void:
 		# Add shapes
 		voxel_resource.buffer("colors")
 		voxel_resource.buffer("color_index")
-		var static_body = StaticBody3D.new()
-		add_child(static_body)
+		_collision_body = StaticBody3D.new()
+		add_child(_collision_body)
+		
 		for shape_info in voxel_resource.starting_shapes:
 			var shape_node = CollisionShape3D.new()
 			var shape = BoxShape3D.new()
+			var chunk = shape_info["chunk"]
 			shape_node.shape = shape
 			shape.extents = shape_info["extents"]
-			static_body.add_child(shape_node)
+			_collision_body.add_child(shape_node)
 			shape_node.position = shape_info["position"]
+			if chunk not in _collision_shapes:
+				_collision_shapes[chunk] = Array()
+			_collision_shapes[chunk].append(shape_node)
+		voxel_resource.starting_shapes.clear()
 		
 		# Updated colors if dithered.
 		for i in multimesh.instance_count:
@@ -139,6 +146,7 @@ func get_vox_color(voxid: int) -> Color:
 func damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
 	# record damage results and create task pool
 	var damage_results: Array
+	# resize to make modifing thread-safe
 	damage_results.resize(voxel_count)
 	var group_id = WorkerThreadPool.add_group_task(
 		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damage_results), 
@@ -147,6 +155,8 @@ func damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pac
 	while not WorkerThreadPool.is_group_task_completed(group_id):
 		voxel_resource.buffer("health")
 		voxel_resource.buffer("positions_dict")
+		voxel_resource.buffer("vox_chunk_indices")
+		voxel_resource.buffer("chunks")
 		await get_tree().process_frame
 	await _apply_damage_results(damage_results)
 
@@ -155,7 +165,7 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 	# Get positions and vox_ids to modify later and calculate damage
 	var vox_position: Vector3 = global_voxel_positions[voxel]
 	var vox_pos3i: Vector3i = voxel_positions[voxel]
-	var vox_id: int = voxel_resource.positions_dict[vox_pos3i]
+	var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
 	
 	# Skip if voxel ID is invalid
 	if vox_id == -1:
@@ -173,13 +183,21 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 
 	# Compute new voxel health
 	var new_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
-
+	
+	var chunk = Vector3.ZERO
+	var chunk_pos = 0
+	if new_health == 0:
+		chunk = voxel_resource.vox_chunk_indices[vox_id]
+		chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
 	# Store the result in a thread-safe dictionary
-	damage_results[voxel] = {"vox_id": vox_id, "health": new_health, "pos": vox_pos3i}
+	damage_results[voxel] = {"vox_id": vox_id, "health": new_health, "pos": vox_pos3i, "chunk": chunk, "chunk_pos": chunk_pos}
 
 
 func _apply_damage_results(damage_results: Array) -> void:
 	voxel_resource.buffer("positions")
+	voxel_resource.buffer("positions_dict")
+	voxel_resource.buffer("chunks")
+	var chunks_to_regen = PackedVector3Array()
 	for result in damage_results:
 		# Skip results
 		if result == null:
@@ -190,35 +208,57 @@ func _apply_damage_results(damage_results: Array) -> void:
 		
 		# Set health, darken, remove voxels
 		voxel_resource.health[vox_id] = health
-
 		if health > 0:
 			if darkening:
 				multimesh.set_instance_color(vox_id, get_vox_color(vox_id).darkened(1.0 - (health * 0.01)))
 		else:
-			# Remove voxel from valid positions
-			voxel_resource.valid_positions_dict.erase(vox_pos3i)
+			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_transform(vox_id, Transform3D())
+			voxel_resource.positions_dict.erase(vox_pos3i)
 			VoxelServer.total_active_voxels -= 1
+			
+			var chunk = result["chunk"]
+			voxel_resource.chunks[chunk][result["chunk_pos"]] = Vector3(-1, -7, -7)
+			
+			if chunk not in chunks_to_regen:
+				chunks_to_regen.append(chunk)
+	for chunk in chunks_to_regen:
+		_regen_collision(chunk)
 
 
 func _regen_collision(chunk_index: Vector3) -> void:
-	var chunk := PackedVector3Array()
-	var boxes = []
+	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
+	var shapes = Array()
+	shapes.resize(1000)
+	var task_id = WorkerThreadPool.add_task(
+		_create_shapes.bind(chunk, shapes), 
+		false, "Calculating Collsion Shapes"
+	)
+	while not WorkerThreadPool.is_task_completed(task_id):
+		await get_tree().process_frame
 	
-	var shapes = []
-	for box in boxes:
-		var min_pos = box["min"]
-		var max_pos = box["max"]
-		
-		var center = (min_pos + max_pos) * 0.5 * voxel_resource.voxel_size
-		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.voxel_size
-		shapes.append({"extents": size * 0.5, "position": center})
+	for shape in _collision_shapes[chunk_index]:
+		shape.queue_free()
+	_collision_shapes[chunk_index].clear()
+	
+	for shape_info in shapes:
+		if shape_info == null:
+			return
+		var shape_node = CollisionShape3D.new()
+		var shape = BoxShape3D.new()
+		shape_node.shape = shape
+		shape.extents = shape_info["extents"]
+		_collision_body.add_child(shape_node)
+		shape_node.position = shape_info["position"]
+		if chunk_index not in _collision_shapes:
+			_collision_shapes[chunk_index] = Array()
+		_collision_shapes[chunk_index].append(shape_node)
 
 
-func _create_boxes(chunk: PackedVector3Array) -> Array:
+func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
-
+	
 	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
 		var start
 		var end
@@ -226,7 +266,7 @@ func _create_boxes(chunk: PackedVector3Array) -> Array:
 			0: start = Vector3(pos, box_min.y, box_min.z); end = Vector3(pos, box_max.y, box_max.z)
 			1: start = Vector3(box_min.x, pos, box_min.z); end = Vector3(box_max.x, pos, box_max.z)
 			2: start = Vector3(box_min.x, box_min.y, pos); end = Vector3(box_max.x, box_max.y, pos)
-
+		
 		for x in range(int(start.x), int(end.x) + 1):
 			for y in range(int(start.y), int(end.y) + 1):
 				for z in range(int(start.z), int(end.z) + 1):
@@ -237,6 +277,8 @@ func _create_boxes(chunk: PackedVector3Array) -> Array:
 	
 	for pos in chunk:
 		if visited.get(pos, false):
+			continue
+		if pos == Vector3(-1, -7, -7):
 			continue
 		
 		var box_min = pos
@@ -250,13 +292,20 @@ func _create_boxes(chunk: PackedVector3Array) -> Array:
 					box_max[axis] = next_pos
 				else:
 					break
-
+		
 		# Mark visited voxels
 		for x in range(int(box_min.x), int(box_max.x) + 1):
 			for y in range(int(box_min.y), int(box_max.y) + 1):
 				for z in range(int(box_min.z), int(box_max.z) + 1):
 					visited[Vector3(x, y, z)] = true
-
+		
 		boxes.append({"min": box_min, "max": box_max})
-
-	return boxes
+	var i = -1
+	for box in boxes:
+		i += 1
+		var min_pos = box["min"]
+		var max_pos = box["max"]
+		
+		var center = (min_pos + max_pos) * 0.5 * voxel_resource.vox_size
+		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size
+		shapes[i] = ({"extents": size * 0.5, "position": center})

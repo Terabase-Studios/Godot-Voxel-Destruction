@@ -7,9 +7,7 @@ class_name VoxelResource
 @export var color_index: PackedByteArray ## Voxel color index in colors
 @export var health: PackedByteArray ## Current life of voxels
 @export var positions: PackedVector3Array ## Voxel positions array
-@export var valid_positions: PackedVector3Array ## Intact voxel positions array
 @export var positions_dict: Dictionary[Vector3i, int] ## Voxel positions dictionary
-@export var valid_positions_dict: Dictionary[Vector3i, int] ## Intact voxel positions dictionary
 @export var vox_chunk_indices: PackedVector3Array ## What chunk a voxel belongs to
 @export var chunks: Dictionary[Vector3, PackedVector3Array] ## Stores chunk locations with intact voxel locations
 

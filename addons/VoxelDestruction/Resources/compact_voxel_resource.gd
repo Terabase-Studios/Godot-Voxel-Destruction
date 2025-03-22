@@ -15,16 +15,14 @@ const COMPRESSION_MODE = 2 ## Argument passed to compress()/decompress()
 @export var _data := {
 	"colors": null, 
 	"color_index": null, "health": null,
-	"positions": null, "valid_positions": null,
-	"positions_dict": null, "valid_positions_dict": null,
+	"positions": null, "positions_dict": null,
   "vox_chunk_indices": null, "chunks": null
 }
 ## Uncompressed size in bytes of _data for faster decompression
 @export var _property_size := {
 	"colors": 0, "color_index": 0, "health": 0,
-	"positions": 0, "valid_positions": 0,
-	"positions_dict": 0, "valid_positions_dict": 0,
-  "vox_chunk_indices": 0, "chunks": 0
+	"positions": 0, "positions_dict": 0,
+	"vox_chunk_indices": 0, "chunks": 0
 }
 
 ## Colors used for voxels
@@ -43,18 +41,10 @@ var health:
 var positions:
 	get: return _get("positions")
 	set(value): _set("positions", value)
-## Intact voxel positions array
-var valid_positions:
-	get: return _get("valid_positions")
-	set(value): _set("valid_positions", value)
 ## Voxel positions dictionary
 var positions_dict:
 	get: return _get("positions_dict")
 	set(value): _set("positions_dict", value)
-## Intact voxel positions dictionary
-var valid_positions_dict:
-	get: return _get("valid_positions_dict")
-	set(value): _set("valid_positions_dict", value)
 ## What chunk a voxel belongs to
 var vox_chunk_indices:
 	get: return _get("vox_chunk_indices")
@@ -89,9 +79,9 @@ func _get(property: StringName) -> Variant:
 					return PackedByteArray(result)
 				elif property in ["colors"]:
 					return PackedColorArray(result)
-				elif property in ["positions", "valid_positions", "vox_chunk_indices"]:
+				elif property in ["positions", "vox_chunk_indices"]:
 					return PackedVector3Array(result)
-				elif property in ["positions_dict", "valid_positions_dict"]:
+				elif property in ["positions_dict"]:
 					var dictionary: Dictionary[Vector3i, int] = result
 					return (dictionary)
 				elif property in ["chunks"]:
@@ -104,9 +94,9 @@ func _get(property: StringName) -> Variant:
 		return PackedByteArray()
 	elif property in ["colors"]:
 		return PackedColorArray()
-	elif property in ["positions", "valid_positions"]:
+	elif property in ["positions"]:
 		return PackedVector3Array()
-	elif property in ["positions_dict", "valid_positions_dict"]:
+	elif property in ["positions_dict"]:
 		var dictionary: Dictionary[Vector3i, int] = {}
 		return (dictionary)
 	return null
@@ -135,7 +125,7 @@ func _set(property: StringName, value: Variant) -> bool:
 ## can optionaly prevent debuffering for BUFFER_LIFTIME 
 func buffer(property, auto_debuffer: bool = true):
 	if property not in _data:
-		push_warning("Cannot Buffer "+property+": Is not a compressed variable")
+		push_warning("Cannot Buffer: Property is not a compressed variable")
 		return
 	data_buffer[property] = _get(property)
 	if auto_debuffer:

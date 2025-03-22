@@ -194,8 +194,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		index += 1
 	
 	# Modify object/add resource/finish Voxel Resource
-	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
-	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.debuffer_all()
 	
 	var chunk_size
@@ -209,7 +207,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	var chunks: Dictionary[Vector3, PackedVector3Array]
 	
 	# Create voxel dictionary
-	for voxel: Vector3i in voxel_resource.valid_positions:
+	for voxel: Vector3i in voxel_resource.positions:
 		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
 		vox_chunk_indices.append(chunk)
 		if not chunks.has(chunk):
@@ -219,7 +217,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Create collision
 	var starting_shapes = Array()
 	for chunk in chunks:
-		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale))
+		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
 	
 	# Set final VoxelResource Vars
 	voxel_resource.vox_chunk_indices = vox_chunk_indices
@@ -290,7 +288,7 @@ func create_boxes(chunk: PackedVector3Array) -> Array:
 	return boxes
 
 
-func create_shapes(boxes: Array, voxel_size: Vector3) -> Array:
+func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
 	var shapes = []
 	for box in boxes:
 		var min_pos = box["min"]
@@ -298,7 +296,7 @@ func create_shapes(boxes: Array, voxel_size: Vector3) -> Array:
 		
 		var center = (min_pos + max_pos) * 0.5 * voxel_size
 		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_size
-		shapes.append({"extents": size * 0.5, "position": center})
+		shapes.append({"extents": size * 0.5, "position": center, "chunk": chunk})
 	
 	return shapes
 

@@ -60,8 +60,8 @@ func get_area_aabb(area: Area3D) -> AABB:
 	if collision_shape and collision_shape.shape is BoxShape3D:
 		var box_shape = collision_shape.shape as BoxShape3D
 		var size = box_shape.size * 2
-		var position = collision_shape.global_position - (size * 0.5)
-		return AABB(position, size)
+		var _position = collision_shape.global_position - (size * 0.5)
+		return AABB(_position, size)
 	return AABB()
 
 
@@ -70,11 +70,11 @@ func get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
 	var voxel_resource: VoxelResourceBase = object.voxel_resource
-	voxel_resource.buffer("valid_positions_dict")
-	for voxel_pos: Vector3 in voxel_resource.valid_positions_dict.keys():
+	voxel_resource.buffer("positions_dict")
+	for voxel_pos: Vector3 in voxel_resource.positions_dict.keys():
 		var voxel_global_pos = voxel_pos*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
 		if aabb.has_point(voxel_global_pos):
-			var voxid = voxel_resource.valid_positions_dict.get(Vector3i(voxel_pos), -1)
+			var voxid = voxel_resource.positions_dict.get(Vector3i(voxel_pos), -1)
 			if voxid != -1:
 				voxel_count += 1
 				voxel_positions.append(voxel_pos)
