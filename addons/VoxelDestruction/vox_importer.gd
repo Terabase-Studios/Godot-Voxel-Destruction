@@ -2,16 +2,15 @@
 @tool
 extends EditorImportPlugin
 
-enum compression_types {
-	NONE = 0,
-	FAST = 1,
+enum Resource_type {
+	DEFAULT = 0,
 	COMPACT = 2
 }
 
 enum Presets { 
 	SCALE,
 	CHUNK_SIZE,
-	COMPRESSION_TYPE
+	RESOURCE_TYPE
 }
 
 
@@ -25,8 +24,8 @@ func _get_preset_name(preset_index):
 			return "Scale"
 		Presets.CHUNK_SIZE:
 			return "Chunk Size"
-		Presets.COMPRESSION_TYPE:
-			return "Compression Type"
+		Presets.RESOURCE_TYPE:
+			return "Resource"
 		_:
 			return "Unknown"
 
@@ -41,10 +40,10 @@ func _get_import_options(path, preset_index):
 			   "default_value": Vector3(16, 16, 16)
 			},
 			{
-			   "name": "Compression_Type",
-			   "default_value": compression_types.COMPACT,
+			   "name": "Resource_type",
+			   "default_value": Resource_type.COMPACT,
 			   "property_hint": PROPERTY_HINT_ENUM,
-			   "hint_string": "None,Fast,Compact"
+			   "hint_string": "Default,Compact"
 			}]
 
 
@@ -167,10 +166,10 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
-	if options.Compression_Type:
-		voxel_resource.compression_type = options.Compression_Type
+	if options.Resource_type == 1:
+		voxel_resource = CompactVoxelResource.new()
 	else:
-		voxel_resource.compression_type = 0
+		voxel_resource = VoxelResource.new()
 	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
@@ -195,8 +194,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		index += 1
 	
 	# Modify object/add resource/finish Voxel Resource
-	voxel_resource.valid_positions_dict = voxel_resource.positions_dict
-	voxel_resource.valid_positions = voxel_resource.positions
 	voxel_resource.debuffer_all()
 	
 	var chunk_size
@@ -210,7 +207,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	var chunks: Dictionary[Vector3, PackedVector3Array]
 	
 	# Create voxel dictionary
-	for voxel: Vector3i in voxel_resource.valid_positions:
+	for voxel: Vector3i in voxel_resource.positions:
 		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
 		vox_chunk_indices.append(chunk)
 		if not chunks.has(chunk):
@@ -220,22 +217,23 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Create collision
 	var starting_shapes = Array()
 	for chunk in chunks:
-		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale))
+		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
 	
 	# Set final VoxelResource Vars
 	voxel_resource.vox_chunk_indices = vox_chunk_indices
 	voxel_resource.chunks = chunks
 	voxel_resource.starting_shapes = starting_shapes
 	
-	# Set data size
-	var initial_data_size: float = 0
-	var compressed_data_size: float = 0
-	for bytes in voxel_resource._property_size.values():
-		initial_data_size += bytes
-	for property in voxel_resource._data:
-		var bytes = voxel_resource._data[property].size()
-		compressed_data_size += bytes
-	voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
+	# Set data size if compressed voxel obj:
+	if options.Resource_type == 1:
+		var initial_data_size: float = 0
+		var compressed_data_size: float = 0
+		for bytes in voxel_resource._property_size.values():
+			initial_data_size += bytes
+		for property in voxel_resource._data:
+			var bytes = voxel_resource._data[property].size()
+			compressed_data_size += bytes
+		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
@@ -290,7 +288,7 @@ func create_boxes(chunk: PackedVector3Array) -> Array:
 	return boxes
 
 
-func create_shapes(boxes: Array, voxel_size: Vector3) -> Array:
+func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
 	var shapes = []
 	for box in boxes:
 		var min_pos = box["min"]
@@ -298,7 +296,7 @@ func create_shapes(boxes: Array, voxel_size: Vector3) -> Array:
 		
 		var center = (min_pos + max_pos) * 0.5 * voxel_size
 		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_size
-		shapes.append({"extents": size * 0.5, "position": center})
+		shapes.append({"extents": size * 0.5, "position": center, "chunk": chunk})
 	
 	return shapes
 

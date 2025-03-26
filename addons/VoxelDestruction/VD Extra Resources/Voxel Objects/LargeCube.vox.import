@@ -14,4 +14,4 @@ dest_files=["res://.godot/imported/LargeCube.vox-33994b5d61bf2e99b6114e7fde5f8e3
 
 Scale=Vector3(0.1, 0.1, 0.1)
 Chunk_Size=Vector3(16, 16, 16)
-Compression_Type=2
+Resource_type=1
