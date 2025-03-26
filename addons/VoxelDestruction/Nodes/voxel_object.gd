@@ -2,58 +2,61 @@
 @icon("voxel_object.svg")
 extends MultiMeshInstance3D
 class_name VoxelObject
-## Displays and controls a VoxelResource.
 
-## Resource to display.
+## Displays and controls a [VoxelResource] or [CompactVoxelResource].
+##
+## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
+
+## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
 @export var voxel_resource: VoxelResourceBase:
 	set(value):
 		voxel_resource = value
 		update_configuration_warnings()
 		if value:
-			populate_mesh()
+			_populate_mesh()
 		else:
 			multimesh.instance_count = 0
-## Prevents damage to VoxelObject
+## Prevents damage to self.
 @export var invulnerable = false
-## Darken damaged voxels.
+## Darken damaged voxels based on voxel health.
 @export var darkening = true
 @export_subgroup("Debris")
 ## Type of debris generated [br]
-## None: No debris will be generated [br]
-## Multimesh: Debri has limited physics and no collision [br]
-## Rigid body: Debris are made up of rigid bodies, heavy performance reduction [br]
+## [b]None[/b]: No debris will be generated [br]
+## [b]Multimesh[/b]: Debri has limited physics and no collision [br]
+## [b]Rigid body[/b]: Debris are made up of rigid bodies, heavy performance reduction [br]
 @export_enum("None", "Multimesh", "Rigid Bodies") var debris_type = 0
-## Strenght of gravity on debris
+## Strength of gravity on debris
 @export var debris_weight = 1
 ## Chance of generating debris per destroyed voxel
 @export_range(0, 1, .1) var debris_density = .2
 ## Time in seconds before debris are deleted
 @export var debris_lifetime = 5
 @export_subgroup("Dithering")
-## Maximum amount of darkening.
+## Maximum amount of random darkening.
 @export_range(0, .20, .01) var dark_dithering = 0.0:
 	set(value):
 		dark_dithering = value
-		populate_mesh()
-## Maximum amount of lightening.
+		_populate_mesh()
+## Maximum amount of random lightening.
 @export_range(0, .20, .01) var light_dithering = 0.0:
 	set(value):
 		light_dithering = value
-		populate_mesh()
-## Ratio of darkening to lightening.
+		_populate_mesh()
+## Ratio of random darkening to lightening.
 @export_range(0, 1, .1) var dithering_bias = 0.5:
 	set(value):
 		dithering_bias = value
-		populate_mesh()
-## Seed used when choosing if a voxel is lightened or darkened.
+		_populate_mesh()
+## Seed used when choosing if and to what extent a voxel is lightened or darkened.
 @export var dithering_seed: int = 0:
 	set(value):
 		dithering_seed = value
-		populate_mesh()
+		_populate_mesh()
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
 
-## Runs on node start
+
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		if not voxel_resource:
@@ -95,8 +98,7 @@ func _ready() -> void:
 			voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 
 
-## Creates multimesh from the VoxelResource
-func populate_mesh() -> void:
+func _populate_mesh() -> void:
 	if voxel_resource and Engine.is_editor_hint():
 		# Buffers vars to prevent performence drop 
 		# when finding vox color/position
@@ -127,24 +129,22 @@ func populate_mesh() -> void:
 			var dithered_color = Color.WHITE
 			if dark_dithering == 0 or light_dithering == 0:
 				if dark_dithering == 0:
-					dithered_color = get_vox_color(i).lightened(light_variation)
+					dithered_color = _get_vox_color(i).lightened(light_variation)
 				elif light_dithering == 0:
-					dithered_color = get_vox_color(i).darkened(dark_variation)
+					dithered_color = _get_vox_color(i).darkened(dark_variation)
 			else:
-				dithered_color = get_vox_color(i).darkened(dark_variation) if randf() > dithering_bias else get_vox_color(i).lightened(light_variation)
+				dithered_color = _get_vox_color(i).darkened(dark_variation) if randf() > dithering_bias else _get_vox_color(i).lightened(light_variation)
 			multimesh.set_instance_transform(i, Transform3D(Basis(), voxel_resource.positions[i]*voxel_resource.vox_size))
 			multimesh.set_instance_color(i, dithered_color)
 
 
-## Returns vox color
-func get_vox_color(voxid: int) -> Color:
+func _get_vox_color(voxid: int) -> Color:
 	voxel_resource.buffer("colors")
 	voxel_resource.buffer("color_index")
 	return voxel_resource.colors[voxel_resource.color_index[voxid]]
 
 
-## Damage voxels
-func damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
+func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
 	voxel_resource.buffer("health")
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("vox_chunk_indices")
@@ -216,7 +216,7 @@ func _apply_damage_results(damage_results: Array) -> void:
 		voxel_resource.health[vox_id] = health
 		if health > 0:
 			if darkening:
-				multimesh.set_instance_color(vox_id, get_vox_color(vox_id).darkened(1.0 - (health * 0.01)))
+				multimesh.set_instance_color(vox_id, _get_vox_color(vox_id).darkened(1.0 - (health * 0.01)))
 		else:
 			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_transform(vox_id, Transform3D())
@@ -318,3 +318,92 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 		shape.extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
 		shape_node.position = center
 		shapes[i] = shape_node
+
+#
+#func _create_debri_multimesh():
+	#var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
+	#var debri_states = []
+	#var multi_mesh_instance = MultiMeshInstance3D.new()
+	#var multi_mesh = MultiMesh.new()
+	#multi_mesh_instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	#multi_mesh_instance.top_level = true
+	#multi_mesh_instance.multimesh = multi_mesh
+	#multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
+	#multi_mesh.mesh.size = voxel_resource.vox_size
+	#multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
+	#multi_mesh.instance_count = _debris_queue.size()
+	#add_child(multi_mesh_instance)
+	#var idx = 0
+	#for debris_data in _debris_queue:
+		## Control debri amount
+		#if randf() > debri_density: continue
+		#
+		#var debris_pos = debris_data.pos
+		#
+		## Store data for manual physics update
+		#debri_states.append({
+			#"position": debris_pos,
+			#"velocity": (debris_pos - debris_data.origin).normalized() * -debris_data.power,
+		#})
+		#
+		#multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
+		#idx += 1
+	#var current_lifetime = debris_lifetime
+	#_debris_called = false
+	#_debris_queue.clear()
+	#while current_lifetime > 0:
+		#var delta = get_physics_process_delta_time()
+		#current_lifetime -= delta
+		#for i in debri_states.size():
+			#var data = debri_states[i]
+			#data["velocity"].x *= .98
+			#data["velocity"].z *= .98
+			#data["velocity"].y -= gravity_magnitude * delta * debris_weight
+			#data["position"] += data["velocity"] * delta * 2
+			#multi_mesh.set_instance_transform(i, Transform3D(Basis(), data["position"]))
+		#await get_tree().process_frame
+	#multi_mesh_instance.queue_free()
+#
+#
+#func _create_debri_rigid_bodies(_debris_queue: Array) -> void:
+	## Pre-cache children
+	#var debri_objects = []  # To store all the debris
+	#for debris_data in _debris_queue:
+		## Control debri amount
+		#if randf() > debris_density: continue
+		## Retrieve/generate debri
+		#var debri = voxel_resource.get_debri()
+		#debri.name = "VoxelDebri"
+		#debri.top_level = true
+		#debri.show()
+		## Cache shape and mesh if possible
+		#var shape = debri.get_child(0)
+		#var mesh = debri.get_child(1)
+		## Set size/position in a single step
+		#add_child(debri, true, Node.INTERNAL_MODE_BACK)
+		#var debris_pos = debris_data.pos
+		#debri.global_position = debris_pos
+		#shape.shape.size = voxel_resource.vox_size
+		#mesh.mesh.size = voxel_resource.vox_size
+		## Launch debri
+		#var velocity = (debris_pos - debris_data.origin).normalized() * debris_data.power
+		#debri.freeze = false
+		#debri.gravity_scale = debri_weight
+		#debri.apply_impulse(velocity)
+		## Add the debri to list
+		#debri_objects.append(debri)
+	#_debri_called = false
+	#_debri_queue.clear()
+	#await get_tree().create_timer(debri_lifetime).timeout
+	## Batch scale-down animation (single loop)
+	#if not debri_objects.is_empty():
+		#var tween = get_tree().create_tween()
+		#for debri in debri_objects:
+			#var shape = debri.get_child(0)
+			#var mesh = debri.get_child(1)
+			#tween.parallel().tween_property(shape, "scale", Vector3(.01, .01, .01), 1)
+			#tween.parallel().tween_property(mesh, "scale", Vector3(.01, .01, .01), 1)
+		#await get_tree().create_timer(1).timeout
+	## Restore all debris in a batch
+	#for debri in debri_objects:
+		#_restore_debri_rigid_bodies(debri)

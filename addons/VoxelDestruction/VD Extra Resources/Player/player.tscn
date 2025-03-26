@@ -77,24 +77,19 @@ layout_mode = 2
 [node name="Label2" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Move - Arrow Keys"
-horizontal_alignment = 2
 
 [node name="Label5" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Look - Mouse"
-horizontal_alignment = 2
 
 [node name="Label3" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Jump - Space"
-horizontal_alignment = 2
+text = "Jump - Enter"
 
 [node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Fire - Enter"
-horizontal_alignment = 2
+text = "Fire -  Space"
 
 [node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Quit - Escape"
-horizontal_alignment = 2

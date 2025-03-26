@@ -6,9 +6,9 @@ class_name VoxelDamager
 ## Add a BoxShape3D and to a collision node. Will set the range to the smallist axis. [br]
 ## The damager inherits the [Area3D] node and suffers from the same limitations.
 
-## Whether or not to blacklist the specified group or whitelist the group instead.
+## whether to not damage group or to only damage group
 @export_enum("Ignore", "Blacklist", "Whitelist") var group_mode = 0
-## Group to blacklist or whitelist.
+## Group to blacklist or whitelist
 @export var group: String
 @export_subgroup("Damage")
 ## Damage at damager origin
@@ -35,12 +35,12 @@ func _ready() -> void:
 	var size = collision_shape.size
 	range = float(min(size.x, min(size.y, size.z)))/2
 
-
+## Damages all voxel objects in radius
 func hit():
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
-	var aabb = get_area_aabb(self)
+	var aabb = _get_area_aabb(self)
 	for body in get_overlapping_bodies():
 		if body is StaticBody3D or body is RigidBody3D:
 			var parent = body.get_parent()
@@ -53,8 +53,8 @@ func hit():
 				elif group_mode == 2:
 					if group not in parent.get_groups():
 						continue
-				var voxels = get_voxels_in_aabb(aabb, parent)
-				parent.damage_voxels(self, voxels[0], voxels[1], voxels[2])
+				var voxels = _get_voxels_in_aabb(aabb, parent)
+				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2])
 				if parent not in hit_objects:
 					hit_objects.append(parent)
 		elif "VoxelDebri" in body.name and knock_back_debri:
@@ -67,7 +67,7 @@ func hit():
 	return hit_objects
 
 
-func get_area_aabb(area: Area3D) -> AABB:
+func _get_area_aabb(area: Area3D) -> AABB:
 	var collision_shape = area.get_child(0) as CollisionShape3D
 	if collision_shape and collision_shape.shape is BoxShape3D:
 		var box_shape = collision_shape.shape as BoxShape3D
@@ -77,7 +77,7 @@ func get_area_aabb(area: Area3D) -> AABB:
 	return AABB()
 
 
-func get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
+func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
