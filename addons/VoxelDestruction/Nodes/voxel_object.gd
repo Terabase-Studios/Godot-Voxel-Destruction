@@ -3,6 +3,7 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 ## Displays and controls a VoxelResource.
+
 ## Resource to display.
 @export var voxel_resource: VoxelResourceBase:
 	set(value):
@@ -233,33 +234,33 @@ func _apply_damage_results(damage_results: Array) -> void:
 
 func _regen_collision(chunk_index: Vector3) -> void:
 	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
+	# Expand shapes to allow thread-safe modification
 	var shapes = Array()
 	shapes.resize(1000)
+	# Create shape nodes
 	var task_id = WorkerThreadPool.add_task(
 		_create_shapes.bind(chunk, shapes), 
-		false, "Calculating Collsion Shapes"
+		false, "Calculating Collision Shapes"
 	)
 	while not WorkerThreadPool.is_task_completed(task_id):
 		await get_tree().process_frame
 	
+	# Remove old shapes
 	for shape in _collision_shapes[chunk_index]:
 		shape.queue_free()
 	_collision_shapes[chunk_index].clear()
 	
-	for shape_info in shapes:
-		if shape_info == null:
+	# Add shapes and record
+	for shape_node in shapes:
+		if shape_node == null:
 			return
-		var shape_node = CollisionShape3D.new()
-		var shape = BoxShape3D.new()
-		shape_node.shape = shape
-		shape.extents = shape_info["extents"]
 		_collision_body.add_child(shape_node)
-		shape_node.position = shape_info["position"]
 		if chunk_index not in _collision_shapes:
 			_collision_shapes[chunk_index] = Array()
 		_collision_shapes[chunk_index].append(shape_node)
 
 
+# This function is undocumented
 func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
@@ -310,7 +311,10 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 		i += 1
 		var min_pos = box["min"]
 		var max_pos = box["max"]
-		
 		var center = (min_pos + max_pos) * 0.5 * voxel_resource.vox_size
-		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size
-		shapes[i] = ({"extents": size * 0.5, "position": center})
+		var shape_node = CollisionShape3D.new()
+		var shape = BoxShape3D.new()
+		shape_node.shape = shape
+		shape.extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
+		shape_node.position = center
+		shapes[i] = shape_node

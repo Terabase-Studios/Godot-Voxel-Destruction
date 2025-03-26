@@ -76,4 +76,4 @@ func _fire():
 	if cooldown == 0:
 		%VoxelDamager.global_position = %RayCast3D.get_collision_point()
 		%VoxelDamager.hit()
-		cooldown = .05
+		cooldown = .001

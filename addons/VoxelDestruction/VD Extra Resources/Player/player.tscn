@@ -15,6 +15,7 @@ _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bcjde"]
+size = Vector3(2, 2, 2)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_2f8j2")
