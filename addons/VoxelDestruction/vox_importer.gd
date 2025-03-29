@@ -2,9 +2,15 @@
 @tool
 extends EditorImportPlugin
 
+enum Resource_type {
+	DEFAULT = 0,
+	COMPACT = 2
+}
 
 enum Presets { 
-	SCALE
+	SCALE,
+	CHUNK_SIZE,
+	RESOURCE_TYPE
 }
 
 
@@ -12,22 +18,33 @@ func _get_preset_count():
 	return Presets.size()
 
 
-
 func _get_preset_name(preset_index):
 	match preset_index:
 		Presets.SCALE:
 			return "Scale"
+		Presets.CHUNK_SIZE:
+			return "Chunk Size"
+		Presets.RESOURCE_TYPE:
+			return "Resource"
 		_:
 			return "Unknown"
 
 
 func _get_import_options(path, preset_index):
-	match preset_index:
-		Presets.SCALE:
-			return [{
-					   "name": "Scale",
-					   "default_value": Vector3(.1, .1, .1)
-					}]
+	return [{
+			   "name": "Scale",
+			   "default_value": Vector3(.1, .1, .1)
+			},
+			{
+			   "name": "Chunk_Size",
+			   "default_value": Vector3(16, 16, 16)
+			},
+			{
+			   "name": "Resource_type",
+			   "default_value": Resource_type.COMPACT,
+			   "property_hint": PROPERTY_HINT_ENUM,
+			   "hint_string": "Default,Compact"
+			}]
 
 
 func _get_option_visibility(path, option_name, options):
@@ -149,6 +166,11 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
+	if options.Resource_type == 1:
+		voxel_resource = CompactVoxelResource.new()
+	else:
+		voxel_resource = VoxelResource.new()
+	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
@@ -158,7 +180,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	
 	# Create Object/Add colors/Update Positions
-	var color_index = PackedByteArray()
 	var index = 0
 	for voxel in voxels:
 		var color = voxel["color"]
@@ -173,14 +194,112 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		index += 1
 	
 	# Modify object/add resource/finish Voxel Resource
-	voxel_resource.valid_positions_dict = voxel_resource.positions_dict.duplicate()
-	voxel_resource.valid_positions = voxel_resource.positions.duplicate()
+	voxel_resource.debuffer_all()
 	
+	var chunk_size
+	if options.Chunk_Size:
+		chunk_size = options.Chunk_Size
+	else:
+		chunk_size = Vector3(16, 16, 16)
+	
+	# Sort axes
+	var vox_chunk_indices: PackedVector3Array
+	var chunks: Dictionary[Vector3, PackedVector3Array]
+	
+	# Create voxel dictionary
+	for voxel: Vector3i in voxel_resource.positions:
+		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
+		vox_chunk_indices.append(chunk)
+		if not chunks.has(chunk):
+			chunks[chunk] = PackedVector3Array()
+		chunks[chunk].append(voxel)
+	
+	# Create collision
+	var starting_shapes = Array()
+	for chunk in chunks:
+		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
+	
+	# Set final VoxelResource Vars
+	voxel_resource.vox_chunk_indices = vox_chunk_indices
+	voxel_resource.chunks = chunks
+	voxel_resource.starting_shapes = starting_shapes
+	
+	# Set data size if compressed voxel obj:
+	if options.Resource_type == 1:
+		var initial_data_size: float = 0
+		var compressed_data_size: float = 0
+		for bytes in voxel_resource._property_size.values():
+			initial_data_size += bytes
+		for property in voxel_resource._data:
+			var bytes = voxel_resource._data[property].size()
+			compressed_data_size += bytes
+		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
 		print(ERROR_DESCRIPTIONS[err])
 	return err
+
+
+func create_boxes(chunk: PackedVector3Array) -> Array:
+	var visited: Dictionary[Vector3, bool]
+	var boxes = []
+
+	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
+		var start
+		var end
+		match axis:
+			0: start = Vector3(pos, box_min.y, box_min.z); end = Vector3(pos, box_max.y, box_max.z)
+			1: start = Vector3(box_min.x, pos, box_min.z); end = Vector3(box_max.x, pos, box_max.z)
+			2: start = Vector3(box_min.x, box_min.y, pos); end = Vector3(box_max.x, box_max.y, pos)
+
+		for x in range(int(start.x), int(end.x) + 1):
+			for y in range(int(start.y), int(end.y) + 1):
+				for z in range(int(start.z), int(end.z) + 1):
+					var check_pos = Vector3(x, y, z)
+					if not chunk.has(check_pos) or visited.get(check_pos, false):
+						return false
+		return true
+	
+	for pos in chunk:
+		if visited.get(pos, false):
+			continue
+		
+		var box_min = pos
+		var box_max = pos
+		
+		# Expand along X, Y, Z greedily
+		for axis in range(3):
+			while true:
+				var next_pos = box_max[axis] + 1
+				if can_expand.call(box_min, box_max, axis, next_pos):
+					box_max[axis] = next_pos
+				else:
+					break
+
+		# Mark visited voxels
+		for x in range(int(box_min.x), int(box_max.x) + 1):
+			for y in range(int(box_min.y), int(box_max.y) + 1):
+				for z in range(int(box_min.z), int(box_max.z) + 1):
+					visited[Vector3(x, y, z)] = true
+
+		boxes.append({"min": box_min, "max": box_max})
+
+	return boxes
+
+
+func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
+	var shapes = []
+	for box in boxes:
+		var min_pos = box["min"]
+		var max_pos = box["max"]
+		
+		var center = (min_pos + max_pos) * 0.5 * voxel_size
+		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_size
+		shapes.append({"extents": size * 0.5, "position": center, "chunk": chunk})
+	
+	return shapes
+
 
 
 const ERROR_DESCRIPTIONS = {

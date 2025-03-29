@@ -1,60 +1,121 @@
 @icon("voxel_damager.svg")
 extends Area3D
 class_name VoxelDamager
+## Call [method VoxelDamager.hit] to damage all voxels within the area. 
+##
+## Add a BoxShape3D and to a collision node. Will set the range to the smallist axis. [br]
+## The damager inherits the [Area3D] node and suffers from the same limitations.
 
+## whether to not damage group or to only damage group
 @export_enum("Ignore", "Blacklist", "Whitelist") var group_mode = 0
+## Group to blacklist or whitelist
 @export var group: String
 @export_subgroup("Damage")
+## Damage at damager origin
 @export var base_damage: float
+## Damage decay from left (Origin) to right (Collision edge)
 @export var damage_curve: Curve
 @export_subgroup("Power")
+## Launch power of debris at damager origin.
 @export var base_power: int
+## Power decay from left (Origin) to right (Collision edge)
 @export var power_curve: Curve
+## Knock back rigid body debris.
 @export var knock_back_debri = false
+var range: float
+## Stores global position since [member VoxelDamager.hit] was called.
 @onready var global_pos = global_position
-@onready var range: int = get_child(0).shape.radius
-var target_objects = Array()
+
 
 func _ready() -> void:
-	connect("body_shape_entered", _on_body_shape_entered)
-	connect("body_shape_exited", _on_body_shape_exited)
 	VoxelServer.voxel_damagers.append(self)
+	var collision_shape = get_child(0).shape
+	if collision_shape is not BoxShape3D:
+		push_warning("VoxelDamager collision shape must be BoxShape3D")
+	var size = collision_shape.size
+	range = float(min(size.x, min(size.y, size.z)))/2
+	damage_curve = convert_curve_to_squared(damage_curve)
+	power_curve = convert_curve_to_squared(power_curve)
 
-
+## Damages all voxel objects in radius
 func hit():
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
-	for rid in target_objects:
-		if VoxelServer.body_metadata.get(rid):
-			var voxel_object = VoxelServer.get_body_object(rid)
-			if group_mode == 1:
-				if group in voxel_object.get_groups():
+	var aabb = _get_area_aabb(self)
+	for body in get_overlapping_bodies():
+		if body is StaticBody3D or body is RigidBody3D:
+			var parent = body.get_parent()
+			if parent is VoxelObject:
+				if parent.invulnerable:
 					continue
-			elif group_mode == 2:
-				if group not in voxel_object.get_groups():
-					continue
-			voxel_object.call_deferred("_damage_voxel", rid, self)
-			if voxel_object not in hit_objects:
-				hit_objects.append(voxel_object)
-	for debri in get_overlapping_bodies():
-		if "VoxelDebri" in debri.name and knock_back_debri:
-			if is_instance_valid(debri):
-				var decay = global_position.distance_to(debri.global_position) / range
+				if group_mode == 1:
+					if group in parent.get_groups():
+						continue
+				elif group_mode == 2:
+					if group not in parent.get_groups():
+						continue
+				var voxels = _get_voxels_in_aabb(aabb, parent)
+				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2])
+				if parent not in hit_objects:
+					hit_objects.append(parent)
+		elif "VoxelDebri" in body.name and knock_back_debri:
+			if is_instance_valid(body):
+				var decay = global_position.distance_to(body.global_position) / range
 				var power = float(base_power * power_curve.sample(decay))
-				var launch_vector = debri.global_position - global_position
+				var launch_vector = body.global_position - global_position
 				var velocity = launch_vector.normalized() * power
-				debri.apply_impulse(velocity*debri.scale)
+				body.apply_impulse(velocity*body.scale)
 	return hit_objects
 
 
-func _on_body_shape_entered(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
-	if VoxelServer.body_metadata.has(body_rid):  # Check if we track it
-		target_objects.append(body_rid)
+func _get_area_aabb(area: Area3D) -> AABB:
+	var collision_shape = area.get_child(0) as CollisionShape3D
+	if collision_shape and collision_shape.shape is BoxShape3D:
+		var box_shape = collision_shape.shape as BoxShape3D
+		var size = box_shape.size
+		var _position = collision_shape.global_position - (size * 0.5)
+		return AABB(_position, size)
+	return AABB()
 
-func _on_body_shape_exited(body_rid: RID, body: Node3D, body_shape_index: int, local_shape_index: int) -> void:
-	if VoxelServer.body_metadata.has(body_rid) and target_objects.has(body_rid):
-		target_objects.remove_at(target_objects.find(body_rid))
+
+func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
+	var voxel_positions = PackedVector3Array()
+	var global_voxel_positions = PackedVector3Array()
+	var voxel_count: int = 0
+	var voxel_resource: VoxelResourceBase = object.voxel_resource
+	voxel_resource.buffer("positions_dict")
+	for voxel_pos: Vector3 in voxel_resource.positions_dict.keys():
+		var voxel_global_pos = voxel_pos*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
+		if aabb.has_point(voxel_global_pos):
+			var voxid = voxel_resource.positions_dict.get(Vector3i(voxel_pos), -1)
+			if voxid != -1:
+				voxel_count += 1
+				voxel_positions.append(voxel_pos)
+				global_voxel_positions.append(voxel_global_pos)
+	return [voxel_count, voxel_positions, global_voxel_positions]
+
+
+func convert_curve_to_squared(curve: Curve) -> Curve:
+	if not curve:
+		push_error("No curve provided!")
+		return
+
+	var new_curve := Curve.new()
+
+	for i in range(curve.get_point_count()):
+		var x: float = curve.get_point_position(i).x
+		var y: float = curve.get_point_position(i).y
+		var left_tangent: float = curve.get_point_left_tangent(i)
+		var right_tangent: float = curve.get_point_right_tangent(i)
+
+		# Map X to squared value
+		var new_x = x * x  # Squared mapping
+
+		# Add new point to the new curve
+		new_curve.add_point(Vector2(new_x, y), left_tangent, right_tangent)
+	
+	return new_curve
 
 
 func _exit_tree() -> void:
