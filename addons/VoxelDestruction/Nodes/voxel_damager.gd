@@ -34,6 +34,8 @@ func _ready() -> void:
 		push_warning("VoxelDamager collision shape must be BoxShape3D")
 	var size = collision_shape.size
 	range = float(min(size.x, min(size.y, size.z)))/2
+	damage_curve = convert_curve_to_squared(damage_curve)
+	power_curve = convert_curve_to_squared(power_curve)
 
 ## Damages all voxel objects in radius
 func hit():
@@ -92,6 +94,28 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
 				voxel_positions.append(voxel_pos)
 				global_voxel_positions.append(voxel_global_pos)
 	return [voxel_count, voxel_positions, global_voxel_positions]
+
+
+func convert_curve_to_squared(curve: Curve) -> Curve:
+	if not curve:
+		push_error("No curve provided!")
+		return
+
+	var new_curve := Curve.new()
+
+	for i in range(curve.get_point_count()):
+		var x: float = curve.get_point_position(i).x
+		var y: float = curve.get_point_position(i).y
+		var left_tangent: float = curve.get_point_left_tangent(i)
+		var right_tangent: float = curve.get_point_right_tangent(i)
+
+		# Map X to squared value
+		var new_x = x * x  # Squared mapping
+
+		# Add new point to the new curve
+		new_curve.add_point(Vector2(new_x, y), left_tangent, right_tangent)
+	
+	return new_curve
 
 
 func _exit_tree() -> void:

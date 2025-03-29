@@ -63,39 +63,44 @@ func _ready() -> void:
 			push_warning("Voxel object has no VoxelResource")
 			return
 		
-		# Preload rigid body debris 
+		# Preload rigid body debris (limit to 1000)
 		if debris_type == 2:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 		
-		# Add to server
+		# Add to VoxelServer
 		VoxelServer.voxel_objects.append(self)
 		VoxelServer.total_active_voxels += voxel_resource.vox_count
 		
-		# Add shapes
-		voxel_resource.buffer("colors")
-		voxel_resource.buffer("color_index")
+		# Create collision body
 		_collision_body = StaticBody3D.new()
 		add_child(_collision_body)
 		
+		# Create starting shapes
+		var shapes_dict = {}  # Cache for _collision_shapes
 		for shape_info in voxel_resource.starting_shapes:
-			var shape_node = CollisionShape3D.new()
-			var shape = BoxShape3D.new()
-			var chunk = shape_info["chunk"]
-			shape_node.shape = shape
+			var shape_node := CollisionShape3D.new()
+			var shape := BoxShape3D.new()
 			shape.extents = shape_info["extents"]
-			_collision_body.add_child(shape_node)
+			shape_node.shape = shape
 			shape_node.position = shape_info["position"]
-			if chunk not in _collision_shapes:
-				_collision_shapes[chunk] = Array()
-			_collision_shapes[chunk].append(shape_node)
+			_collision_body.add_child(shape_node)
+			
+			var chunk = shape_info["chunk"]
+			shapes_dict[chunk] = shapes_dict.get(chunk, []) + [shape_node]
+		
+		_collision_shapes.merge(shapes_dict)
 		voxel_resource.starting_shapes.clear()
 		
-		# Updated colors if dithered.
-		for i in multimesh.instance_count:
-			var color = multimesh.get_instance_color(i)
-			if color not in voxel_resource.colors:
-				voxel_resource.colors.append(color)
-			voxel_resource.color_index[i] = voxel_resource.colors.find(color)
+		# Update voxel colors for dithering
+		if dark_dithering != 0 or light_dithering != 0:
+			voxel_resource.buffer("colors")
+			voxel_resource.buffer("color_index")
+			var instance_count := multimesh.instance_count
+			for i in instance_count:
+				var color = multimesh.get_instance_color(i)
+				if color not in voxel_resource.colors:
+					voxel_resource.colors.append(color)
+				voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 
 
 func _populate_mesh() -> void:
@@ -157,17 +162,27 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damage_results), 
 		voxel_count, -1, false, "Calculating Voxel Damage"
 	)
+	
+	# Wait and buffer
+	var last_buffer_time := Time.get_ticks_msec()
+	var buffer_interval := 20
+
 	while not WorkerThreadPool.is_group_task_completed(group_id):
-		# Keep information in buffer
-		voxel_resource.buffer("health")
-		voxel_resource.buffer("positions_dict")
-		voxel_resource.buffer("vox_chunk_indices")
-		voxel_resource.buffer("chunks")
-		await get_tree().process_frame
+		var current_time = Time.get_ticks_msec()
+		
+		# Buffer only if enough time has passed
+		if current_time - last_buffer_time >= buffer_interval:
+			voxel_resource.buffer("health")
+			voxel_resource.buffer("positions_dict")
+			voxel_resource.buffer("vox_chunk_indices")
+			voxel_resource.buffer("chunks")
+			last_buffer_time = current_time  # Update last buffer time
+		
+		await get_tree().process_frame  # Allow UI to update
 	await _apply_damage_results(damage_results)
 
 
-func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damage_results: Array) -> void:
+func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damage_results: Array) -> void: 
 	# Get positions and vox_ids to modify later and calculate damage
 	var vox_position: Vector3 = global_voxel_positions[voxel]
 	var vox_pos3i: Vector3i = voxel_positions[voxel]
@@ -177,7 +192,7 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 	if vox_id == -1:
 		return  
 	
-	var decay: float = damager.global_pos.distance_to(vox_position) / damager.range
+	var decay: float = damager.global_pos.distance_squared_to(vox_position) / (damager.range * damager.range)
 	var decay_sample: float = damager.damage_curve.sample(decay)
 	
 	# Skip processing if damage is negligible
@@ -194,10 +209,17 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 	var chunk_pos = 0
 	if new_health == 0:
 		chunk = voxel_resource.vox_chunk_indices[vox_id]
-		chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
+		var chunk_data = voxel_resource.chunks.get(chunk, [])
+		chunk_pos = chunk_data.find(vox_pos3i) if chunk_data else -1
+	
 	# Store the result in a thread-safe dictionary
-	damage_results[voxel] = {"vox_id": vox_id, "health": new_health, "pos": vox_pos3i, "chunk": chunk, "chunk_pos": chunk_pos}
-
+	damage_results[voxel] = {
+		"vox_id": vox_id,
+		"health": new_health,
+		"pos": vox_pos3i,
+		"chunk": chunk,
+		"chunk_pos": chunk_pos
+	}
 
 func _apply_damage_results(damage_results: Array) -> void:
 	voxel_resource.buffer("positions")

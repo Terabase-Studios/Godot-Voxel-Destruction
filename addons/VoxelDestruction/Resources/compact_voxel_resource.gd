@@ -11,6 +11,8 @@ class_name CompactVoxelResource
 const BUFFER_LIFETIME = 1 ## Time since last buffered befor a variable is automaticly debuffered.
 const COMPRESSION_MODE = 2 ## Argument passed to compress()/decompress()
 
+## Size reduction of data compression
+@export var compression: float 
 ## Stores compressed voxel data
 @export var _data := {
 	"colors": null, 

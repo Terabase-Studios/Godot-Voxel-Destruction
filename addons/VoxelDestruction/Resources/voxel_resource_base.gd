@@ -9,7 +9,6 @@ class_name VoxelResourceBase
 @export var size: Vector3 ## Estimated size of voxel object as a whole
 @export var origin: Vector3i ## Center voxel, used for detecting detached voxel chunks
 @export var starting_shapes: Array ## Array of shapes used at VoxelObject start
-@export var compression: float ## Size reduction of data compression
 
 ## Pool of debris nodes
 var debris_pool: Array[RigidBody3D]
