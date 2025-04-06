@@ -41,7 +41,7 @@ func _get_import_options(path, preset_index):
 			},
 			{
 			   "name": "Resource_type",
-			   "default_value": Resource_type.COMPACT,
+			   "default_value": Resource_type.DEFAULT,
 			   "property_hint": PROPERTY_HINT_ENUM,
 			   "hint_string": "Default,Compact"
 			}]
@@ -52,7 +52,7 @@ func _get_option_visibility(path, option_name, options):
 
 
 func _can_import_threaded() -> bool:
-	return false
+	return true
 
 
 func _get_importer_name():
@@ -219,10 +219,40 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	for chunk in chunks:
 		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
 	
-	# Set final VoxelResource Vars
+	# Set collision VoxelResource vars
 	voxel_resource.vox_chunk_indices = vox_chunk_indices
 	voxel_resource.chunks = chunks
 	voxel_resource.starting_shapes = starting_shapes
+	
+	# Get visible voxels
+	# Store voxels in a dictionary with collision handling
+	var voxel_map: Dictionary = {}
+	var visible_voxels = PackedVector3Array()
+	var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
+				   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
+				   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
+
+	# Populate hash map
+	for vox: Vector3i in voxel_resource.positions:
+		var hash = hash_voxel(vox)
+		if hash in voxel_map:
+			voxel_map[hash].append(vox)  # Handle collisions by storing multiple voxels at the same hash
+		else:
+			voxel_map[hash] = [vox]
+	
+	# Find visible voxels
+	for vox: Vector3i in voxel_resource.positions:
+		for offset in offsets:
+			var neighbor_vox: Vector3i = vox + offset
+			var hash = hash_voxel(neighbor_vox)
+			
+			# Check if the hash exists AND verify actual position match
+			if hash not in voxel_map or neighbor_vox not in voxel_map[hash]:
+				visible_voxels.append(vox)
+				break  # No need to check other directions
+	
+	voxel_resource.buffer("visible_voxels")
+	voxel_resource.visible_voxels = visible_voxels
 	
 	# Set data size if compressed voxel obj:
 	if options.Resource_type == 1:
@@ -235,10 +265,16 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 			compressed_data_size += bytes
 		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
 	
+	voxel_resource.debuffer_all()
+	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
 		print(ERROR_DESCRIPTIONS[err])
 	return err
+
+
+func hash_voxel(v: Vector3i) -> int:
+	return ((v.x * 73856093) ^ (v.y * 19349663) ^ (v.z * 83492791)) % 1000003
 
 
 func create_boxes(chunk: PackedVector3Array) -> Array:

@@ -42,12 +42,27 @@ func hit():
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
-	var aabb = _get_area_aabb(self)
+	var aabb = Array()
+	aabb.resize(1)
+	var task_id = WorkerThreadPool.add_task(
+		_get_area_aabb.bind(aabb, get_child(0)),
+		false, "VoxelDamager AABB Calculation"
+	)
+	while not WorkerThreadPool.is_task_completed(task_id):
+		await get_tree().process_frame  # Allow UI to update
+	aabb = aabb[0]
 	for body in get_overlapping_bodies():
-		if body is StaticBody3D or body is RigidBody3D:
+		if "VoxelDebri" in body.name:
+			if knock_back_debri and body.is_inside_tree():
+				var decay = global_position.distance_to(body.global_position) / range
+				var power = float(base_power * power_curve.sample(decay))
+				var launch_vector = body.global_position - global_position
+				var velocity = launch_vector.normalized() * power
+				body.apply_impulse(velocity*body.scale)
+		elif body is StaticBody3D or body is RigidBody3D:
 			var parent = body.get_parent()
 			if parent is VoxelObject:
-				if parent.invulnerable:
+				if parent.invulnerable or parent._disabled:
 					continue
 				if group_mode == 1:
 					if group in parent.get_groups():
@@ -55,45 +70,55 @@ func hit():
 				elif group_mode == 2:
 					if group not in parent.get_groups():
 						continue
-				var voxels = _get_voxels_in_aabb(aabb, parent)
+				var voxels = Array()
+				voxels.resize(3)
+				task_id = WorkerThreadPool.add_task(
+					_get_voxels_in_aabb.bind(aabb, parent, parent.transform, voxels),
+					false, "Getting Voxels to Damage"
+				)
+				while not WorkerThreadPool.is_task_completed(task_id):
+					await get_tree().process_frame  # Allow UI to update
 				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2])
 				if parent not in hit_objects:
 					hit_objects.append(parent)
-		elif "VoxelDebri" in body.name and knock_back_debri:
-			if is_instance_valid(body):
-				var decay = global_position.distance_to(body.global_position) / range
-				var power = float(base_power * power_curve.sample(decay))
-				var launch_vector = body.global_position - global_position
-				var velocity = launch_vector.normalized() * power
-				body.apply_impulse(velocity*body.scale)
 	return hit_objects
 
 
-func _get_area_aabb(area: Area3D) -> AABB:
-	var collision_shape = area.get_child(0) as CollisionShape3D
-	if collision_shape and collision_shape.shape is BoxShape3D:
-		var box_shape = collision_shape.shape as BoxShape3D
-		var size = box_shape.size
-		var _position = collision_shape.global_position - (size * 0.5)
-		return AABB(_position, size)
-	return AABB()
+func _get_area_aabb(aabb, collision_shape: CollisionShape3D)-> void:
+	var box_shape = collision_shape.shape as BoxShape3D
+	var size = box_shape.size
+	var _position = global_pos - (size * 0.5)
+	aabb[0] = AABB(_position, size)
 
-
-func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject) -> Array:
+ 
+func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D, voxels: Array) -> void:
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
 	var voxel_resource: VoxelResourceBase = object.voxel_resource
 	voxel_resource.buffer("positions_dict")
+
+	# Scale the transform to match the size of each voxel
+	var scaled_basis := object_global_transform.basis.scaled(voxel_resource.vox_size)
+	var voxel_transform := Transform3D(scaled_basis, object_global_transform.origin)
+
 	for voxel_pos: Vector3 in voxel_resource.positions_dict.keys():
-		var voxel_global_pos = voxel_pos*voxel_resource.vox_size + object.global_position # Convert voxel index to world space
+		# Optional: center voxel in its grid cell
+		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5)
+
+		# Convert to global space using full transform
+		var voxel_global_pos = voxel_transform * local_voxel_centered
+
 		if aabb.has_point(voxel_global_pos):
 			var voxid = voxel_resource.positions_dict.get(Vector3i(voxel_pos), -1)
 			if voxid != -1:
 				voxel_count += 1
 				voxel_positions.append(voxel_pos)
 				global_voxel_positions.append(voxel_global_pos)
-	return [voxel_count, voxel_positions, global_voxel_positions]
+
+	voxels[0] = voxel_count
+	voxels[1] = voxel_positions
+	voxels[2] = global_voxel_positions
 
 
 func convert_curve_to_squared(curve: Curve) -> Curve:

@@ -18,13 +18,16 @@ const COMPRESSION_MODE = 2 ## Argument passed to compress()/decompress()
 	"colors": null, 
 	"color_index": null, "health": null,
 	"positions": null, "positions_dict": null,
-  "vox_chunk_indices": null, "chunks": null
+	"vox_chunk_indices": null, "chunks": null,
+	"visible_voxels": null
+	
 }
 ## Uncompressed size in bytes of _data for faster decompression
 @export var _property_size := {
 	"colors": 0, "color_index": 0, "health": 0,
 	"positions": 0, "positions_dict": 0,
-	"vox_chunk_indices": 0, "chunks": 0
+	"vox_chunk_indices": 0, "chunks": 0,
+	"visible_voxels": 0
 }
 
 ## Colors used for voxels
@@ -55,6 +58,10 @@ var vox_chunk_indices:
 var chunks:
 	get: return _get("chunks")
 	set(value): _set("chunks", value)
+## Stores what voxels should be visible
+var visible_voxels:
+	get: return _get("visible_voxels")
+	set(value): _set("visible_voxels", value)
 
 ## Stores variables that are buffered in an uncompressed state
 var data_buffer = Dictionary()
@@ -74,7 +81,7 @@ func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
 			var compressed_bytes = _data[property]
 			# Prevents decompressing non existant data
 			if compressed_bytes != null and compressed_bytes.size() > 0:
-				if not ignore_buffer_error:
+				if not ignore_buffer_error and not Engine.is_editor_hint():
 					push_warning("Accessing unbuffered variable \""+str(property)+"\"! This can severly reduce performance. Please Report with expanded error information.")
 				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], COMPRESSION_MODE)
 				result = bytes_to_var(decompressed_bytes)
@@ -83,7 +90,7 @@ func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
 					return PackedByteArray(result)
 				elif property in ["colors"]:
 					return PackedColorArray(result)
-				elif property in ["positions", "vox_chunk_indices"]:
+				elif property in ["positions", "vox_chunk_indices", "visible_voxels"]:
 					return PackedVector3Array(result)
 				elif property in ["positions_dict"]:
 					var dictionary: Dictionary[Vector3i, int] = result
@@ -98,7 +105,7 @@ func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
 		return PackedByteArray()
 	elif property in ["colors"]:
 		return PackedColorArray()
-	elif property in ["positions"]:
+	elif property in ["positions", "vox_chunk_indices", "visible_voxels"]:
 		return PackedVector3Array()
 	elif property in ["positions_dict"]:
 		var dictionary: Dictionary[Vector3i, int] = {}
@@ -129,7 +136,7 @@ func _set(property: StringName, value: Variant) -> bool:
 ## can optionaly prevent debuffering for BUFFER_LIFTIME 
 func buffer(property, auto_debuffer: bool = true, lifetime = BUFFER_LIFETIME):
 	if property not in _data:
-		push_warning("Cannot Buffer \""+str(buffer)+"\": Property is not a compressed variable")
+		push_warning("Cannot Buffer \""+str(property)+"\": Property is not a compressed variable")
 		return
 	data_buffer[property] = _get(property, true)
 	if auto_debuffer:

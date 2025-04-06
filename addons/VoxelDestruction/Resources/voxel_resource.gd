@@ -10,7 +10,7 @@ class_name VoxelResource
 @export var positions_dict: Dictionary[Vector3i, int] ## Voxel positions dictionary
 @export var vox_chunk_indices: PackedVector3Array ## Stors what chunk a voxel belongs to
 @export var chunks: Dictionary[Vector3, PackedVector3Array] ## Stores intact voxel locations within chunks
-
+@export var visible_voxels: PackedVector3Array
 
 ## @deprecated: This function is not available for this Resource
 func buffer(property, auto_debuffer: bool = true):
