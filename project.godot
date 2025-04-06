@@ -13,7 +13,6 @@ config_version=5
 config/name="voxel-destruction-addon"
 run/main_scene="res://addons/VoxelDestruction/VD Extra Resources/Demo.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
-run/max_fps=60
 config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
 
 [autoload]
@@ -24,7 +23,12 @@ VoxelServer="*res://addons/VoxelDestruction/voxel_server.gd"
 
 window/size/viewport_width=2560
 window/size/viewport_height=1440
-window/size/mode=3
+window/size/mode=4
+window/vsync/vsync_mode=0
+
+[dotnet]
+
+project/assembly_name="voxel-destruction-addon"
 
 [editor_plugins]
 
@@ -71,8 +75,3 @@ exit={
 [physics]
 
 3d/run_on_separate_thread=true
-
-[rendering]
-
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"

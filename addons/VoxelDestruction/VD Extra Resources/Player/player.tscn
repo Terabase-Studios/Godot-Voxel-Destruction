@@ -47,6 +47,7 @@ base_damage = 120.0
 damage_curve = SubResource("Curve_wnqqp")
 base_power = 2
 power_curve = SubResource("Curve_wnqqp")
+knock_back_debri = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager"]
 shape = SubResource("BoxShape3D_bcjde")
