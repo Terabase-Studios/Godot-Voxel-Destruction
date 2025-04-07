@@ -7,8 +7,8 @@ class_name VoxelObject
 ##
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
-## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
+## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
 @export var voxel_resource: VoxelResourceBase:
 	set(value):
 		voxel_resource = value
@@ -49,13 +49,15 @@ class_name VoxelObject
 @export var dithering_seed: int = 0
 @export_subgroup("Physics")
 ## Acts as a [RigidBody3D]
+## @experimental: Clipping is common when damaging the [VoxelObject]
 @export var physics = false
 ## Density for mass calculations. How much one cube meter of voxel weighs in kilograms.
 @export var density = 1
 ## [PhysicsMaterial] passed down to [member RigidBody3D.physics_material]
 @export var physics_material: PhysicsMaterial
-@export_subgroup("Experimental - Be Careful")
+@export_subgroup("Experimental")
 ## Remove detached voxels
+## @experimental: This property is unstable.
 @export var flood_fill = false
 ## Used to debug the amount of time damaging takes. Measured in milliseconds
 var last_damage_time: int = -1
@@ -95,6 +97,9 @@ func _ready() -> void:
 			_collision_body.physics_material_override  = physics_material
 			var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
 			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
+			_collision_body.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
+			update_physics()
+			
 		add_child(_collision_body)
 		
 		# Create starting shapes
@@ -139,6 +144,23 @@ func _physics_process(delta):
 		_collision_body.position = Vector3.ZERO
 		_collision_body.rotation = Vector3.ZERO
 		_body_last_transform = _collision_body.transform
+
+## Recalculates center of mass and awakes if [member VoxelObject.physics] is on. [br]
+## When the [RigidBody3D] updates it's mass, clipping can occur. [br]
+## This function will automatically run when voxels are damaged.
+func update_physics() -> void:
+	if physics:
+		var center := Vector3.ZERO
+		var positions = voxel_resource.positions_dict.keys()
+		var count: int = positions.size()
+		var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
+		_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
+		_collision_body.sleeping = false
+		for pos in positions:
+			center += Vector3(pos)
+		center /= count
+		center *= voxel_resource.vox_size
+		_collision_body.center_of_mass = center
 
 
 func _populate_mesh() -> void:
@@ -280,6 +302,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	voxel_resource.buffer("chunks")
 	var chunks_to_regen = PackedVector3Array()
 	var debris_queue = Array()
+	var scaled_basis := basis.scaled(voxel_resource.vox_size)
 	# Prevent showing voxels that are queued for destruction
 	var destroyed_voxels = PackedInt32Array()
 	for result in damage_results:
@@ -299,7 +322,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		
 		# Set health, darken, remove voxels
 		health -= voxel_resource.health[vox_id]-vox_health
-		voxel_resource.health[vox_id] = health
+		voxel_resource.health[vox_id] = vox_health
 		if vox_health > 0:
 			if darkening:
 				multimesh.voxel_set_instance_color(vox_id, _get_vox_color(vox_id).darkened(1.0 - (vox_health * 0.01)))
@@ -316,7 +339,12 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 				chunks_to_regen.append(chunk)
 			
 			# Add debri to queue
-			debris_queue.append({ "pos": Vector3(vox_pos3i)*voxel_resource.vox_size + global_position, "origin": damager.global_pos, "power": result["power"] }) 
+			# Scale the transform to match the size of each voxel
+			var voxel_transform := Transform3D(scaled_basis, transform.origin)
+			var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+			# Convert to global space using full transform
+			var voxel_global_pos = voxel_transform * local_voxel_centered
+			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": result["power"] }) 
 			
 			# Show sorounding voxels if necissary
 			# Offsets for checking neighbors
@@ -334,7 +362,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		_regen_collision(chunk)
 	
 	if physics:
-		_collision_body.sleeping = false
+		update_physics()
 	
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
@@ -501,7 +529,7 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 			data[1] = velocity
 
 		# Yield control to the engine to avoid blocking	
-		await get_tree().process_frame
+		await get_tree().physics_frame
 
 	# Free the MultiMeshInstance after lifetime expires
 	multi_mesh_instance.queue_free()
@@ -651,6 +679,7 @@ func _detach_disconnected_voxels() -> void:
 	while not WorkerThreadPool.is_task_completed(task_id):
 		await get_tree().process_frame
 	
+	var scaled_basis := basis.scaled(voxel_resource.vox_size)
 	var chunks_to_regen = PackedVector3Array()
 	var debris_queue = Dictionary()
 	
@@ -674,8 +703,12 @@ func _detach_disconnected_voxels() -> void:
 		
 		health -= voxel_resource.health[vox_id]
 		
-		# Add debri to queue
-		debris_queue.append({ "pos": Vector3(vox_pos3i)*voxel_resource.vox_size + global_position, "origin": Vector3.ZERO, "power": 0 }) 
+		# Scale the transform to match the size of each voxel
+		var voxel_transform := Transform3D(scaled_basis, transform.origin)
+		var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+		# Convert to global space using full transform
+		var voxel_global_pos = voxel_transform * local_voxel_centered
+		debris_queue.append({ "pos": voxel_global_pos, "origin": Vector3.ZERO, "power": 0 }) 
 	
 	if health <= 0:
 		_end_of_life()
@@ -685,7 +718,7 @@ func _detach_disconnected_voxels() -> void:
 		_regen_collision(chunk)
 	
 	if physics:
-		_collision_body.sleeping = false
+		update_physics()
 	
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:

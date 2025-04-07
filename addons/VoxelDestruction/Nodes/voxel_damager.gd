@@ -103,7 +103,7 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transfor
 	var voxel_transform := Transform3D(scaled_basis, object_global_transform.origin)
 
 	for voxel_pos: Vector3 in voxel_resource.positions_dict.keys():
-		# Optional: center voxel in its grid cell
+		# Center voxel in its grid cell
 		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5)
 
 		# Convert to global space using full transform
