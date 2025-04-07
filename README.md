@@ -35,7 +35,3 @@ Before installing the addon, ensure that you have:
 1. Navigate to Project > Project Settings > Plugins.
 
 1. Find Voxel Destruction Addon and enable it.
-
-## Next Steps
-Briefly read the [Nodes Documentation](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/wiki/Nodes). 
-It should have all you need
