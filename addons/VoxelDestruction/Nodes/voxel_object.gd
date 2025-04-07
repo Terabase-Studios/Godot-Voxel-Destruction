@@ -761,7 +761,8 @@ func _end_of_life() -> void:
 
 
 func _exit_tree():
-	VoxelServer.voxel_objects.erase(self)
-	VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
-	for key in _collision_shapes:
-		VoxelServer.shape_count -= _collision_shapes[key].size()
+	if not Engine.is_editor_hint():
+		VoxelServer.voxel_objects.erase(self)
+		VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
+		for key in _collision_shapes:
+			VoxelServer.shape_count -= _collision_shapes[key].size()

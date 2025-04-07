@@ -180,14 +180,15 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	
 	# Create Object/Add colors/Update Positions
+	var start_voxel = voxels[0]
+	if not start_voxel.has("color") or not start_voxel["color"] or not start_voxel["color"] is Color: 
+		push_warning("Color data missing or invalid; Import Failed")
+		return
+	if start_voxel["position"] == null or not (start_voxel["position"] is Vector3 or start_voxel["position"] is Vector3i): 
+		push_warning("Positions data missing or invalid; Import Failed")
+		return
 	var index = 0
 	for voxel in voxels:
-		if not voxel.has("color") or not voxel["color"] or not voxel["color"] is Color: 
-			push_warning("Color data missing or invalid; Import Failed")
-			return
-		if not voxel["position"] or not (voxel["position"] is Vector3 or voxel["position"] is Vector3i): 
-			push_warning("Positions data missing or invalid; Import Failed")
-			return
 		var color = voxel["color"]
 		if color not in voxel_resource.colors:
 			voxel_resource.colors.append(color)
