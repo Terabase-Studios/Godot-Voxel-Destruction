@@ -1,0 +1,18 @@
+[gd_scene load_steps=6 format=3 uid="uid://d1fekkru80ypt"]
+
+[ext_resource type="Shader" uid="uid://clq5fe5ge3g6l" path="res://node_3d.gdshader" id="1_a0tk4"]
+[ext_resource type="Script" uid="uid://baa2da7dnvv04" path="res://node_3d.gd" id="1_a202f"]
+[ext_resource type="Resource" uid="uid://nuudsy0a4nve" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/Kitty.vox" id="2_noarx"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_r3fl7"]
+render_priority = 0
+shader = ExtResource("1_a0tk4")
+
+[sub_resource type="BoxMesh" id="BoxMesh_jka67"]
+material = SubResource("ShaderMaterial_r3fl7")
+size = Vector3(0.9, 1.7, 1)
+
+[node name="Node3D" type="MeshInstance3D"]
+mesh = SubResource("BoxMesh_jka67")
+script = ExtResource("1_a202f")
+voxel_resource = ExtResource("2_noarx")
