@@ -1,8 +1,5 @@
-[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://bqifsbjmettt2"]
-
-[ext_resource type="Shader" uid="uid://dwiwre24lfgrr" path="res://addons/VoxelDestruction/Resources/RayMarcher.gdshader" id="1_ax3tw"]
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://clna7tnyny1bx"]
 
 [resource]
-render_priority = 0
-shader = ExtResource("1_ax3tw")
-shader_parameter/half_size = 0.05
+vertex_color_use_as_albedo = true
+vertex_color_is_srgb = true

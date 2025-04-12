@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://cxiob5lq4jh50"
+path="res://.godot/imported/hOuSE.vox-d5e69f97ccee828024d80d1fa8e21393.tres"
+
+[deps]
+
+source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/hOuSE.vox"
+dest_files=["res://.godot/imported/hOuSE.vox-d5e69f97ccee828024d80d1fa8e21393.tres"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=1
