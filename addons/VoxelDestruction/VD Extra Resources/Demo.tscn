@@ -2020,6 +2020,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2.5029, -4)
 mesh = SubResource("BoxMesh_3lp44")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("4_706gn")
+debris_type = 0
 material = SubResource("ShaderMaterial_4rmui")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
@@ -2028,6 +2029,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 1.5029, -4)
 mesh = SubResource("BoxMesh_606ad")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("5_1yaoi")
+debris_type = 0
 material = SubResource("ShaderMaterial_6q7xl")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
@@ -2036,6 +2038,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0.502902, -4)
 mesh = SubResource("BoxMesh_efmyw")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("6_7mc1g")
+debris_type = 0
 material = SubResource("ShaderMaterial_1hjpr")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
@@ -2044,5 +2047,6 @@ transform = Transform3D(-0.668235, 0, 0.74395, 0, 1, 0, -0.74395, 0, -0.668235, 
 mesh = SubResource("BoxMesh_uccuj")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("8_7mc1g")
+debris_type = 0
 material = SubResource("ShaderMaterial_2y7mk")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"

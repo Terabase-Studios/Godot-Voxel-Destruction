@@ -26,6 +26,8 @@ var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var global_pos = global_position
 
+signal _aabb_generated
+
 
 func _ready() -> void:
 	VoxelServer.voxel_damagers.append(self)
@@ -48,8 +50,7 @@ func hit():
 		_get_area_aabb.bind(aabb, get_child(0)),
 		false, "VoxelDamager AABB Calculation"
 	)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame  # Allow UI to update
+	await _aabb_generated
 	aabb = aabb[0]
 	for body in get_overlapping_bodies():
 		if "VoxelDebri" in body.name:
@@ -70,15 +71,10 @@ func hit():
 				elif group_mode == 2:
 					if group not in parent.get_groups():
 						continue
-				var voxels = Array()
-				voxels.resize(3)
 				task_id = WorkerThreadPool.add_task(
-					_get_voxels_in_aabb.bind(aabb, parent, parent.transform, voxels),
+					_get_voxels_in_aabb.bind(aabb, parent, parent.transform),
 					false, "Getting Voxels to Damage"
 				)
-				while not WorkerThreadPool.is_task_completed(task_id):
-					await get_tree().process_frame  # Allow UI to update
-				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2])
 				if parent not in hit_objects:
 					hit_objects.append(parent)
 	return hit_objects
@@ -89,9 +85,10 @@ func _get_area_aabb(aabb, collision_shape: CollisionShape3D)-> void:
 	var size = box_shape.size
 	var _position = global_pos - (size * 0.5)
 	aabb[0] = AABB(_position, size)
+	call_deferred("emit_signal", "_aabb_generated")
 
  
-func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D, voxels: Array) -> void:
+func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D) -> void:
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
@@ -104,18 +101,16 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transfor
 	for voxel_pos: Vector3 in voxel_resource.positions.keys():
 		# Center voxel in its grid cell
 		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5) - voxel_resource.size/Vector3(2, 2, 2)
-
+		
 		# Convert to global space using full transform
 		var voxel_global_pos = voxel_transform * local_voxel_centered
-
+		
 		if aabb.has_point(voxel_global_pos):
 			voxel_count += 1
 			voxel_positions.append(voxel_pos)
 			global_voxel_positions.append(voxel_global_pos)
-
-	voxels[0] = voxel_count
-	voxels[1] = voxel_positions
-	voxels[2] = global_voxel_positions
+	
+	object.call_deferred("_damage_voxels", self, voxel_count, voxel_positions, global_voxel_positions)
 
 
 func convert_curve_to_squared(curve: Curve) -> Curve:

@@ -74,6 +74,9 @@ var _disabled: bool = false
 var _body_last_transform: Transform3D
 var task_queue = []
 
+signal _task_complete
+signal _shapes_created
+
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
@@ -125,6 +128,7 @@ func _ready() -> void:
 		_collision_shapes.merge(shapes_dict)
 		voxel_resource.voxel_texture = null
 		voxel_resource.starting_shapes.clear()
+		_shapes_created.connect(add_shapes)
 
 
 func _physics_process(delta):
@@ -188,7 +192,6 @@ func _populate_mesh() -> void:
 			images[pos.z].set_pixel(pos.x, pos.y, dithered_color)
 		material.get_shader_parameter("grid_tex").update(images)
 
-
 ## Retrieves a pixel from [member VoxelResource.voxel_texture]
 func _get_pixel(pos: Vector3) -> Variant:
 	var texture = material.get_shader_parameter("grid_tex")
@@ -212,9 +215,9 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 	)
 	
 	task_queue.append(task_id)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame  # Allow UI to update
+	await _task_complete
 	task_queue.erase(task_id)
+
 
 func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, images: Array[Image], basis_copy: Basis, origin_copy: Vector3) -> void: 
 	var chunks_to_regen = PackedVector3Array()
@@ -241,10 +244,11 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 		var power: float = damager.base_power * power_sample
 		
 		# Compute new voxel health
-		var vox_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
-		
 		# Set health, darken, remove voxels
-		set("health", health - damage) 
+		var vox_health: float = voxel_resource.health[vox_id]
+		set("health", health - min(damage, vox_health)) 
+		
+		vox_health = clamp(vox_health - damage, 0, 100)
 		voxel_resource.health[vox_id] = vox_health
 		if vox_health > 0:
 			if darkening:
@@ -270,7 +274,6 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 			var voxel_global_pos = voxel_transform * local_voxel_centered
 			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": power})
 	
-	# TODO: Create a new texture
 	var texture3d: Texture3D = material.get_shader_parameter("grid_tex").duplicate()
 	texture3d.update(images)
 	call_deferred("_update_texture", texture3d)
@@ -289,6 +292,7 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 				2:
 					if maximum_debris == -1 or debris_ammount <= maximum_debris:
 						call_deferred("_create_debri_rigid_bodies", debris_queue)
+	call_deferred("emit_signal", "_task_complete")
 	if health <= 0:
 		call_deferred("_end_of_life")
 		return
@@ -296,43 +300,9 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 	#if flood_fill:
 		#call_deferred("_detach_disconnected_voxels")
 
-
-func _regen_collision(chunk_index: Vector3) -> void:
-	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
-	# Expand shapes to allow thread-safe modification
-	var shapes = Array()
-	shapes.resize(1000)
-	# Create shape nodes
-	var task_id = WorkerThreadPool.add_task(
-		_create_shapes.bind(chunk, shapes), 
-		false, "Calculating Collision Shapes"
-	)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame
-	
-	if health <= 0: return
-	
-	# Remove old shapes
-	var old_shapes = _collision_shapes[chunk_index]
-	VoxelServer.shape_count -= old_shapes.size()
-	for shape in old_shapes:
-		shape.queue_free()
-	_collision_shapes[chunk_index].clear()
-	
-	
-	# Add shapes and record
-	for shape_node in shapes:
-		if shape_node == null:
-			break
-		_collision_body.add_child(shape_node)
-		if chunk_index not in _collision_shapes:
-			_collision_shapes[chunk_index] = Array()
-		_collision_shapes[chunk_index].append(shape_node)
-	
-	VoxelServer.shape_count += _collision_shapes[chunk_index].size()
-
 # This function is undocumented
-func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
+func _create_shapes(chunk: PackedVector3Array, chunk_index: Vector3) -> void:
+	var shapes = Array()
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
 	
@@ -388,7 +358,49 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 		shape_node.shape = shape
 		shape.extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
 		shape_node.position = center
-		shapes[i] = shape_node
+		shapes.append(shape_node)
+	call_deferred("emit_signal", "_shapes_created", shapes, chunk_index)
+
+
+func _regen_collision(chunk_index: Vector3) -> void:
+	# Retrieve chunk data.
+	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
+
+	# Dispatch the worker thread task to generate collision shapes.
+	var task_id = WorkerThreadPool.add_task(
+		_create_shapes.bind(chunk, chunk_index),
+		false, "Calculating Collision Shapes"
+	)
+
+
+func add_shapes(shapes: Array, chunk_index: Vector3) -> void:
+	# Early exit if object is destroyed.
+	if health <= 0:
+		for shape in shapes:
+			if is_instance_valid(shape):
+				shape.queue_free()
+		return
+
+	# Handle old shapes cleanup.
+	var old_shapes := []
+	if _collision_shapes.has(chunk_index):
+		old_shapes = _collision_shapes[chunk_index]
+		for shape in old_shapes:
+			if is_instance_valid(shape):
+				shape.queue_free()
+		_collision_shapes[chunk_index].clear()
+	else:
+		_collision_shapes[chunk_index] = []
+
+	# Add new shapes to the scene and track them.
+	for shape_node in shapes:
+		if shape_node == null:
+			return
+		_collision_body.add_child(shape_node)
+		_collision_shapes[chunk_index].append(shape_node)
+
+	# Correctly update shape count based on delta.
+	VoxelServer.shape_count += _collision_shapes[chunk_index].size() - old_shapes.size()
 
 
 func _create_debri_multimesh(debris_queue: Array) -> void:
@@ -641,6 +653,7 @@ func _end_of_life() -> void:
 	match end_of_life:
 		1:
 			_disabled = true
+			mesh = null
 			VoxelServer.voxel_objects.erase(self)
 			VoxelServer.total_active_voxels -= voxel_resource.positions.size()
 			for key in _collision_shapes:
