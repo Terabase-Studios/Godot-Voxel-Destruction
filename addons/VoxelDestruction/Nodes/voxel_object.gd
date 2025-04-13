@@ -1,6 +1,6 @@
 @tool
 @icon("voxel_object.svg")
-extends MultiMeshInstance3D
+extends MeshInstance3D
 class_name VoxelObject
 
 ## Displays and controls a [VoxelResource] or [CompactVoxelResource].
@@ -9,12 +9,14 @@ class_name VoxelObject
 
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
 ## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
-@export var voxel_resource: VoxelResourceBase:
+@export var voxel_resource: VoxelResource:
 	set(value):
 		voxel_resource = value
 		update_configuration_warnings()
-		if not value:
-			multimesh = null
+		if voxel_resource == null:
+			mesh = null
+		else:
+			_populate_mesh()
 ## Prevents damage to self.
 @export var invulnerable = false
 ## Darken damaged voxels based on voxel health.
@@ -65,10 +67,12 @@ var last_damage_time: int = -1
 var debris_ammount: int = 0
 ## The total health of all voxels
 @onready var health: int = voxel_resource.vox_count * 100 
+@export_storage var material: ShaderMaterial
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
 var _disabled: bool = false
 var _body_last_transform: Transform3D
+var task_queue = []
 
 
 func _ready() -> void:
@@ -76,7 +80,6 @@ func _ready() -> void:
 		if not voxel_resource:
 			push_warning("Voxel object has no VoxelResource")
 			return
-		
 		voxel_resource = voxel_resource.duplicate(true)
 		
 		# Preload rigid body debris (limit to 1000)
@@ -101,6 +104,7 @@ func _ready() -> void:
 			update_physics()
 			
 		add_child(_collision_body)
+		_collision_body.position = -voxel_resource.size/2*voxel_resource.vox_size
 		
 		# Create starting shapes
 		var shapes_dict = {}  # Cache for _collision_shapes
@@ -119,21 +123,8 @@ func _ready() -> void:
 			_collision_body.freeze = false
 		
 		_collision_shapes.merge(shapes_dict)
+		voxel_resource.voxel_texture = null
 		voxel_resource.starting_shapes.clear()
-		voxel_resource.buffer("visible_voxels")
-		voxel_resource.visible_voxels.clear()
-		voxel_resource.debuffer("visible_voxels")
-		
-		# Update voxel colors for dithering
-		if dark_dithering != 0 or light_dithering != 0:
-			voxel_resource.buffer("colors")
-			voxel_resource.buffer("color_index")
-			var instance_count := multimesh.instance_count
-			for i in instance_count:
-				var color = multimesh.get_instance_color(i)
-				if color not in voxel_resource.colors:
-					voxel_resource.colors.append(color)
-				voxel_resource.color_index[i] = voxel_resource.colors.find(color)
 
 
 func _physics_process(delta):
@@ -165,219 +156,145 @@ func update_physics() -> void:
 
 func _populate_mesh() -> void:
 	if voxel_resource:
-		# Buffers vars to prevent performence drop 
-		# when finding vox color/position
-		voxel_resource.buffer("positions")
-		voxel_resource.buffer("color_index")
-		voxel_resource.buffer("colors")
-		voxel_resource.buffer("visible_voxels")
-		
-		# Create multimesh
-		var _multimesh = VoxelMultiMesh.new()
-		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-		_multimesh.use_colors = true
-		_multimesh.instance_count = voxel_resource.vox_count
-		_multimesh.create_indexes()
-		_multimesh.visible_instance_count = 0
-		
 		# Create mesh
-		var mesh = BoxMesh.new()
-		mesh.material = preload("res://addons/VoxelDestruction/Resources/voxel_material.tres")
-		mesh.size = voxel_resource.vox_size
-		_multimesh.mesh = mesh
+		material = preload("uid://65yj6i43djuc").duplicate()
+		mesh = BoxMesh.new()
+		mesh.material = material
+		mesh.size = voxel_resource.size * voxel_resource.vox_size
+		material.set_shader_parameter("grid_tex", voxel_resource.voxel_texture.duplicate(true))
+		material.set_shader_parameter("vox_size", voxel_resource.vox_size)
+		material.set_shader_parameter("grid_size", voxel_resource.size)
 		
-		# Set dithering seed
+		
+		# Set dithering seed and get texture data
 		var random = RandomNumberGenerator.new()
 		random.set_seed(dithering_seed)
+		var images: Array[Image] = voxel_resource.voxel_texture.get_data()
 		
 		# Dither voxels and populate multimesh
-		for i in _multimesh.instance_count:
+		if dark_dithering == 0 and light_dithering == 0:
+			return
+		for pos in voxel_resource.positions.keys():
 			var dark_variation = random.randf_range(0, dark_dithering)
 			var light_variation = random.randf_range(0, light_dithering)
 			var dithered_color = Color.WHITE
 			if dark_dithering == 0 or light_dithering == 0:
 				if dark_dithering == 0:
-					dithered_color = _get_vox_color(i).lightened(light_variation)
+					dithered_color = _get_pixel(pos).lightened(light_variation)
 				elif light_dithering == 0:
-					dithered_color = _get_vox_color(i).darkened(dark_variation)
+					dithered_color = _get_pixel(pos).darkened(dark_variation)
 			else:
-				dithered_color = _get_vox_color(i).darkened(dark_variation) if randf() > dithering_bias else _get_vox_color(i).lightened(light_variation)
-			var vox_pos = voxel_resource.positions[i]
-			if vox_pos in voxel_resource.visible_voxels:
-				_multimesh.set_instance_visibility(i, true)
-			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos*voxel_resource.vox_size))
-			_multimesh.voxel_set_instance_color(i, dithered_color)
-		var undo_redo = EditorInterface.get_editor_undo_redo()
-		undo_redo.create_action("Populated Voxel Object")
-		undo_redo.add_do_property(self, &"multimesh", _multimesh)
-		undo_redo.add_undo_property(self, &"multimesh", multimesh)
-		undo_redo.commit_action()
+				dithered_color = _get_pixel(pos).darkened(dark_variation) if randf() > dithering_bias else _get_pixel(pos).lightened(light_variation)
+			images[pos.z].set_pixel(pos.x, pos.y, dithered_color)
+		material.get_shader_parameter("grid_tex").update(images)
 
 
-func _get_vox_color(voxid: int) -> Color:
-	voxel_resource.buffer("colors")
-	voxel_resource.buffer("color_index")
-	return voxel_resource.colors[voxel_resource.color_index[voxid]]
+## Retrieves a pixel from [member VoxelResource.voxel_texture]
+func _get_pixel(pos: Vector3) -> Variant:
+	var texture = material.get_shader_parameter("grid_tex")
+	var image = texture.get_data()[pos.z]
+	return image.get_pixel(pos.x, pos.y)
+
+
+func _update_texture(texture: Texture3D):
+	material.set_shader_parameter("grid_tex", texture)
 
 
 func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
+	if not task_queue.is_empty():
+		var held_task = task_queue.back()
+		while not WorkerThreadPool.is_task_completed(held_task):
+			await get_tree().process_frame  # Allow UI to update
 	last_damage_time = Time.get_ticks_msec()
-	voxel_resource.buffer("health")
-	voxel_resource.buffer("positions_dict")
-	voxel_resource.buffer("vox_chunk_indices")
-	voxel_resource.buffer("chunks")
-	# record damage results and create task pool
-	var damage_results: Array
-	# resize to make modifing thread-safe
-	damage_results.resize(voxel_count)
-	var group_id = WorkerThreadPool.add_group_task(
-		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damage_results), 
-		voxel_count, -1, false, "Calculating Voxel Damage"
+	var task_id = WorkerThreadPool.add_task(
+		_damage_voxels_thread.bind(voxel_positions, global_voxel_positions, damager, material.get_shader_parameter("grid_tex").get_data(), global_transform.basis, transform.origin), 
+		false, "Damaging Voxel Object"
 	)
 	
-	# Wait and buffer
-	var last_buffer_time := Time.get_ticks_msec()
-	var buffer_interval := 20
-
-	while not WorkerThreadPool.is_group_task_completed(group_id):
-		var current_time = Time.get_ticks_msec()
-		
-		# Buffer only if enough time has passed
-		if current_time - last_buffer_time >= buffer_interval:
-			voxel_resource.buffer("health")
-			voxel_resource.buffer("positions_dict")
-			voxel_resource.buffer("vox_chunk_indices")
-			voxel_resource.buffer("chunks")
-			last_buffer_time = current_time  # Update last buffer time
-		
+	task_queue.append(task_id)
+	while not WorkerThreadPool.is_task_completed(task_id):
 		await get_tree().process_frame  # Allow UI to update
-	await _apply_damage_results(damager, damage_results)
+	task_queue.erase(task_id)
 
-
-func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damage_results: Array) -> void: 
-	# Get positions and vox_ids to modify later and calculate damage
-	var vox_position: Vector3 = global_voxel_positions[voxel]
-	var vox_pos3i: Vector3i = voxel_positions[voxel]
-	var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
-	
-	# Skip if voxel ID is invalid
-	if vox_id == -1:
-		return  
-	
-	var decay: float = damager.global_pos.distance_squared_to(vox_position) / (damager.range * damager.range)
-	var decay_sample: float = damager.damage_curve.sample(decay)
-	
-	# Skip processing if damage is negligible
-	if decay_sample <= 0.01:
-		return
-	
-	var power_sample: float = damager.power_curve.sample(decay)
-	var damage: float = damager.base_damage * decay_sample
-	var power: float = damager.base_power * power_sample
-	
-	# Compute new voxel health
-	var new_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
-	
-	var chunk = Vector3.ZERO
-	var chunk_pos = 0
-	if new_health == 0:
-		chunk = voxel_resource.vox_chunk_indices[vox_id]
-		var chunk_data = voxel_resource.chunks.get(chunk, [])
-		chunk_pos = chunk_data.find(vox_pos3i) if chunk_data else -1
-	
-	# Store the result in a thread-safe dictionary
-	damage_results[voxel] = {
-		"vox_id": vox_id,
-		"health": new_health,
-		"pos": vox_pos3i,
-		"chunk": chunk,
-		"chunk_pos": chunk_pos,
-		"power": power
-	}
-
-
-func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void:
-	voxel_resource.buffer("positions")
-	voxel_resource.buffer("positions_dict")
-	voxel_resource.buffer("chunks")
+func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, images: Array[Image], basis_copy: Basis, origin_copy: Vector3) -> void: 
 	var chunks_to_regen = PackedVector3Array()
 	var debris_queue = Array()
-	var scaled_basis := basis.scaled(voxel_resource.vox_size)
-	# Prevent showing voxels that are queued for destruction
-	var destroyed_voxels = PackedInt32Array()
-	for result in damage_results:
-		# Skip results
-		if result == null:
+	var scaled_basis := basis_copy.scaled(voxel_resource.vox_size)
+	for vox in voxel_positions.size():
+		var vox_pos: Vector3 = voxel_positions[vox]
+		var vox_id = voxel_resource.positions.get(vox_pos, -1)
+		var vox_position: Vector3 = global_voxel_positions[vox]
+		
+		# Skip if voxel ID is invalid
+		if vox_id == -1:
+			continue  
+		
+		var decay: float = damager.global_pos.distance_squared_to(vox_position) / (damager.range * damager.range)
+		var decay_sample: float = damager.damage_curve.sample(decay)
+		
+		# Skip processing if damage is negligible
+		if decay_sample <= 0.01:
 			continue
-		if result["health"] <= 0:
-			destroyed_voxels.append(result["vox_id"] )
-	
-	for result in damage_results:
-		# Skip results
-		if result == null:
-			continue
-		var vox_id: int = result["vox_id"]
-		var vox_health: float = result["health"]
-		var vox_pos3i: Vector3i = result["pos"]
+		
+		var power_sample: float = damager.power_curve.sample(decay)
+		var damage: float = damager.base_damage * decay_sample
+		var power: float = damager.base_power * power_sample
+		
+		# Compute new voxel health
+		var vox_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
 		
 		# Set health, darken, remove voxels
-		health -= voxel_resource.health[vox_id]-vox_health
+		set("health", health - damage) 
 		voxel_resource.health[vox_id] = vox_health
 		if vox_health > 0:
 			if darkening:
-				multimesh.voxel_set_instance_color(vox_id, _get_vox_color(vox_id).darkened(1.0 - (vox_health * 0.01)))
+				var color = images[vox_pos.z].get_pixel(vox_pos.x, vox_pos.y)
+				images[vox_pos.z].set_pixel(vox_pos.x, vox_pos.y, color.darkened(damage/100))
 		else:
 			# Remove voxel from valid positions, chunks, and multimesh
-			multimesh.set_instance_visibility(vox_id, false)
-			voxel_resource.positions_dict.erase(vox_pos3i)
+			images[vox_pos.z].set_pixel(vox_pos.x, vox_pos.y, Color(0, 0, 0, 0))
+			voxel_resource.call_deferred("_erase_from_dict", vox_pos)
 			VoxelServer.total_active_voxels -= 1
 			
-			var chunk = result["chunk"]
-			voxel_resource.chunks[chunk][result["chunk_pos"]] = Vector3(-1, -7, -7)
+			var chunk = voxel_resource.chunk_keys[voxel_resource.vox_chunk_induces[vox_id]]
+			voxel_resource.chunks[chunk][voxel_resource.chunks[chunk].find(vox_pos)] = Vector3(-1, -7, -7)
 			
 			if chunk not in chunks_to_regen:
 				chunks_to_regen.append(chunk)
 			
 			# Add debri to queue
 			# Scale the transform to match the size of each voxel
-			var voxel_transform := Transform3D(scaled_basis, transform.origin)
-			var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+			var voxel_transform := Transform3D(scaled_basis, origin_copy)
+			var local_voxel_centered = Vector3(vox_pos) + Vector3(0.5, 0.5, 0.5)  - voxel_resource.size/Vector3(2, 2, 2)
 			# Convert to global space using full transform
 			var voxel_global_pos = voxel_transform * local_voxel_centered
-			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": result["power"] }) 
-			
-			# Show sorounding voxels if necissary
-			# Offsets for checking neighbors
-			var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
-						   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
-						   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
-			
-			# Check each neighbor
-			for offset in offsets:
-				var neighbor = voxel_resource.positions_dict.get(vox_pos3i + offset, false)
-				if neighbor and neighbor not in destroyed_voxels:
-					multimesh.set_instance_visibility(neighbor, true)
+			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": power})
+	
+	# TODO: Create a new texture
+	var texture3d: Texture3D = material.get_shader_parameter("grid_tex").duplicate()
+	texture3d.update(images)
+	call_deferred("_update_texture", texture3d)
 	
 	for chunk in chunks_to_regen:
-		_regen_collision(chunk)
+		call_deferred("_regen_collision", chunk)
 	
 	if physics:
-		update_physics()
+		call_deferred("update_physics")
 	
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
 			match debris_type:
 				1:
-					_create_debri_multimesh(debris_queue)
+					call_deferred("_create_debri_multimesh", debris_queue)
 				2:
 					if maximum_debris == -1 or debris_ammount <= maximum_debris:
-						_create_debri_rigid_bodies(debris_queue)
+						call_deferred("_create_debri_rigid_bodies", debris_queue)
 	if health <= 0:
-		_end_of_life()
+		call_deferred("_end_of_life")
 		return
 	
-	if flood_fill:
-		await _detach_disconnected_voxels()
+	#if flood_fill:
+		#call_deferred("_detach_disconnected_voxels")
 
 
 func _regen_collision(chunk_index: Vector3) -> void:
@@ -619,10 +536,6 @@ func _create_debri_rigid_bodies(debris_queue: Array) -> void:
 
 
 func _flood_fill(to_remove: Array) -> void:
-	# Update buffers to ensure current data.
-	voxel_resource.buffer("positions")
-	voxel_resource.buffer("positions_dict")
-	
 	# Retrieve positions dctionar for iteration later.
 	var positions_dict = voxel_resource.positions_dict
 	
@@ -662,81 +575,74 @@ func _flood_fill(to_remove: Array) -> void:
 	visited.clear()
 
 
-func _detach_disconnected_voxels() -> void:
-	var origin: Vector3i = voxel_resource.origin
-	if not voxel_resource.origin in voxel_resource.positions_dict:
-		if not voxel_resource.positions.is_empty():
-			voxel_resource.origin = Vector3i(Array(voxel_resource.positions).pick_random())
-		
-	voxel_resource.buffer("positions")
-	voxel_resource.buffer("positions_dict")
-	var to_remove = Array()
-	to_remove.resize(voxel_resource.positions.size())
-	var task_id = WorkerThreadPool.add_task(
-		_flood_fill.bind(to_remove),
-		false, "Flood-Fill"
-	)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame
-	
-	var scaled_basis := basis.scaled(voxel_resource.vox_size)
-	var chunks_to_regen = PackedVector3Array()
-	var debris_queue = Dictionary()
-	
-	voxel_resource.buffer("positions_dict")
-	voxel_resource.buffer("chunks")
-	voxel_resource.buffer("vox_chunk_indices")
-	for vox_pos3i in to_remove:
-		if not vox_pos3i: break
-		var vox_id = voxel_resource.positions_dict[vox_pos3i]
-		# Remove voxel from valid positions, chunks, and multimesh
-		multimesh.set_instance_visibility(vox_id, false)
-		voxel_resource.positions_dict.erase(vox_pos3i)
-		VoxelServer.total_active_voxels -= 1
-		
-		var chunk = voxel_resource.vox_chunk_indices[vox_id]
-		var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
-		voxel_resource.chunks[chunk][chunk_pos] = Vector3(-1, -7, -7)
-			
-		if chunk not in chunks_to_regen:
-			chunks_to_regen.append(chunk)
-		
-		health -= voxel_resource.health[vox_id]
-		
-		# Scale the transform to match the size of each voxel
-		var voxel_transform := Transform3D(scaled_basis, transform.origin)
-		var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
-		# Convert to global space using full transform
-		var voxel_global_pos = voxel_transform * local_voxel_centered
-		debris_queue.append({ "pos": voxel_global_pos, "origin": Vector3.ZERO, "power": 0 }) 
-	
-	if health <= 0:
-		_end_of_life()
-		return
-	
-	for chunk in chunks_to_regen:
-		_regen_collision(chunk)
-	
-	if physics:
-		update_physics()
-	
-	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
-		if debris_lifetime > 0 and maximum_debris > 0:
-			match debris_type:
-				1:
-					_create_debri_multimesh(debris_queue)
-				2:
-					if maximum_debris == -1 or debris_ammount <= maximum_debris:
-						_create_debri_rigid_bodies(debris_queue)
+#func _detach_disconnected_voxels() -> void:
+	#var origin: Vector3i = voxel_resource.origin
+	#if not voxel_resource.positions.is_empty():
+		#voxel_resource.origin = Vector3i(voxel_resource.positions.keys().pick_random())
+		#
+	#var to_remove = Array()
+	#to_remove.resize(voxel_resource.positions.size())
+	#var task_id = WorkerThreadPool.add_task(
+		#_flood_fill.bind(to_remove),
+		#false, "Flood-Fill"
+	#)
+	#while not WorkerThreadPool.is_task_completed(task_id):
+		#await get_tree().process_frame
+	#
+	#var scaled_basis := basis.scaled(voxel_resource.vox_size)
+	#var chunks_to_regen = PackedVector3Array()
+	#var debris_queue = Dictionary()
+	#
+	#for vox_pos3i in to_remove:
+		#if not vox_pos3i: break
+		#var vox_id = voxel_resource.positions_dict[vox_pos3i]
+		## Remove voxel from valid positions, chunks, and multimesh
+		#multimesh.set_instance_visibility(vox_id, false)
+		#voxel_resource.positions_dict.erase(vox_pos3i)
+		#VoxelServer.total_active_voxels -= 1
+		#
+		#var chunk = voxel_resource.vox_chunk_indices[vox_id]
+		#var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
+		#voxel_resource.chunks[chunk][chunk_pos] = Vector3(-1, -7, -7)
+			#
+		#if chunk not in chunks_to_regen:
+			#chunks_to_regen.append(chunk)
+		#
+		#health -= voxel_resource.health[vox_id]
+		#
+		## Scale the transform to match the size of each voxel
+		#var voxel_transform := Transform3D(scaled_basis, transform.origin)
+		#var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+		## Convert to global space using full transform
+		#var voxel_global_pos = voxel_transform * local_voxel_centered
+		#debris_queue.append({ "pos": voxel_global_pos, "origin": Vector3.ZERO, "power": 0 }) 
+	#
+	#if health <= 0:
+		#_end_of_life()
+		#return
+	#
+	#for chunk in chunks_to_regen:
+		#_regen_collision(chunk)
+	#
+	#if physics:
+		#update_physics()
+	#
+	#if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
+		#if debris_lifetime > 0 and maximum_debris > 0:
+			#match debris_type:
+				#1:
+					#_create_debri_multimesh(debris_queue)
+				#2:
+					#if maximum_debris == -1 or debris_ammount <= maximum_debris:
+						#_create_debri_rigid_bodies(debris_queue)
 
 
 func _end_of_life() -> void:
 	match end_of_life:
 		1:
 			_disabled = true
-			multimesh = null
 			VoxelServer.voxel_objects.erase(self)
-			VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
+			VoxelServer.total_active_voxels -= voxel_resource.positions.size()
 			for key in _collision_shapes:
 				VoxelServer.shape_count -= _collision_shapes[key].size()
 				for shape in _collision_shapes[key]:
@@ -763,6 +669,6 @@ func _end_of_life() -> void:
 func _exit_tree():
 	if not Engine.is_editor_hint():
 		VoxelServer.voxel_objects.erase(self)
-		VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
+		VoxelServer.total_active_voxels -= voxel_resource.positions.size()
 		for key in _collision_shapes:
 			VoxelServer.shape_count -= _collision_shapes[key].size()

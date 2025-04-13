@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode cull_front;
+//render_mode cull_front;
 
 uniform int MAX_STEPS = 128;
 uniform sampler3D grid_tex;
@@ -159,7 +159,6 @@ void fragment() {
 	if (hit.a != 1.0) {
 		discard;
 	}
-
 	vec4 vox_info = read_tex(hit.rgb);
 	ALBEDO = vox_info.rgb;
 	//ALBEDO = NORMAL;

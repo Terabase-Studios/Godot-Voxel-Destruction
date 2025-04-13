@@ -95,26 +95,23 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transfor
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
-	var voxel_resource: VoxelResourceBase = object.voxel_resource
-	voxel_resource.buffer("positions_dict")
+	var voxel_resource: VoxelResource= object.voxel_resource
 
 	# Scale the transform to match the size of each voxel
 	var scaled_basis := object_global_transform.basis.scaled(voxel_resource.vox_size)
 	var voxel_transform := Transform3D(scaled_basis, object_global_transform.origin)
-
-	for voxel_pos: Vector3 in voxel_resource.positions_dict.keys():
+	
+	for voxel_pos: Vector3 in voxel_resource.positions.keys():
 		# Center voxel in its grid cell
-		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5)
+		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5) - voxel_resource.size/Vector3(2, 2, 2)
 
 		# Convert to global space using full transform
 		var voxel_global_pos = voxel_transform * local_voxel_centered
 
 		if aabb.has_point(voxel_global_pos):
-			var voxid = voxel_resource.positions_dict.get(Vector3i(voxel_pos), -1)
-			if voxid != -1:
-				voxel_count += 1
-				voxel_positions.append(voxel_pos)
-				global_voxel_positions.append(voxel_global_pos)
+			voxel_count += 1
+			voxel_positions.append(voxel_pos)
+			global_voxel_positions.append(voxel_global_pos)
 
 	voxels[0] = voxel_count
 	voxels[1] = voxel_positions

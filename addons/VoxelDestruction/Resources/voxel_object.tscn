@@ -1,8 +1,11 @@
-[gd_resource type="ShaderMaterial" load_steps=13 format=4 uid="uid://65yj6i43djuc"]
+[gd_scene load_steps=18 format=4 uid="uid://bbgv546wkup25"]
 
-[ext_resource type="Shader" uid="uid://dwiwre24lfgrr" path="res://addons/VoxelDestruction/Resources/RayMarcher.gdshader" id="1_ax3tw"]
+[ext_resource type="Material" uid="uid://65yj6i43djuc" path="res://addons/VoxelDestruction/Resources/voxel_material.tres" id="1_nrmtc"]
+[ext_resource type="Shader" uid="uid://dwiwre24lfgrr" path="res://addons/VoxelDestruction/Resources/RayMarcher.gdshader" id="1_yj8y6"]
+[ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="2_yj8y6"]
+[ext_resource type="Resource" uid="uid://5tq6g3picvhx" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox" id="3_nrmtc"]
 
-[sub_resource type="Image" id="Image_ax3tw"]
+[sub_resource type="Image" id="Image_yj8y6"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -11,7 +14,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_u842o"]
+[sub_resource type="Image" id="Image_nkdfw"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -20,7 +23,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_5na5v"]
+[sub_resource type="Image" id="Image_64uxd"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -29,7 +32,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_vk856"]
+[sub_resource type="Image" id="Image_r2hkm"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -38,7 +41,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_p2365"]
+[sub_resource type="Image" id="Image_mjcvn"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -47,7 +50,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_caabb"]
+[sub_resource type="Image" id="Image_6egj2"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -56,7 +59,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_erit2"]
+[sub_resource type="Image" id="Image_hs0to"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -65,7 +68,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_iemjc"]
+[sub_resource type="Image" id="Image_e1xya"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -74,7 +77,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_cgnot"]
+[sub_resource type="Image" id="Image_5giql"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -83,7 +86,7 @@ data = {
 "width": 10
 }
 
-[sub_resource type="Image" id="Image_8ft1m"]
+[sub_resource type="Image" id="Image_rg76t"]
 data = {
 "data": PackedByteArray("AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/wAA7v8AAO7/AADu/w=="),
 "format": "RGBA8",
@@ -92,13 +95,27 @@ data = {
 "width": 10
 }
 
-[sub_resource type="ImageTexture3D" id="ImageTexture3D_2unod"]
-_images = Array[Image]([SubResource("Image_ax3tw"), SubResource("Image_u842o"), SubResource("Image_5na5v"), SubResource("Image_vk856"), SubResource("Image_p2365"), SubResource("Image_caabb"), SubResource("Image_erit2"), SubResource("Image_iemjc"), SubResource("Image_cgnot"), SubResource("Image_8ft1m")])
+[sub_resource type="ImageTexture3D" id="ImageTexture3D_tw6fc"]
+_images = Array[Image]([SubResource("Image_yj8y6"), SubResource("Image_nkdfw"), SubResource("Image_64uxd"), SubResource("Image_r2hkm"), SubResource("Image_mjcvn"), SubResource("Image_6egj2"), SubResource("Image_hs0to"), SubResource("Image_e1xya"), SubResource("Image_5giql"), SubResource("Image_rg76t")])
 
-[resource]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_kex11"]
 render_priority = 0
-shader = ExtResource("1_ax3tw")
+shader = ExtResource("1_yj8y6")
 shader_parameter/MAX_STEPS = 128
-shader_parameter/grid_tex = SubResource("ImageTexture3D_2unod")
+shader_parameter/grid_tex = SubResource("ImageTexture3D_tw6fc")
 shader_parameter/grid_size = Vector3(10, 10, 10)
 shader_parameter/vox_size = Vector3(0.1, 0.1, 0.1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5v8lr"]
+material = SubResource("ShaderMaterial_kex11")
+
+[node name="VoxelObject" type="MeshInstance3D"]
+mesh = SubResource("BoxMesh_5v8lr")
+script = ExtResource("2_yj8y6")
+voxel_resource = ExtResource("3_nrmtc")
+dark_dithering = 0.2
+material = ExtResource("1_nrmtc")
+metadata/_custom_type_script = "uid://y48ewqgyud4h"
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.80879)

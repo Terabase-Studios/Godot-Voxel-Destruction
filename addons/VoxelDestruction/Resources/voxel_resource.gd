@@ -8,9 +8,12 @@ class_name VoxelResource
 @export var size: Vector3 ## Estimated size of voxel object as a whole
 @export var origin: Vector3i ## Center voxel, used for detecting detached voxel chunks
 @export var starting_shapes: Array ## Array of shapes used at VoxelObject start
-@export var positions: PackedVector3Array ## Voxel positions array
-@export var vox_chunk_indices: PackedByteArray ## Stores what chunk a voxel belongs to
+@export var positions: Dictionary[Vector3, int] ## Voxel positions array
+@export var vox_chunk_induces: PackedByteArray ## Stores what chunk a voxel belongs to
+@export var chunk_keys: PackedVector3Array ## Stores chunk keys for fast access
 @export var chunks: Dictionary[Vector3, PackedVector3Array] ## Stores intact voxel locations within chunks
+@export var health: PackedByteArray ## Current health of voxels
+@export var voxel_texture: ImageTexture3D ## Stores most information for rendering
 
 ## Pool of debris nodes
 var debris_pool: Array[RigidBody3D]
@@ -30,3 +33,7 @@ func get_debri() -> RigidBody3D:
 	var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
 	debri.hide()
 	return debri
+
+
+func _erase_from_dict(vox_pos: Vector3):
+	positions.erase(vox_pos)

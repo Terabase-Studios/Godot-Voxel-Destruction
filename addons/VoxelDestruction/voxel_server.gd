@@ -15,7 +15,6 @@ var shape_count: int
 func _ready():
 	Performance.add_custom_monitor("Voxel Destruction/Voxel Objects", get_voxel_object_count)
 	Performance.add_custom_monitor("Voxel Destruction/Active Voxels", get_voxel_count)
-	Performance.add_custom_monitor("Voxel Destruction/Visible Voxels", get_visible_voxel_count)
 	Performance.add_custom_monitor("Voxel Destruction/Shape Count", get_shape_count)
 
 
@@ -26,13 +25,6 @@ func get_voxel_object_count():
 ## Returns [member voxel_server.total_active_voxels]
 func get_voxel_count():
 	return total_active_voxels
-
-## Returns [VoxelObject]s [member MultiMesh.visible_instance_count]
-func get_visible_voxel_count():
-	var visible_voxel_count = 0
-	for object in voxel_objects:
-		visible_voxel_count += object.multimesh.visible_instance_count
-	return visible_voxel_count
 
 ## Returns [member voxel_server.shape_count]
 func get_shape_count():

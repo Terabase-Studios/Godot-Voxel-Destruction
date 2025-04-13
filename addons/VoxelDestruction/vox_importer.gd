@@ -166,20 +166,24 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	# Create VoxelResource, some variables will be set later.
 	var voxel_resource = VoxelResource.new()
-	if options.Resource_type == 1:
-		voxel_resource = CompactVoxelResource.new()
-	else:
-		voxel_resource = VoxelResource.new()
-	voxel_resource.buffer_all()
 	voxel_resource.vox_count = voxels.size()
 	voxel_resource.vox_size = scale
 	voxel_resource.origin = origin
 	voxel_resource.size = size
-	voxel_resource.health.resize(positions.size())
+	voxel_resource.health.resize(voxel_resource.vox_count)
 	voxel_resource.health.fill(100)
 	
 	
-	# Create Object/Add colors/Update Positions
+	# Create Voxel Image
+	var slices: Array[Image] = []
+	var format = Image.FORMAT_RGBA8
+
+	for z in range(size.z):
+		var image = Image.create(size.x, size.y, false, format)
+		image.fill(Color(0, 0, 0, 0))
+		slices.append(image)
+	
+	
 	var start_voxel = voxels[0]
 	if not start_voxel.has("color") or not start_voxel["color"] or not start_voxel["color"] is Color: 
 		push_warning("Color data missing or invalid; Import Failed")
@@ -187,39 +191,41 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	if start_voxel["position"] == null or not (start_voxel["position"] is Vector3 or start_voxel["position"] is Vector3i): 
 		push_warning("Positions data missing or invalid; Import Failed")
 		return
+	
 	var index = 0
 	for voxel in voxels:
-		var color = voxel["color"]
-		if color not in voxel_resource.colors:
-			voxel_resource.colors.append(color)
-		voxel_resource.color_index.append(voxel_resource.colors.find(color))
-		
 		var position = voxel["position"]
-		var adjusted_position = Vector3i(position.x, position.z, position.y)
-		voxel_resource.positions.append(adjusted_position)
-		voxel_resource.positions_dict[adjusted_position] = index
+		var true_pos = Vector3i(position.x, position.z, position.y)
+		voxel_resource.positions[Vector3(true_pos)] = index
 		index += 1
+		
+		var color = voxel["color"]
+		slices[true_pos.z].set_pixel(true_pos.x, true_pos.y, color)
+	
+	var texture_3d = ImageTexture3D.new()
+	texture_3d.create(format, size.x, size.y, size.z, false, slices)
+	voxel_resource.voxel_texture = texture_3d
 	
 	# Modify object/add resource/finish Voxel Resource
-	voxel_resource.debuffer_all()
-	
 	var chunk_size
 	if options.Chunk_Size:
 		chunk_size = options.Chunk_Size
 	else:
 		chunk_size = Vector3(16, 16, 16)
 	
-	# Sort axes
-	var vox_chunk_indices: PackedVector3Array
+	
+	var vox_chunk_induces: PackedByteArray
+	var chunk_keys: PackedVector3Array
 	var chunks: Dictionary[Vector3, PackedVector3Array]
 	
 	# Create voxel dictionary
 	for voxel: Vector3i in voxel_resource.positions:
 		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
-		vox_chunk_indices.append(chunk)
 		if not chunks.has(chunk):
+			chunk_keys.append(chunk)
 			chunks[chunk] = PackedVector3Array()
 		chunks[chunk].append(voxel)
+		vox_chunk_induces.append(chunk_keys.find(chunk))
 	
 	# Create collision
 	var starting_shapes = Array()
@@ -227,61 +233,15 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
 	
 	# Set collision VoxelResource vars
-	voxel_resource.vox_chunk_indices = vox_chunk_indices
+	voxel_resource.vox_chunk_induces = vox_chunk_induces
+	voxel_resource.chunk_keys = chunk_keys
 	voxel_resource.chunks = chunks
 	voxel_resource.starting_shapes = starting_shapes
-	
-	# Get visible voxels
-	# Store voxels in a dictionary with collision handling
-	var voxel_map: Dictionary = {}
-	var visible_voxels = PackedVector3Array()
-	var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
-				   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
-				   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
-
-	# Populate hash map
-	for vox: Vector3i in voxel_resource.positions:
-		var hash = hash_voxel(vox)
-		if hash in voxel_map:
-			voxel_map[hash].append(vox)  # Handle collisions by storing multiple voxels at the same hash
-		else:
-			voxel_map[hash] = [vox]
-	
-	# Find visible voxels
-	for vox: Vector3i in voxel_resource.positions:
-		for offset in offsets:
-			var neighbor_vox: Vector3i = vox + offset
-			var hash = hash_voxel(neighbor_vox)
-			
-			# Check if the hash exists AND verify actual position match
-			if hash not in voxel_map or neighbor_vox not in voxel_map[hash]:
-				visible_voxels.append(vox)
-				break  # No need to check other directions
-	
-	voxel_resource.buffer("visible_voxels")
-	voxel_resource.visible_voxels = visible_voxels
-	
-	# Set data size if compressed voxel obj:
-	if options.Resource_type == 1:
-		var initial_data_size: float = 0
-		var compressed_data_size: float = 0
-		for bytes in voxel_resource._property_size.values():
-			initial_data_size += bytes
-		for property in voxel_resource._data:
-			var bytes = voxel_resource._data[property].size()
-			compressed_data_size += bytes
-		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
-	
-	voxel_resource.debuffer_all()
 	
 	var err = ResourceSaver.save(voxel_resource, "%s.%s" % [save_path, _get_save_extension()])
 	if err != OK:
 		print(ERROR_DESCRIPTIONS[err])
 	return err
-
-
-func hash_voxel(v: Vector3i) -> int:
-	return ((v.x * 73856093) ^ (v.y * 19349663) ^ (v.z * 83492791)) % 1000003
 
 
 func create_boxes(chunk: PackedVector3Array) -> Array:
