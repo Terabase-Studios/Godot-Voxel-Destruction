@@ -31,6 +31,7 @@ fov = 80.0
 [node name="crosshair" type="MeshInstance3D" parent="Camera"]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
+visible = false
 mesh = SubResource("PlaneMesh_71ahc")
 
 [node name="RayCast3D" type="RayCast3D" parent="Camera/crosshair"]
@@ -47,7 +48,6 @@ base_damage = 120.0
 damage_curve = SubResource("Curve_wnqqp")
 base_power = 2
 power_curve = SubResource("Curve_wnqqp")
-knock_back_debri = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager"]
 shape = SubResource("BoxShape3D_bcjde")

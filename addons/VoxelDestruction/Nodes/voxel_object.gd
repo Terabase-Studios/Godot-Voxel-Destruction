@@ -128,7 +128,8 @@ func _ready() -> void:
 		_collision_shapes.merge(shapes_dict)
 		voxel_resource.voxel_texture = null
 		voxel_resource.starting_shapes.clear()
-		_shapes_created.connect(add_shapes)
+		_shapes_created.connect(_add_shapes)
+		position += Vector3(0, .002, 0)
 
 
 func _physics_process(delta):
@@ -201,16 +202,18 @@ func _get_pixel(pos: Vector3) -> Variant:
 
 func _update_texture(texture: Texture3D):
 	material.set_shader_parameter("grid_tex", texture)
+	call_deferred("emit_signal", "_task_complete")
 
 
 func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
 	if not task_queue.is_empty():
+		push_warning("Damage is slower than requests! A queue has been created.")
 		var held_task = task_queue.back()
 		while not WorkerThreadPool.is_task_completed(held_task):
 			await get_tree().process_frame  # Allow UI to update
 	last_damage_time = Time.get_ticks_msec()
 	var task_id = WorkerThreadPool.add_task(
-		_damage_voxels_thread.bind(voxel_positions, global_voxel_positions, damager, material.get_shader_parameter("grid_tex").get_data(), global_transform.basis, transform.origin), 
+		_damage_voxels_thread.bind(voxel_positions, global_voxel_positions, damager, material.get_shader_parameter("grid_tex").get_data(), global_transform), 
 		false, "Damaging Voxel Object"
 	)
 	
@@ -219,10 +222,11 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 	task_queue.erase(task_id)
 
 
-func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, images: Array[Image], basis_copy: Basis, origin_copy: Vector3) -> void: 
+func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, images: Array[Image], transform_copy: Transform3D) -> void: 
 	var chunks_to_regen = PackedVector3Array()
 	var debris_queue = Array()
-	var scaled_basis := basis_copy.scaled(voxel_resource.vox_size)
+	var scaled_basis = transform_copy.basis.scaled(voxel_resource.vox_size)
+	var voxel_transform := Transform3D(scaled_basis, transform_copy.origin)
 	for vox in voxel_positions.size():
 		var vox_pos: Vector3 = voxel_positions[vox]
 		var vox_id = voxel_resource.positions.get(vox_pos, -1)
@@ -267,22 +271,29 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 				chunks_to_regen.append(chunk)
 			
 			# Add debri to queue
-			# Scale the transform to match the size of each voxel
-			var voxel_transform := Transform3D(scaled_basis, origin_copy)
-			var local_voxel_centered = Vector3(vox_pos) + Vector3(0.5, 0.5, 0.5)  - voxel_resource.size/Vector3(2, 2, 2)
+			# Center voxel in its grid cell
+			var local_voxel_centered = vox_pos + Vector3(0.5, 0.5, 0.5) - voxel_resource.size/Vector3(2, 2, 2)
+			
 			# Convert to global space using full transform
 			var voxel_global_pos = voxel_transform * local_voxel_centered
-			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": power})
-	
+			
+			# Add debris
+			debris_queue.append({
+				"pos": voxel_global_pos,
+				"origin": damager.global_pos,
+				"power": power
+			})
+
 	var texture3d: Texture3D = material.get_shader_parameter("grid_tex").duplicate()
 	texture3d.update(images)
 	call_deferred("_update_texture", texture3d)
 	
-	for chunk in chunks_to_regen:
-		call_deferred("_regen_collision", chunk)
+	for chunk_index in chunks_to_regen:
+		var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
+		_create_shapes.call(chunk, chunk_index)
 	
 	if physics:
-		call_deferred("update_physics")
+		call_thread_safe("update_physics")
 	
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
@@ -292,7 +303,7 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 				2:
 					if maximum_debris == -1 or debris_ammount <= maximum_debris:
 						call_deferred("_create_debri_rigid_bodies", debris_queue)
-	call_deferred("emit_signal", "_task_complete")
+	
 	if health <= 0:
 		call_deferred("_end_of_life")
 		return
@@ -300,8 +311,8 @@ func _damage_voxels_thread(voxel_positions: PackedVector3Array, global_voxel_pos
 	#if flood_fill:
 		#call_deferred("_detach_disconnected_voxels")
 
-# This function is undocumented
-func _create_shapes(chunk: PackedVector3Array, chunk_index: Vector3) -> void:
+# This function is undocumented, and a lambada
+var _create_shapes = func(chunk: PackedVector3Array, chunk_index: Vector3) -> void:
 	var shapes = Array()
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
@@ -373,12 +384,9 @@ func _regen_collision(chunk_index: Vector3) -> void:
 	)
 
 
-func add_shapes(shapes: Array, chunk_index: Vector3) -> void:
+func _add_shapes(shapes: Array, chunk_index: Vector3) -> void:
 	# Early exit if object is destroyed.
 	if health <= 0:
-		for shape in shapes:
-			if is_instance_valid(shape):
-				shape.queue_free()
 		return
 
 	# Handle old shapes cleanup.
@@ -386,19 +394,18 @@ func add_shapes(shapes: Array, chunk_index: Vector3) -> void:
 	if _collision_shapes.has(chunk_index):
 		old_shapes = _collision_shapes[chunk_index]
 		for shape in old_shapes:
-			if is_instance_valid(shape):
-				shape.queue_free()
+			shape.queue_free()
 		_collision_shapes[chunk_index].clear()
 	else:
 		_collision_shapes[chunk_index] = []
-
+	
 	# Add new shapes to the scene and track them.
 	for shape_node in shapes:
 		if shape_node == null:
 			return
 		_collision_body.add_child(shape_node)
 		_collision_shapes[chunk_index].append(shape_node)
-
+	
 	# Correctly update shape count based on delta.
 	VoxelServer.shape_count += _collision_shapes[chunk_index].size() - old_shapes.size()
 
@@ -432,13 +439,13 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 		# Set the initial position in the MultiMesh
 		multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
 		idx += 1
-	
+	 
 	# Control debris for the lifetime duration
 	var current_lifetime = debris_lifetime
 	while current_lifetime > 0:
 		
 		var delta = get_physics_process_delta_time()
-		current_lifetime -= delta
+		#current_lifetime -= delta
 
 		# Update physics and position of each debris
 		for i in range(debri_states.size()):
@@ -452,7 +459,7 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 			data[0] += velocity * delta
 
 			# Update instance transform in MultiMesh
-			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data[0]))
+			#multi_mesh.set_instance_transform(i, Transform3D(Basis(), data[0]))
 			
 			# Update velocity for next frame
 			data[1] = velocity

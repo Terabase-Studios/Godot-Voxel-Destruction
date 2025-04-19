@@ -25,13 +25,18 @@ class_name VoxelDamager
 var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var global_pos = global_position
-
-signal _aabb_generated
+var collision_node: CollisionShape3D
 
 
 func _ready() -> void:
 	VoxelServer.voxel_damagers.append(self)
-	var collision_shape = get_child(0).shape
+	for child in get_children(true):
+		if child is CollisionShape3D:
+			collision_node = child
+			break
+	if not collision_node:
+		push_error("Voxeldamager has no collision node")
+	var collision_shape = collision_node.shape
 	if collision_shape is not BoxShape3D:
 		push_warning("VoxelDamager collision shape must be BoxShape3D")
 	var size = collision_shape.size
@@ -40,27 +45,27 @@ func _ready() -> void:
 	power_curve = convert_curve_to_squared(power_curve)
 
 ## Damages all voxel objects in radius
-func hit():
+func hit() -> void:
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
-	var aabb = Array()
-	aabb.resize(1)
 	var task_id = WorkerThreadPool.add_task(
-		_get_area_aabb.bind(aabb, get_child(0)),
-		false, "VoxelDamager AABB Calculation"
+		_hit_thread.bind(collision_node, get_overlapping_bodies()),
+		false, "VoxelDamager Calculation"
 	)
-	await _aabb_generated
-	aabb = aabb[0]
-	for body in get_overlapping_bodies():
+
+
+func _hit_thread(collision_shape: CollisionShape3D, overlapping_bodies) -> void:
+	var box_shape = collision_shape.shape as BoxShape3D
+	var size = box_shape.size
+	var _position = global_pos - (size * 0.5)
+	var aabb = AABB(_position, size)
+	for body in overlapping_bodies:
 		if "VoxelDebri" in body.name:
 			if knock_back_debri and body.is_inside_tree():
-				var decay = global_position.distance_to(body.global_position) / range
-				var power = float(base_power * power_curve.sample(decay))
-				var launch_vector = body.global_position - global_position
-				var velocity = launch_vector.normalized() * power
-				body.apply_impulse(velocity*body.scale)
-		elif body is StaticBody3D or body is RigidBody3D:
+				call_deferred("launch_debris", body)
+			continue
+		if body is StaticBody3D or body is RigidBody3D:
 			var parent = body.get_parent()
 			if parent is VoxelObject:
 				if parent.invulnerable or parent._disabled:
@@ -71,46 +76,37 @@ func hit():
 				elif group_mode == 2:
 					if group not in parent.get_groups():
 						continue
-				task_id = WorkerThreadPool.add_task(
-					_get_voxels_in_aabb.bind(aabb, parent, parent.transform),
-					false, "Getting Voxels to Damage"
-				)
-				if parent not in hit_objects:
-					hit_objects.append(parent)
-	return hit_objects
+				var voxel_positions = PackedVector3Array()
+				var global_voxel_positions = PackedVector3Array()
+				var voxel_count: int = 0
+				var voxel_resource: VoxelResource= parent.voxel_resource
+
+				# Scale the transform to match the size of each voxel
+				var object_global_transform = parent.global_transform
+				var scaled_basis = object_global_transform.basis.scaled(voxel_resource.vox_size)
+				var voxel_transform := Transform3D(scaled_basis, object_global_transform.origin)
+				
+				for voxel_pos: Vector3 in voxel_resource.positions.keys():
+					# Center voxel in its grid cell
+					var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5) - voxel_resource.size/Vector3(2, 2, 2)
+					
+					# Convert to global space using full transform
+					var voxel_global_pos = voxel_transform * local_voxel_centered
+					
+					if aabb.has_point(voxel_global_pos):
+						voxel_count += 1
+						voxel_positions.append(voxel_pos)
+						global_voxel_positions.append(voxel_global_pos)
+				parent.call_deferred("_damage_voxels", self, voxel_count, voxel_positions, global_voxel_positions)
 
 
-func _get_area_aabb(aabb, collision_shape: CollisionShape3D)-> void:
-	var box_shape = collision_shape.shape as BoxShape3D
-	var size = box_shape.size
-	var _position = global_pos - (size * 0.5)
-	aabb[0] = AABB(_position, size)
-	call_deferred("emit_signal", "_aabb_generated")
-
- 
-func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D) -> void:
-	var voxel_positions = PackedVector3Array()
-	var global_voxel_positions = PackedVector3Array()
-	var voxel_count: int = 0
-	var voxel_resource: VoxelResource= object.voxel_resource
-
-	# Scale the transform to match the size of each voxel
-	var scaled_basis := object_global_transform.basis.scaled(voxel_resource.vox_size)
-	var voxel_transform := Transform3D(scaled_basis, object_global_transform.origin)
-	
-	for voxel_pos: Vector3 in voxel_resource.positions.keys():
-		# Center voxel in its grid cell
-		var local_voxel_centered = voxel_pos + Vector3(0.5, 0.5, 0.5) - voxel_resource.size/Vector3(2, 2, 2)
-		
-		# Convert to global space using full transform
-		var voxel_global_pos = voxel_transform * local_voxel_centered
-		
-		if aabb.has_point(voxel_global_pos):
-			voxel_count += 1
-			voxel_positions.append(voxel_pos)
-			global_voxel_positions.append(voxel_global_pos)
-	
-	object.call_deferred("_damage_voxels", self, voxel_count, voxel_positions, global_voxel_positions)
+func launch_debris(debri: Node3D):
+	var global_pos = debri.global_position
+	var decay = global_pos.distance_squared_to(global_pos) / range
+	var power = float(base_power * power_curve.sample(decay))
+	var launch_vector = global_pos - global_pos
+	var velocity = launch_vector.normalized() * power
+	debri.call_deferred("apply_impulse", velocity*debri.scale)
 
 
 func convert_curve_to_squared(curve: Curve) -> Curve:
