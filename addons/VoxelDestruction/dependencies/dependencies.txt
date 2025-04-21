@@ -1,0 +1,13 @@
+Godot Voxel Destruction currently includes shaders and rendering logic adapted from:
+
+Godot Voxel by Victor Ferenczi  
+  Repository: https://github.com/viktor-ferenczi/godot-voxel
+  Commit: 715c5b1b4708d69d80b3b155e93c323807f9d49e (retrieved on 2025-04-21)
+  Description: High-performance voxel rendering shaders for Godot.
+
+These shaders are used to support GPU-based voxel rendering.  
+Modifications may have been made for compatibility with this addon.
+
+Credit and thanks to Victor Ferenczi for making this project possible.
+
+----------------------------------------------------------------------------------------------------
