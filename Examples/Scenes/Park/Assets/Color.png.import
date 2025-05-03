@@ -1,0 +1,26 @@
+[remap]
+
+importer="2d_array_texture"
+type="CompressedTexture2DArray"
+uid="uid://ba5p4tm4bc25h"
+path="res://.godot/imported/Color.png-7373b21df1c2ae8eee27ed28951c38c3.ctexarray"
+metadata={
+"vram_texture": false
+}
+
+[deps]
+
+source_file="res://Examples/Scenes/Park/Assets/Color.png"
+dest_files=["res://.godot/imported/Color.png-7373b21df1c2ae8eee27ed28951c38c3.ctexarray"]
+
+[params]
+
+compress/mode=3
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/channel_pack=0
+mipmaps/generate=false
+mipmaps/limit=-1
+slices/horizontal=8
+slices/vertical=2

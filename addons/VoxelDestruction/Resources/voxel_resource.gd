@@ -13,10 +13,15 @@ class_name VoxelResource
 @export var chunk_keys: PackedVector3Array ## Stores chunk keys for fast access
 @export var chunks: Dictionary[Vector3, PackedVector3Array] ## Stores intact voxel locations within chunks
 @export var health: PackedByteArray ## Current health of voxels
-@export var voxel_texture: ImageTexture3D ## Stores most information for rendering
+@export var model_texture: ImageTexture ## Stores information for rendering
+@export var voxel_texture: ImageTexture3D ## Stores information for rendering
+@export var palette: ImageTexture ## Stores information for rendering
+@export var materials: ImageTexture ## Stores information for rendering
+@export var model_size: Vector3i ## Stores information for rendering
 
 ## Pool of debris nodes
 var debris_pool: Array[RigidBody3D]
+
 
 ## Creates debris and saves them to debri_pool
 func pool_rigid_bodies(vox_amount) -> void:

@@ -113,6 +113,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	var wait = 0
 	# Read chunks
+	var palette = []
 	while not file.eof_reached() and not wait == 20:
 		var chunk_id = file.get_buffer(4).get_string_from_ascii()
 		var chunk_size = file.get_32()
@@ -138,7 +139,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		
 		elif chunk_id == "RGBA":
 			# RGBA chunk (contains palette data)
-			var palette = []
 			for i in range(256):
 				var r = file.get_8()
 				var g = file.get_8()
@@ -175,15 +175,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	
 	# Create Voxel Image
-	var slices: Array[Image] = []
-	var format = Image.FORMAT_RGBA8
-
-	for z in range(size.z):
-		var image = Image.create(size.x, size.y, false, format)
-		image.fill(Color(0, 0, 0, 0))
-		slices.append(image)
-	
-	
 	var start_voxel = voxels[0]
 	if not start_voxel.has("color") or not start_voxel["color"] or not start_voxel["color"] is Color: 
 		push_warning("Color data missing or invalid; Import Failed")
@@ -191,20 +182,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	if start_voxel["position"] == null or not (start_voxel["position"] is Vector3 or start_voxel["position"] is Vector3i): 
 		push_warning("Positions data missing or invalid; Import Failed")
 		return
-	
-	var index = 0
-	for voxel in voxels:
-		var position = voxel["position"]
-		var true_pos = Vector3i(position.x, position.z, position.y)
-		voxel_resource.positions[Vector3(true_pos)] = index
-		index += 1
-		
-		var color = voxel["color"]
-		slices[true_pos.z].set_pixel(true_pos.x, true_pos.y, color)
-	
-	var texture_3d = ImageTexture3D.new()
-	texture_3d.create(format, size.x, size.y, size.z, false, slices)
-	voxel_resource.voxel_texture = texture_3d
+	add_images_to_resource(voxel_resource, voxels, size, palette)
 	
 	# Modify object/add resource/finish Voxel Resource
 	var chunk_size
@@ -242,6 +220,105 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	if err != OK:
 		print(ERROR_DESCRIPTIONS[err])
 	return err
+
+
+func add_images_to_resource(voxel_resource: VoxelResource, voxels: Array, size: Vector3, palette: Array) -> void:
+	# Model grid (stores info about 16x16x16 cubes)
+	var model_grid_size = Vector3i(
+		ceil(size.x / 16.0),
+		ceil(size.y / 16.0),
+		ceil(size.z / 16.0)
+	)
+	
+	var model_texture = Image.create_empty(256, 16, false, Image.FORMAT_RGB8)
+	model_texture.fill(Color(0, 0, 0))
+	
+	# Each 16x16x16 cube gets its own layer in the voxel atlas
+	var voxel_layers: Array[Image] = []
+	var layer_lookup = {}
+	var next_layer_index = 0
+	
+	# Create data for model_texture and voxel_textures
+	for chunk_z in range(model_grid_size.z):
+		for chunk_y in range(model_grid_size.y):
+			for chunk_x in range(model_grid_size.x):
+				var cube_origin = Vector3i(chunk_x, chunk_y, chunk_z) * 16
+				var cube_voxels = []
+				
+				# Collect all voxels in this 16x16x16 cube
+				for voxel in voxels:
+					var pos = voxel["position"]
+					if pos.x >= cube_origin.x and pos.x < cube_origin.x + 16 \
+					and pos.y >= cube_origin.y and pos.y < cube_origin.y + 16 \
+					and pos.z >= cube_origin.z and pos.z < cube_origin.z + 16:
+						cube_voxels.append(voxel)
+				
+				# Skip empty cubes
+				if cube_voxels.is_empty():
+					continue
+				
+				# Create a voxel layer for this cube
+				var voxel_layer_img = Image.create(16, 256, false, Image.FORMAT_R8)
+				voxel_layer_img.fill(Color(0, 0, 0))
+				var has_opaque = false
+				
+				for voxel in cube_voxels:
+					var local = Vector3i(voxel["position"]) - cube_origin
+					var color_index = voxel["color_index"]
+					if color_index <= 0 or color_index >= 256:
+						continue
+					
+					var index_2d = Vector2i(local.x, (local.y | (local.z << 4)))
+					voxel_layer_img.set_pixel(index_2d.x, index_2d.y, Color(color_index / 255.0, 0, 0))
+					if voxel["color"].a > 0.95:
+						has_opaque = true
+				
+				var layer_index = next_layer_index
+				layer_lookup[Vector3i(chunk_x, chunk_y, chunk_z)] = layer_index
+				voxel_layers.append(voxel_layer_img)
+				next_layer_index += 1
+				
+				# Encode layer index in R and G, and flags in B
+				var flat_index = chunk_x + chunk_z * 16
+				var flags = 0
+				flags |= 1 # has voxels
+				if has_opaque:
+					flags |= 1 << 2
+				
+				model_texture.set_pixel(flat_index, chunk_y, Color(
+					float(layer_index % 256) / 255.0,
+					float(layer_index / 256) / 255.0,
+					float(flags) / 255.0
+				))
+	
+	
+	var voxel_texture = ImageTexture3D.new()
+	voxel_texture.create(Image.FORMAT_R8, 16, 256, voxel_layers.size(), false, voxel_layers)
+	
+	var palette_image = Image.create_empty(256, 1, false, Image.FORMAT_RGBA8)
+	for i in range(256):
+		var c = Color(0, 0, 0, 1)
+		if i < palette.size():
+			c = palette[i]
+		palette_image.set_pixel(i, 0, c)
+	
+	# Dummy materials texture (just white for now)
+	var materials_image = Image.create_empty(256, 5, false, Image.FORMAT_RGBA8)
+	materials_image.fill(Color(1, 1, 1, 1))
+	
+	var palette_texture = ImageTexture.create_from_image(palette_image)
+	var materials_texture = ImageTexture.create_from_image(materials_image)
+	model_texture = ImageTexture.create_from_image(model_texture)
+	
+	
+	voxel_resource.voxel_texture = voxel_texture
+	voxel_resource.palette = palette_texture
+	voxel_resource.materials = materials_texture
+	voxel_resource.model_texture = model_texture
+	voxel_resource.model_size = model_grid_size
+
+
+
 
 
 func create_boxes(chunk: PackedVector3Array) -> Array:

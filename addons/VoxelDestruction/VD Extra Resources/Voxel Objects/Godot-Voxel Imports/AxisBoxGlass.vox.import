@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://dfoppp32f1n3i"
+path="res://.godot/imported/AxisBoxGlass.vox-42089f35f0aa5a44110f4f8931727564.tres"
+
+[deps]
+
+source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Godot-Voxel Imports/AxisBoxGlass.vox"
+dest_files=["res://.godot/imported/AxisBoxGlass.vox-42089f35f0aa5a44110f4f8931727564.tres"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=0
