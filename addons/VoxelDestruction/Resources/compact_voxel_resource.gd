@@ -2,7 +2,7 @@
 @icon("compact_voxel_resource.svg")
 extends VoxelResourceBase
 class_name CompactVoxelResource
-## Contains VoxelData for the use of a VoxelObject along with a debri pool. Stores scalable voxel data in a compressed binary array.
+## Contains VoxelData for the use of a VoxelObject along with a debri pool. Stores scalable voxel data in a compressed binary array. [br]
 ## This can cause stuttering when voxel data is decompressed
 ##
 ## Whenever a large array or dictionary is retrieved or set a compressed/decompressed DUPLICATE is returned.

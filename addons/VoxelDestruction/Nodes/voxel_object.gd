@@ -70,6 +70,9 @@ var _collision_body: PhysicsBody3D
 var _disabled: bool = false
 var _body_last_transform: Transform3D
 
+## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
+## This commonly occurs when (Re)populate Mesh is pressed
+signal repopulated
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
@@ -212,6 +215,7 @@ func _populate_mesh() -> void:
 		undo_redo.add_do_property(self, &"multimesh", _multimesh)
 		undo_redo.add_undo_property(self, &"multimesh", multimesh)
 		undo_redo.commit_action()
+		repopulated.emit()
 
 
 func _get_vox_color(voxid: int) -> Color:

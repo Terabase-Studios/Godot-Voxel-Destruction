@@ -8,7 +8,7 @@ class_name VoxelResource
 @export var health: PackedByteArray ## Current life of voxels
 @export var positions: PackedVector3Array ## Voxel positions array
 @export var positions_dict: Dictionary[Vector3i, int] ## Voxel positions dictionary
-@export var vox_chunk_indices: PackedVector3Array ## Stors what chunk a voxel belongs to
+@export var vox_chunk_indices: PackedVector3Array ## Stores what chunk a voxel belongs to
 @export var chunks: Dictionary[Vector3, PackedVector3Array] ## Stores intact voxel locations within chunks
 @export var visible_voxels: PackedVector3Array
 
