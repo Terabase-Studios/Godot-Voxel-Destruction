@@ -77,7 +77,7 @@ layout_mode = 2
 
 [node name="Label2" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Move - Arrow Keys"
+text = "Move - wasd"
 
 [node name="Label5" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2

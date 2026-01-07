@@ -33,11 +33,11 @@ func _get_preset_name(preset_index):
 func _get_import_options(path, preset_index):
 	return [{
 			   "name": "Scale",
-			   "default_value": Vector3(.1, .1, .1)
+			   "default_value": Vector3(.1, .1, .1),
 			},
 			{
 			   "name": "Chunk_Size",
-			   "default_value": Vector3(16, 16, 16)
+			   "default_value": Vector3(16, 16, 16),
 			},
 			{
 			   "name": "Resource_type",

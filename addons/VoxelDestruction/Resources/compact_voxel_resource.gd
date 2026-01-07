@@ -3,12 +3,13 @@
 extends VoxelResourceBase
 class_name CompactVoxelResource
 ## Contains VoxelData for the use of a VoxelObject along with a debri pool. Stores scalable voxel data in a compressed binary array.
+## This can cause stuttering when voxel data is decompressed
 ##
-## Whenever a large array or dictionary is retrieved or set and a compressed/decompressed DUPLICATE is returned.
+## Whenever a large array or dictionary is retrieved or set a compressed/decompressed DUPLICATE is returned.
 ## These variables can be buffered allowing them to be accessed and modified as a normal variable with little performance loss
 ##
 ## @experimental
-const BUFFER_LIFETIME = 1 ## Time since last buffered befor a variable is automaticly debuffered.
+const BUFFER_LIFETIME = 1 ## Time since last buffered before a variable is automatically debuffered.
 const COMPRESSION_MODE = 2 ## Argument passed to compress()/decompress()
 
 ## Size reduction of data compression
