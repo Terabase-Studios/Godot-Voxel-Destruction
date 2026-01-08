@@ -1,0 +1,236 @@
+@tool
+extends Resource
+class_name VoxelLODAddon
+
+@export_storage var _parent: VoxelObject
+@export_storage var _voxel_meshes: Array[VoxelMultiMesh] = []
+@export_storage var _default_voxel_mesh: VoxelMultiMesh
+
+@export var lod_settings: Array[VoxelLODSetting] = []:
+	set(value):
+		lod_settings = value
+		for setting in lod_settings:
+			if not setting.is_connected("preview_enabled", _update_preview):
+				setting.connect("preview_enabled", _update_preview)
+				setting.connect("preview_disabled", _disable_preview)
+		_update_preview()
+
+var hidden_voxels: int = 0
+var disabled = false:
+	set(value):
+		if value:
+			disabled_lod()
+		disabled = value
+
+var _current_setting: VoxelLODSetting
+var _last_preview: VoxelLODSetting
+var _id: int = randi_range(0, 100) % 10
+
+
+func _init() -> void:
+	for setting in lod_settings:
+		setting.preview = false
+		if not setting.is_connected("preview_enabled", _update_preview):
+			setting.connect("preview_enabled", _update_preview)
+			setting.connect("preview_disabled", _disable_preview)
+
+
+func _ready():
+	disabled_lod()
+	for setting in lod_settings:
+		setting.activation_range_squared = setting.activation_range * setting.activation_range
+	_update_preview()
+
+
+func _physics_proccess():
+	if Engine.is_editor_hint():
+		return
+	if disabled:
+		return
+	if Engine.get_physics_frames() % 10 != _id:
+		return
+
+	var camera_node = _parent.get_viewport().get_camera_3d()
+
+	var _parent_position = _parent.global_transform.origin
+	var camera_position = camera_node.global_transform.origin
+
+	# Calculate the squared distance
+	var distance_squared = _parent_position.distance_squared_to(camera_position)
+
+	var dominant_setting: VoxelLODSetting
+	for setting in lod_settings:
+		if distance_squared > setting.activation_range_squared:
+			dominant_setting = setting
+	
+	if dominant_setting:
+		enable_lod(dominant_setting)
+	else:
+		disabled_lod()
+
+
+func enable_lod(setting: VoxelLODSetting):
+	if disabled:
+		return
+	if _parent and setting != _current_setting:
+		var new_voxelmesh = _voxel_meshes[lod_settings.find(setting)]
+		_parent.multimesh = new_voxelmesh
+		_parent._disabled_locks.append("LOD")
+		_current_setting = setting
+		hidden_voxels = _default_voxel_mesh.visible_instance_count - new_voxelmesh.visible_instance_count
+
+
+func disabled_lod():
+	if disabled:
+		return
+	if _parent and _default_voxel_mesh:
+		_parent.multimesh = _default_voxel_mesh
+		_parent._disabled_locks.pop_at(_parent._disabled_locks.find("LOD"))
+		hidden_voxels = 0
+		_current_setting = null
+
+
+func _update_preview():
+	if disabled:
+		return
+	var activated_preview = null
+	for setting in lod_settings:
+		if setting.preview:
+			if setting == _last_preview:
+				setting.preview = false
+			else:
+				activated_preview = setting
+	_last_preview = activated_preview
+
+	if activated_preview:
+		enable_lod(activated_preview)
+	else:
+		disabled_lod()
+
+
+func _disable_preview():
+	if disabled:
+		return
+	for setting in lod_settings:
+		if setting.preview:
+			return
+	disabled_lod()
+
+
+func repopulate():
+	_default_voxel_mesh = _parent.multimesh
+	_voxel_meshes = []
+	for setting in lod_settings:
+		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
+		setting.voxel_reduction = lod_resource.voxel_reduction
+		_voxel_meshes.append(_populate_mesh(lod_resource))
+	for setting in lod_settings:
+		setting.preview = false
+
+
+func _from_voxel_resource(original: VoxelResource, lod_factor = 1.5) -> LODVoxelResource:
+	var lod = LODVoxelResource.new()
+
+	lod.colors = original.colors.duplicate()
+	lod.color_index = PackedByteArray() 
+	lod.positions = PackedVector3Array()
+	lod.vox_size = original.vox_size * lod_factor
+	
+	# Loop through original voxels and decimate
+	for i in original.vox_count:
+		var pos = original.positions[i]
+		# Reduce accuracy by dividing by lod_factor and flooring
+		var cell = Vector3(
+			int(pos.x / lod_factor),
+			int(pos.y / lod_factor),
+			int(pos.z / lod_factor)
+		)
+
+		var lod_pos = cell + Vector3(0.5, 0.5, 0.5)
+		
+		# Skip duplicates
+		if lod.positions.has(lod_pos):
+			continue
+		
+		lod.positions.append(lod_pos)
+		lod.color_index.append(original.color_index[i])
+	
+	_cull_interior_voxels(lod)
+	
+	lod.vox_count = lod.positions.size()
+	lod.voxel_reduction = 1.0 - (float(lod.vox_count)/float(original.vox_count))
+	
+	return lod
+
+
+func _cull_interior_voxels(lod: LODVoxelResource) -> void:
+	# Build a lookup of occupied cells
+	var occupied := {} # Vector3i -> index
+
+	for i in lod.positions.size():
+		var p: Vector3 = lod.positions[i]
+		var cell := Vector3i(
+			int(p.x),
+			int(p.y),
+			int(p.z)
+		)
+		occupied[cell] = i
+
+	var new_positions := PackedVector3Array()
+	var new_color_index := PackedByteArray()
+
+	var neighbors := [
+		Vector3i( 1,  0,  0),
+		Vector3i(-1,  0,  0),
+		Vector3i( 0,  1,  0),
+		Vector3i( 0, -1,  0),
+		Vector3i( 0,  0,  1),
+		Vector3i( 0,  0, -1),
+	]
+
+	for cell in occupied.keys():
+		var is_interior := true
+
+		for n in neighbors:
+			if not occupied.has(cell + n):
+				is_interior = false
+				break
+
+		if is_interior:
+			continue
+
+		var idx: int = occupied[cell]
+		new_positions.append(lod.positions[idx])
+		new_color_index.append(lod.color_index[idx])
+
+	lod.positions = new_positions
+	lod.color_index = new_color_index
+	lod.vox_count = new_positions.size()
+
+
+func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
+	if lod_resource:		
+		# Create multimesh
+		var _multimesh = VoxelMultiMesh.new()
+		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+		_multimesh.use_colors = true
+		_multimesh.instance_count = lod_resource.vox_count
+		_multimesh.create_indexes()
+		_multimesh.visible_instance_count = 0
+		
+		# Create mesh
+		var mesh = BoxMesh.new()
+		mesh.material = preload("res://addons/VoxelDestruction/Resources/voxel_material.tres")
+		mesh.size = lod_resource.vox_size
+		_multimesh.mesh = mesh
+
+		
+		# Dither voxels and populate multimesh
+		for i in _multimesh.instance_count:
+			var color = lod_resource.colors[lod_resource.color_index[i]]
+			var vox_pos = lod_resource.positions[i]
+			_multimesh.set_instance_visibility(i, true)
+			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos*lod_resource.vox_size))
+			_multimesh.voxel_set_instance_color(i, color)
+		return _multimesh
+	return null

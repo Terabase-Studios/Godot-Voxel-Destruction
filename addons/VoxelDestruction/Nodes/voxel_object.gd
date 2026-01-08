@@ -59,6 +59,16 @@ class_name VoxelObject
 ## Remove detached voxels
 ## @experimental: This property is unstable.
 @export var flood_fill = false
+@export_subgroup("Addons")
+@export var lod_addon: VoxelLODAddon:
+	set(value):
+		if not value:
+			lod_addon = null
+		else:
+			lod_addon = value.duplicate(true)
+			lod_addon._parent = self
+
+
 ## Used to debug the amount of time damaging takes. Measured in milliseconds
 var last_damage_time: int = -1
 ## The ammount of debris deployed by the [VoxelObject]
@@ -67,9 +77,9 @@ var debris_ammount: int = 0
 @onready var health: int = voxel_resource.vox_count * 100 
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
+var _disabled_locks = []
 var _disabled: bool = false
 var _body_last_transform: Transform3D
-
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
@@ -137,9 +147,22 @@ func _ready() -> void:
 				if color not in voxel_resource.colors:
 					voxel_resource.colors.append(color)
 				voxel_resource.color_index[i] = voxel_resource.colors.find(color)
+	
+	if lod_addon:
+		lod_addon._ready()
 
 
 func _physics_process(delta):
+	if lod_addon:
+		lod_addon._physics_proccess()
+
+	if _disabled_locks.is_empty():
+		if _disabled:
+			_disabled = false
+	else:
+		if not _disabled:
+			_disabled = true
+
 	if not physics or Engine.is_editor_hint(): return
 	if _body_last_transform != _collision_body.transform:
 		position += _collision_body.position
@@ -216,6 +239,9 @@ func _populate_mesh() -> void:
 		undo_redo.add_undo_property(self, &"multimesh", multimesh)
 		undo_redo.commit_action()
 		repopulated.emit()
+		if lod_addon:
+			lod_addon._parent = self
+			lod_addon.repopulate()
 
 
 func _get_vox_color(voxid: int) -> Color:
@@ -737,7 +763,10 @@ func _detach_disconnected_voxels() -> void:
 func _end_of_life() -> void:
 	match end_of_life:
 		1:
+			_disabled_locks.append("END OF LIFE")
 			_disabled = true
+			if lod_addon:
+				lod_addon.disabled = true
 			multimesh = null
 			VoxelServer.voxel_objects.erase(self)
 			VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
