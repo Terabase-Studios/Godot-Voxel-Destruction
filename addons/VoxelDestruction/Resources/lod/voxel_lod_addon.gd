@@ -124,7 +124,7 @@ func repopulate():
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
 		setting.voxel_reduction = lod_resource.voxel_reduction
-		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource)))
+		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource), setting))
 	for setting in lod_settings:
 		setting.preview = false
 
@@ -236,26 +236,29 @@ func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
 		return _multimesh
 	return null
 
-@export_storage var current_cache: String
+@export_storage var current_cache: Dictionary[VoxelLODSetting, Variant] = {}
 
-func _cache_resource(resource: Resource) -> Resource:
+func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
 	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
 	var log_path := cache_dir + "old_cache.txt"
+	if not setting in current_cache:
+		current_cache[setting] = null
+	var indexed_current_cache = current_cache[setting]
 
 	ResourceSaver.save(resource, path)
 
-	if current_cache != "" and FileAccess.file_exists(current_cache):
+	if indexed_current_cache and indexed_current_cache != "" and FileAccess.file_exists(indexed_current_cache):
 		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
 		if file == null:
 			file = FileAccess.open(log_path, FileAccess.WRITE)
 
 		if file:
 			file.seek_end()
-			file.store_line(current_cache)
+			file.store_line(indexed_current_cache)
 			file.close()
 		else:
 			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
 
-	current_cache = path
+	current_cache[setting] = path
 	return ResourceLoader.load(path)
