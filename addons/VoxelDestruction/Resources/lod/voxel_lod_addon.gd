@@ -10,9 +10,10 @@ class_name VoxelLODAddon
 	set(value):
 		lod_settings = value
 		for setting in lod_settings:
-			if not setting.is_connected("preview_enabled", _update_preview):
-				setting.connect("preview_enabled", _update_preview)
-				setting.connect("preview_disabled", _disable_preview)
+			if setting:
+				if not setting.is_connected("preview_enabled", _update_preview):
+					setting.connect("preview_enabled", _update_preview)
+					setting.connect("preview_disabled", _disable_preview)
 		_update_preview()
 
 var hidden_voxels: int = 0
@@ -123,7 +124,7 @@ func repopulate():
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
 		setting.voxel_reduction = lod_resource.voxel_reduction
-		_voxel_meshes.append(_populate_mesh(lod_resource))
+		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource)))
 	for setting in lod_settings:
 		setting.preview = false
 
@@ -234,3 +235,27 @@ func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
 			_multimesh.voxel_set_instance_color(i, color)
 		return _multimesh
 	return null
+
+@export_storage var current_cache: String
+
+func _cache_resource(resource: Resource) -> Resource:
+	var cache_dir := "res://addons/VoxelDestruction/Cache/"
+	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
+	var log_path := cache_dir + "old_cache.txt"
+
+	ResourceSaver.save(resource, path)
+
+	if current_cache != "" and FileAccess.file_exists(current_cache):
+		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
+		if file == null:
+			file = FileAccess.open(log_path, FileAccess.WRITE)
+
+		if file:
+			file.seek_end()
+			file.store_line(current_cache)
+			file.close()
+		else:
+			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
+
+	current_cache = path
+	return ResourceLoader.load(path)

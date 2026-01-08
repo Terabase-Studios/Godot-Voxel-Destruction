@@ -198,6 +198,8 @@ func _populate_mesh() -> void:
 		voxel_resource.buffer("colors")
 		voxel_resource.buffer("visible_voxels")
 		
+		multimesh = null
+		
 		# Create multimesh
 		var _multimesh = VoxelMultiMesh.new()
 		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
@@ -233,6 +235,9 @@ func _populate_mesh() -> void:
 				_multimesh.set_instance_visibility(i, true)
 			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos*voxel_resource.vox_size))
 			_multimesh.voxel_set_instance_color(i, dithered_color)
+
+		_multimesh = _cache_resource(_multimesh)
+
 		var undo_redo = EditorInterface.get_editor_undo_redo()
 		undo_redo.create_action("Populated Voxel Object")
 		undo_redo.add_do_property(self, &"multimesh", _multimesh)
@@ -791,6 +796,31 @@ func _end_of_life() -> void:
 							child.process_mode = proccess_mode
 		2:
 			queue_free()
+
+
+@export_storage var current_cache: String
+
+func _cache_resource(resource: Resource) -> Resource:
+	var cache_dir := "res://addons/VoxelDestruction/Cache/"
+	var path := "%s%s%d.tres" % [cache_dir, name, randi_range(1111, 9999)]
+	var log_path := cache_dir + "old_cache.txt"
+
+	ResourceSaver.save(resource, path)
+
+	if current_cache != "" and FileAccess.file_exists(current_cache):
+		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
+		if file == null:
+			file = FileAccess.open(log_path, FileAccess.WRITE)
+
+		if file:
+			file.seek_end()
+			file.store_line(current_cache)
+			file.close()
+		else:
+			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
+
+	current_cache = path
+	return ResourceLoader.load(path)
 
 
 func _exit_tree():
