@@ -9,7 +9,7 @@ class_name CompactVoxelResource
 ## These variables can be buffered allowing them to be accessed and modified as a normal variable with little performance loss
 ##
 ## @experimental
-const BUFFER_LIFETIME = 1 ## Time since last buffered before a variable is automatically debuffered.
+const BUFFER_LIFETIME = 10 ## Time since last buffered before a variable is automatically debuffered.
 const COMPRESSION_MODE = 2 ## Argument passed to compress()/decompress()
 
 ## Size reduction of data compression

@@ -624,7 +624,7 @@ func _create_debri_rigid_bodies(debris_queue: Array) -> void:
 		# Get debris from pool or create new
 		var debri: RigidBody3D
 		if voxel_resource.debris_pool.is_empty():
-			debri = voxel_resource.get_debri()  # Creates new
+			debri = voxel_resource.get_debri()
 		else:
 			debri = voxel_resource.debris_pool.pop_back()
 
