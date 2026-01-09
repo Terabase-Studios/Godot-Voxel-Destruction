@@ -299,7 +299,7 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 	damage_results.resize(voxel_count)
 	var group_id = WorkerThreadPool.add_group_task(
 		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damage_results), 
-		voxel_count, -1, false, "Calculating Voxel Damage"
+		voxel_count, -1, true, "Calculating Voxel Damage"
 	)
 	
 	# Wait and buffer
@@ -318,7 +318,7 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 			last_buffer_time = current_time  # Update last buffer time
 		
 		await get_tree().process_frame  # Allow UI to update
-	await _apply_damage_results(damager, damage_results)
+	_apply_damage_results(damager, damage_results)
 
 
 func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damage_results: Array) -> void: 
