@@ -31,9 +31,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion:
 		look_dir = event.relative * 0.001
 		if mouse_captured: _rotate_camera()
-	if Input.is_action_just_pressed("ui_text_completion_replace"): jumping = true
+	if Input.is_action_just_pressed("ui_select"): jumping = true
 	if Input.is_action_just_pressed("ui_cancel"): get_tree().quit()
-	if Input.is_action_just_pressed("ui_select"): _fire()
+	if Input.is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT): _fire()
 
 func _physics_process(delta: float) -> void:
 	#if mouse_captured: _handle_joypad_camera_rotation(delta)
@@ -79,4 +79,4 @@ func _fire():
 	if cooldown == 0:
 		%VoxelDamager.global_position = %RayCast3D.get_collision_point()
 		%VoxelDamager.hit()
-		cooldown = .001
+		cooldown = .1

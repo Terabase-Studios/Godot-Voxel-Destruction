@@ -85,11 +85,11 @@ text = "Look - Mouse"
 
 [node name="Label3" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Jump - Enter"
+text = "Jump - Space"
 
 [node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Fire -  Space"
+text = "Fire -  Right Mouse"
 
 [node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2

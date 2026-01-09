@@ -7,6 +7,8 @@ class_name VoxelObject
 ##
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
+const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
+
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
 ## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
 @export var voxel_resource: VoxelResourceBase:
@@ -153,6 +155,8 @@ func _ready() -> void:
 
 
 func _physics_process(delta):
+	_update_collision_nodes()
+
 	if lod_addon:
 		lod_addon._physics_proccess()
 
@@ -187,6 +191,34 @@ func update_physics() -> void:
 		center /= count
 		center *= voxel_resource.vox_size
 		_collision_body.center_of_mass = center
+
+func _update_collision_nodes():
+	# Separate budgets
+	var add_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
+	var remove_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
+
+	# Process adds first
+	for chunk_index in _shapes_to_add.keys():
+		if add_budget <= 0:
+			break
+
+		var shapes_array: Array = _shapes_to_add[chunk_index]
+		while add_budget > 0 and not shapes_array.is_empty():
+			var shape = shapes_array.pop_back()
+			if is_instance_valid(shape):
+				_collision_body.call_deferred("add_child", shape)
+				add_budget -= 1
+
+		if shapes_array.is_empty():
+			_shapes_to_add.erase(chunk_index)
+
+	# Process removes next
+	while remove_budget > 0 and not _shapes_to_remove.is_empty():
+		var shape = _shapes_to_remove.pop_back()
+		if is_instance_valid(shape):
+			shape.call_deferred("queue_free")
+			remove_budget -= 1
+
 
 
 func _populate_mesh() -> void:
@@ -414,8 +446,10 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	if flood_fill:
 		await _detach_disconnected_voxels()
 
-
+var _shapes_to_add: Dictionary[Vector3, Array] = {}
+var _shapes_to_remove: Array[Node3D] = []
 func _regen_collision(chunk_index: Vector3) -> void:
+	_shapes_to_add[chunk_index] = []
 	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
 	# Expand shapes to allow thread-safe modification
 	var shapes = Array()
@@ -434,15 +468,16 @@ func _regen_collision(chunk_index: Vector3) -> void:
 	var old_shapes = _collision_shapes[chunk_index]
 	VoxelServer.shape_count -= old_shapes.size()
 	for shape in old_shapes:
-		shape.queue_free()
+		_shapes_to_remove.append(shape)
 	_collision_shapes[chunk_index].clear()
 	
 	
 	# Add shapes and record
+	_shapes_to_add[chunk_index] = []
 	for shape_node in shapes:
 		if shape_node == null:
 			break
-		_collision_body.add_child(shape_node)
+		_shapes_to_add[chunk_index].append(shape_node)
 		if chunk_index not in _collision_shapes:
 			_collision_shapes[chunk_index] = Array()
 		_collision_shapes[chunk_index].append(shape_node)
@@ -571,86 +606,84 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 
 
 func _create_debri_rigid_bodies(debris_queue: Array) -> void:
-	# Pre-cache children
-	var debris_objects = []  # To store all the debris
-	var debris_tween = null  # Store the tween for batch processing
-	var size = voxel_resource.vox_size
+	if not voxel_resource:
+		return
 
-	# Cache debris and set initial properties
+	var size = voxel_resource.vox_size
+	var debris_objects: Array = []
+
+	# Spawn debris (use pool if available)
 	for debris_data in debris_queue:
 		if randf() > debris_density:
 			continue
 
-		var debri = voxel_resource.get_debri()
+		# Respect maximum debris
+		if maximum_debris != -1 and debris_ammount >= maximum_debris:
+			break
+
+		# Get debris from pool or create new
+		var debri: RigidBody3D
+		if voxel_resource.debris_pool.is_empty():
+			debri = voxel_resource.get_debri()  # Creates new
+		else:
+			debri = voxel_resource.debris_pool.pop_back()
+
 		debri.name = "VoxelDebri"
 		debri.top_level = true
 		debri.show()
 
-		# Retrieve shape and mesh only once for reuse
+		# Get children once
 		var shape = debri.get_child(0)
 		var mesh = debri.get_child(1)
 
-		# Set size/position
+		# Set position and size
 		add_child(debri, true, Node.INTERNAL_MODE_BACK)
 		debri.global_position = debris_data.pos
 		shape.shape.size = size
 		mesh.mesh.size = size
 
-		# Launch debris with velocity
+		# Launch debris
 		var velocity = (debris_data.pos - debris_data.origin).normalized() * debris_data.power
 		debri.freeze = false
 		debri.gravity_scale = debris_weight
 		debri.apply_impulse(velocity)
 
-		# Add to debris objects list
+		# Track active debris
 		debris_objects.append(debri)
 		debris_ammount += 1
 
-	# Wait for debris lifetime to expire
-	var removed_count = false
+	# Wait for debris lifetime
 	var timer = get_tree().create_timer(debris_lifetime)
-	while true:
-		await get_tree().process_frame
-		if timer.time_left <= 0:
-			break
-		if maximum_debris != -1 and debris_ammount > maximum_debris:
-			var wait = randi_range(0, 5)
-			for i in range(wait):
-				await get_tree().process_frame
-			if debris_ammount > maximum_debris:
-				removed_count = true
-				debris_ammount -= debris_objects.size()
-				break
+	await timer.timeout
 
-	# Batch scale-down animation
-	if not removed_count and not debris_objects.is_empty():
-		debris_tween = get_tree().create_tween()
-
-		# Tween all debris in parallel
+	# Tween debris scale down in parallel
+	if not debris_objects.is_empty():
+		var debris_tween = get_tree().create_tween()
 		for debri in debris_objects:
+			if not is_instance_valid(debri):
+				continue
 			var shape = debri.get_child(0)
 			var mesh = debri.get_child(1)
-
 			debris_tween.parallel().tween_property(shape, "scale", Vector3(0.01, 0.01, 0.01), 1)
 			debris_tween.parallel().tween_property(mesh, "scale", Vector3(0.01, 0.01, 0.01), 1)
 
-		# Wait for the tween to finish
-		await get_tree().create_timer(1).timeout
+		await debris_tween.finished
 
-	# Restore debris objects in a batch
-	if not voxel_resource: return
+	# Recycle debris back into pool
 	for debri in debris_objects:
-		if is_instance_valid(debri):
-			debri.get_parent().remove_child(debri)
+		if not is_instance_valid(debri):
+			continue
 
-			# Reset scale of shape and mesh
-			debri.get_child(0).scale = Vector3(1, 1, 1)
-			debri.get_child(1).scale = Vector3(1, 1, 1)
+		var debri_parent = debri.get_parent()
+		if debri_parent:
+			debri_parent.remove_child(debri)
+		# Reset scale
+		debri.scale = Vector3.ONE
+		debri.get_child(0).scale = Vector3.ONE
+		debri.get_child(1).scale = Vector3.ONE
 
-			# Return debris to the pool
-			voxel_resource.debris_pool.append(debri)
-	if not removed_count:
-		debris_ammount -= debris_objects.size()
+		voxel_resource.debris_pool.append(debri)
+		debris_ammount -= 1
 
 
 func _flood_fill(to_remove: Array) -> void:
