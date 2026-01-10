@@ -16,8 +16,6 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 	set(value):
 		voxel_resource = value
 		update_configuration_warnings()
-		if not value:
-			multimesh = null
 ## Prevents damage to self.
 @export var invulnerable = false
 ## Darken damaged voxels based on voxel health.
@@ -27,6 +25,7 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 ## [b]Disable[/b]: Frees as much memory as possible. [br]
 ## [b]Queue_free()[/b]: Calls queue_free [br]
 @export_enum("nothing", "disable", "queue_free()") var end_of_life = 1
+@export var queue_attacks: bool = true
 @export_subgroup("Debris")
 ## Type of debris generated [br]
 ## [b]None[/b]: No debris will be generated [br]
@@ -84,9 +83,11 @@ var _collision_body: PhysicsBody3D
 var _disabled_locks = []
 var _disabled: bool = false
 var _body_last_transform: Transform3D
+var _proccessing_attack = false
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
+signal _process_next_attack
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
@@ -290,6 +291,9 @@ func _get_vox_color(voxid: int) -> Color:
 
 
 func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
+	if _proccessing_attack:
+		return
+	_proccessing_attack = true
 	last_damage_time = Time.get_ticks_msec()
 	voxel_resource.buffer("health")
 	voxel_resource.buffer("positions_dict")
