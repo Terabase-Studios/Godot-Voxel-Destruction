@@ -271,7 +271,7 @@ func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 			file.store_line(indexed_current_cache)
 			file.close()
 		else:
-			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
+			push_error("[VD ADDON] Failed to open old_cache.txt")
 
 	_current_cache[setting] = path
 	return ResourceLoader.load(path)

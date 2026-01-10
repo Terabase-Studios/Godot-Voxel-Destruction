@@ -6,7 +6,7 @@ class_name VoxelDamager
 ## Add a BoxShape3D and to a collision node. Will set the range to the smallist axis. [br]
 ## The damager inherits the [Area3D] node and suffers from the same limitations.
 
-## whether to not damage group or to only damage group
+## Whether to not damage a specific node group or to only damage that node group
 @export_enum("Ignore", "Blacklist", "Whitelist") var group_mode = 0
 ## Group to blacklist or whitelist
 @export var group: String
@@ -19,26 +19,36 @@ class_name VoxelDamager
 ## Launch power of debris at damager origin.
 @export var base_power: int
 ## Power decay from left (Origin) to right (Collision edge)
-@export var power_curve: Curve
+@export var power_curve: Curve = Curve.new()
 ## Knock back rigid body debris.
 @export var knock_back_debri = false
 var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var global_pos = global_position
 
+var _killed = false
 
 func _ready() -> void:
 	VoxelServer.voxel_damagers.append(self)
 	var collision_shape = get_child(0).shape
 	if collision_shape is not BoxShape3D:
-		push_warning("VoxelDamager collision shape must be BoxShape3D")
+		push_error("[VD ADDON] VoxelDamager collision shape must be BoxShape3D")
+		_killed = true
+		return
 	var size = collision_shape.size
 	range = float(min(size.x, min(size.y, size.z)))/2
-	damage_curve = convert_curve_to_squared(damage_curve)
-	power_curve = convert_curve_to_squared(power_curve)
+	if not damage_curve:
+		push_warning("[VD ADDON] VoxelDamager has no DamageCurve, no damage will be applied!")
+		damage_curve = Curve.new()
+	if not power_curve:
+		power_curve = Curve.new()
+	damage_curve = _convert_curve_to_squared(damage_curve)
+	power_curve = _convert_curve_to_squared(power_curve)
 
 ## Damages all voxel objects in radius
 func hit():
+	if _killed:
+		return
 	var hit_objects = []
 	var VoxelObjectNode = null
 	global_pos = global_position
@@ -121,7 +131,7 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transfor
 	voxels[2] = global_voxel_positions
 
 
-func convert_curve_to_squared(curve: Curve) -> Curve:
+func _convert_curve_to_squared(curve: Curve) -> Curve:
 	if not curve:
 		push_error("No curve provided!")
 		return

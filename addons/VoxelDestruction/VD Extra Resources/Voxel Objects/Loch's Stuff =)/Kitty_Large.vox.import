@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://18lshuv8r7pc"
+path="res://.godot/imported/Kitty_Large.vox-c7c4754c7083b7d5aa931cf910253662.tres"
+
+[deps]
+
+source_file="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/Kitty_Large.vox"
+dest_files=["res://.godot/imported/Kitty_Large.vox-c7c4754c7083b7d5aa931cf910253662.tres"]
+
+[params]
+
+Scale=Vector3(0.4, 0.4, 0.4)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=0

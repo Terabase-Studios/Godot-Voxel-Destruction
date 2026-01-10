@@ -30,7 +30,7 @@ func _clean_cache():
 
 	var file := FileAccess.open(log_path, FileAccess.READ)
 	if file == null:
-		push_error("[VD ADDON][ERROR] Failed to open old_cache.txt for reading")
+		push_error("[VD ADDON] Failed to open old_cache.txt for reading")
 		return
 
 	var paths: Array[String] = []
@@ -46,7 +46,7 @@ func _clean_cache():
 		if FileAccess.file_exists(path):
 			var err := DirAccess.remove_absolute(path)
 			if err != OK:
-				push_error("[VD ADDON][ERROR] Failed to delete cache file: %s (err %d)"
+				push_error("[VD ADDON] Failed to delete cache file: %s (err %d)"
 					% [path, err])
 
 	# Clear the log once processed

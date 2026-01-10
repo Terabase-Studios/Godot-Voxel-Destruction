@@ -852,7 +852,7 @@ func _cache_resource(resource: Resource) -> Resource:
 			file.store_line(_current_cache)
 			file.close()
 		else:
-			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
+			push_error("[VD ADDON] Failed to open old_cache.txt")
 
 	_current_cache = path
 	return ResourceLoader.load(path)
