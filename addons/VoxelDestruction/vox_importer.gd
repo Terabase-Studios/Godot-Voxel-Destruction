@@ -270,7 +270,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		for property in voxel_resource._data:
 			var bytes = voxel_resource._data[property].size()
 			compressed_data_size += bytes
-		voxel_resource.compression = 1-(compressed_data_size/initial_data_size)
+		voxel_resource.compression = (1-(compressed_data_size/initial_data_size)) * 100
 	
 	voxel_resource.debuffer_all()
 	

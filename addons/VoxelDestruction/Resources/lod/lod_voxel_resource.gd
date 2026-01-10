@@ -1,5 +1,4 @@
 @tool
-@icon("voxel_resource.svg")
 extends Resource
 class_name LODVoxelResource
 ## Contains voxel data for the use of a [VoxelLod].

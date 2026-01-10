@@ -1,9 +1,11 @@
 extends MultiMesh
 class_name VoxelMultiMesh
 
-## Allows easy editing of instance visibility
-##
-## Moves instances indices and adjusts visible instances
+## Allows easy editing of instance visibility. [br]
+## This class should always be refrenced as a .tres file and never inlined in a scene! [br]
+## Massive performance problems can occur. [br]
+## [br]
+## Moves instances indices and adjusts visible instances.
 
 ## Keeps track of moved indices
 @export_storage var induces: Dictionary[int, int]

@@ -1,11 +1,16 @@
 @tool
+@icon("voxel_lod_addon.svg")
 extends Resource
 class_name VoxelLODAddon
+## Allows for setting LODs for VoxelObjects of varying degrees, drastically reducing rendering costs at set distances by reducing the quality of the model. The LODs drastically reduce the ammount of rendered voxels. However, LODs do not show or take damage. [br]
+##
+## The [VoxelObject] must be (Re)populated for LOD changes to take affect.
 
 @export_storage var _parent: VoxelObject
 @export_storage var _voxel_meshes: Array[VoxelMultiMesh] = []
 @export_storage var _default_voxel_mesh: VoxelMultiMesh
 
+## Used to define the strength and activation distance of LODs.
 @export var lod_settings: Array[VoxelLODSetting] = []:
 	set(value):
 		lod_settings = value
@@ -16,11 +21,13 @@ class_name VoxelLODAddon
 					setting.connect("preview_disabled", _disable_preview)
 		_update_preview()
 
+## The ammount of hidden voxels that would otherwise be visible during runtime.
 var hidden_voxels: int = 0
+## Deactivate this LOD and prevent furthar toggling of LODs.
 var disabled = false:
 	set(value):
 		if value:
-			disabled_lod()
+			_disabled_lod()
 		disabled = value
 
 var _current_setting: VoxelLODSetting
@@ -37,8 +44,10 @@ func _init() -> void:
 
 
 func _ready():
-	disabled_lod()
+	_disabled_lod()
 	for setting in lod_settings:
+		if not setting:
+			return
 		setting.activation_range_squared = setting.activation_range * setting.activation_range
 	_update_preview()
 
@@ -65,12 +74,12 @@ func _physics_proccess():
 			dominant_setting = setting
 	
 	if dominant_setting:
-		enable_lod(dominant_setting)
+		_enable_lod(dominant_setting)
 	else:
-		disabled_lod()
+		_disabled_lod()
 
 
-func enable_lod(setting: VoxelLODSetting):
+func _enable_lod(setting: VoxelLODSetting):
 	if disabled:
 		return
 	if _parent and setting != _current_setting:
@@ -81,7 +90,7 @@ func enable_lod(setting: VoxelLODSetting):
 		hidden_voxels = _default_voxel_mesh.visible_instance_count - new_voxelmesh.visible_instance_count
 
 
-func disabled_lod():
+func _disabled_lod():
 	if disabled:
 		return
 	if _parent and _default_voxel_mesh:
@@ -96,6 +105,8 @@ func _update_preview():
 		return
 	var activated_preview = null
 	for setting in lod_settings:
+		if not setting:
+			return
 		if setting.preview:
 			if setting == _last_preview:
 				setting.preview = false
@@ -104,9 +115,9 @@ func _update_preview():
 	_last_preview = activated_preview
 
 	if activated_preview:
-		enable_lod(activated_preview)
+		_enable_lod(activated_preview)
 	else:
-		disabled_lod()
+		_disabled_lod()
 
 
 func _disable_preview():
@@ -115,15 +126,17 @@ func _disable_preview():
 	for setting in lod_settings:
 		if setting.preview:
 			return
-	disabled_lod()
+	_disabled_lod()
 
 
+## (Re)populate [VoxelMultiMesh]s used for [VoxelLODSetting]s during previews and runtime [br]
+## Called when parent [VoxelObject] is (re)populated
 func repopulate():
 	_default_voxel_mesh = _parent.multimesh
 	_voxel_meshes = []
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
-		setting.voxel_reduction = lod_resource.voxel_reduction
+		setting.voxel_reduction = lod_resource.voxel_reduction * 100
 		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource), setting))
 	for setting in lod_settings:
 		setting.preview = false
@@ -236,15 +249,15 @@ func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
 		return _multimesh
 	return null
 
-@export_storage var current_cache: Dictionary[VoxelLODSetting, Variant] = {}
+@export_storage var _current_cache: Dictionary[VoxelLODSetting, Variant] = {}
 
 func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
 	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
 	var log_path := cache_dir + "old_cache.txt"
-	if not setting in current_cache:
-		current_cache[setting] = null
-	var indexed_current_cache = current_cache[setting]
+	if not setting in _current_cache:
+		_current_cache[setting] = null
+	var indexed_current_cache = _current_cache[setting]
 
 	ResourceSaver.save(resource, path)
 
@@ -260,5 +273,5 @@ func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 		else:
 			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
 
-	current_cache[setting] = path
+	_current_cache[setting] = path
 	return ResourceLoader.load(path)

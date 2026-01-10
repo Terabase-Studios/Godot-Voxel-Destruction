@@ -3,12 +3,13 @@
 extends MultiMeshInstance3D
 class_name VoxelObject
 
-## Displays and controls a [VoxelResource] or [CompactVoxelResource].
-##
+## Displays and controls a [VoxelResource] or [CompactVoxelResource]. [br]
+## [br]
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
 const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 
+## (Re)populate this object and attatched addons with new voxel data.
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
 ## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
 @export var voxel_resource: VoxelResourceBase:
@@ -62,6 +63,7 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 ## @experimental: This property is unstable.
 @export var flood_fill = false
 @export_subgroup("Addons")
+## Used to reduce rendering costs at varying distances.
 @export var lod_addon: VoxelLODAddon:
 	set(value):
 		if not value:
@@ -831,7 +833,7 @@ func _end_of_life() -> void:
 			queue_free()
 
 
-@export_storage var current_cache: String
+@export_storage var _current_cache: String
 
 func _cache_resource(resource: Resource) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
@@ -840,19 +842,19 @@ func _cache_resource(resource: Resource) -> Resource:
 
 	ResourceSaver.save(resource, path)
 
-	if current_cache != "" and FileAccess.file_exists(current_cache):
+	if _current_cache != "" and FileAccess.file_exists(_current_cache):
 		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
 		if file == null:
 			file = FileAccess.open(log_path, FileAccess.WRITE)
 
 		if file:
 			file.seek_end()
-			file.store_line(current_cache)
+			file.store_line(_current_cache)
 			file.close()
 		else:
 			push_error("[VD ADDON][ERROR] Failed to open old_cache.txt")
 
-	current_cache = path
+	_current_cache = path
 	return ResourceLoader.load(path)
 
 
