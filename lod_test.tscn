@@ -1,141 +1,3053 @@
-[gd_scene load_steps=16 format=3 uid="uid://cqhljpc648ed4"]
+[gd_scene load_steps=617 format=3 uid="uid://cqhljpc648ed4"]
 
-[ext_resource type="Material" uid="uid://bqifsbjmettt2" path="res://addons/VoxelDestruction/Resources/voxel_material.tres" id="1_30tuj"]
+[ext_resource type="MultiMesh" uid="uid://bnb4nrh5q4j88" path="res://addons/VoxelDestruction/Cache/VoxelObject6987.tres" id="1_6rus3"]
 [ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="2_4ivll"]
 [ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="3_14mp4"]
 [ext_resource type="Resource" uid="uid://nuudsy0a4nve" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/Kitty.vox" id="4_6rus3"]
 [ext_resource type="Script" uid="uid://banjh65d6cs5m" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_addon.gd" id="5_4ivll"]
 [ext_resource type="Script" uid="uid://c7pspj4sfiorb" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_setting.gd" id="5_14mp4"]
-
-[sub_resource type="BoxMesh" id="BoxMesh_14mp4"]
-material = ExtResource("1_30tuj")
-size = Vector3(0.3, 0.3, 0.3)
-
-[sub_resource type="MultiMesh" id="MultiMesh_6rus3"]
-transform_format = 1
-use_colors = true
-instance_count = 46
-visible_instance_count = 46
-mesh = SubResource("BoxMesh_14mp4")
-buffer = PackedFloat32Array(1, 0, 0, 0.15, 0, 1, 0, 0.15, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.15, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.15, 0, 0, 1, 1.0500001, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.0500001, 0, 0, 1, 0.15, 0.40392157, 0.22745098, 0.7176471, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.0500001, 0, 0, 1, 0.45000002, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.0500001, 0, 0, 1, 0.75, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.35, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.35, 0, 0, 1, 0.15, 1, 0.75686276, 0.02745098, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.6500001, 0, 0, 1, 0.15, 1, 0.75686276, 0.02745098, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.15, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.45000002, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.45000002, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.45000002, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.75, 0, 0, 1, 0.15, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.75, 0, 0, 1, 0.45000002, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.15, 0, 1, 0, 0.75, 0, 0, 1, 0.75, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.15, 0, 1, 0, 1.35, 0, 0, 1, 0.75, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.15, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.15, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.15, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.15, 0, 0, 1, 1.0500001, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.45000002, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.45000002, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.75, 0, 0, 1, 0.15, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 0.75, 0, 0, 1, 0.75, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.0500001, 0, 0, 1, 0.15, 0, 0, 0, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.0500001, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.35, 0, 0, 1, 0.15, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.35, 0, 0, 1, 0.45000002, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.35, 0, 0, 1, 0.75, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.45000002, 0, 1, 0, 1.6500001, 0, 0, 1, 0.15, 1, 0.75686276, 0.02745098, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.15, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.15, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.15, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.45000002, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.45000002, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.45000002, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.75, 0, 0, 1, 0.15, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.75, 0, 0, 1, 0.45000002, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.75, 0, 1, 0, 0.75, 0, 0, 1, 0.75, 0.011764706, 0.6627451, 0.95686275, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.0500001, 0, 0, 1, 0.15, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.0500001, 0, 0, 1, 0.45000002, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.0500001, 0, 0, 1, 0.75, 1, 1, 1, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.35, 0, 0, 1, 0.15, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.35, 0, 0, 1, 0.45000002, 0.24705882, 0.31764707, 0.70980394, 1, 1, 0, 0, 0.75, 0, 1, 0, 1.35, 0, 0, 1, 0.75, 0.24705882, 0.31764707, 0.70980394, 1)
-script = ExtResource("2_4ivll")
-induces = Dictionary[int, int]({
-0: 0,
-1: 1,
-2: 2,
-3: 3,
-4: 4,
-5: 5,
-6: 6,
-7: 7,
-8: 8,
-9: 9,
-10: 10,
-11: 11,
-12: 12,
-13: 13,
-14: 14,
-15: 15,
-16: 16,
-17: 17,
-18: 18,
-19: 19,
-20: 20,
-21: 21,
-22: 22,
-23: 23,
-24: 24,
-25: 25,
-26: 26,
-27: 27,
-28: 28,
-29: 29,
-30: 30,
-31: 31,
-32: 32,
-33: 33,
-34: 34,
-35: 35,
-36: 36,
-37: 37,
-38: 38,
-39: 39,
-40: 40,
-41: 41,
-42: 42,
-43: 43,
-44: 44,
-45: 45
-})
-inversed_induces = Dictionary[int, int]({
-0: 0,
-1: 1,
-2: 2,
-3: 3,
-4: 4,
-5: 5,
-6: 6,
-7: 7,
-8: 8,
-9: 9,
-10: 10,
-11: 11,
-12: 12,
-13: 13,
-14: 14,
-15: 15,
-16: 16,
-17: 17,
-18: 18,
-19: 19,
-20: 20,
-21: 21,
-22: 22,
-23: 23,
-24: 24,
-25: 25,
-26: 26,
-27: 27,
-28: 28,
-29: 29,
-30: 30,
-31: 31,
-32: 32,
-33: 33,
-34: 34,
-35: 35,
-36: 36,
-37: 37,
-38: 38,
-39: 39,
-40: 40,
-41: 41,
-42: 42,
-43: 43,
-44: 44,
-45: 45
-})
-
-[sub_resource type="Resource" id="Resource_14mp4"]
-script = ExtResource("5_14mp4")
-lod_factor = 1.1
-metadata/_custom_type_script = "uid://c7pspj4sfiorb"
+[ext_resource type="MultiMesh" uid="uid://urao50vuio0p" path="res://addons/VoxelDestruction/Cache/VoxelObjectLOD9142.tres" id="6_xbn3n"]
 
 [sub_resource type="Resource" id="Resource_6rus3"]
 script = ExtResource("5_14mp4")
-lod_factor = 2.0
-metadata/_custom_type_script = "uid://c7pspj4sfiorb"
+voxel_reduction = 73.92857142857143
 
 [sub_resource type="Resource" id="Resource_xbn3n"]
 script = ExtResource("5_14mp4")
-lod_factor = 3.0
-metadata/_custom_type_script = "uid://c7pspj4sfiorb"
+voxel_reduction = 73.92857142857143
 
 [sub_resource type="Resource" id="Resource_lcwy5"]
-script = ExtResource("5_4ivll")
-_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":SubResource("MultiMesh_6rus3"),"script":ExtResource("3_14mp4"),"populate":Callable(),"voxel_resource":ExtResource("4_6rus3"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":1,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.05,"light_dithering":0.05,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"lod_addon":SubResource("Resource_lcwy5"),"last_damage_time":-1,"debris_ammount":0,"health":56000,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"current_cache":"","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
 
-lod_settings = Array[ExtResource("5_14mp4")]([SubResource("Resource_14mp4"), SubResource("Resource_6rus3"), SubResource("Resource_xbn3n")])
+[sub_resource type="Resource" id="Resource_yqqqd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_u4wa4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nh38r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kbjks"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kwru0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hk5et"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1u152"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0tm7e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_24hu5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ciw0e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_18ua6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_bm0gv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j2vcv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j3bo1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vcfnp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mn5sh"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xdslm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vbxfa"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_r60y6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xu3ca"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y45hu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_phkc0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_o715w"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_m0dga"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dfp1q"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qcdgw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_awglq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ifc3j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_yok10"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3sxie"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hbv7b"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_aego5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ie25i"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tqbsr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_r3jit"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kvor1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vpaj1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uhat4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hapgb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0gbn6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tnlsi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3nh1v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_toe8j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_d3jeg"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tr5g8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3a86f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0i7ug"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pnxdi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1qy2w"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gbwbj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c3t7l"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dq37o"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_twols"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_41b51"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xhqm6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uukky"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_euow4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ounr7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hjx6c"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8hx6v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_prnif"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3kjyp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n85gy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tvgkq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_alux5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_e6f7p"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_60yd5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fpux4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_inn8d"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_54ffw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_814hv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uwyee"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rm7tl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_k3xs2"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5gg1r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wq87u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rmkep"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_s11nk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hcx01"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lofuo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_aqikl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kl88o"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fnnwt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lmr1k"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_beg8m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_cjbac"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rea3b"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gqy4e"]
+script = ExtResource("5_14mp4")
+lod_factor = 2.5
+voxel_reduction = 90.0
+
+[sub_resource type="Resource" id="Resource_nwr6f"]
+script = ExtResource("5_14mp4")
+lod_factor = 2.0
+voxel_reduction = 85.89285714285715
+
+[sub_resource type="Resource" id="Resource_1jft1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dhlqu"]
+script = ExtResource("5_14mp4")
+lod_factor = 1.1
+voxel_reduction = 45.53571428571429
+
+[sub_resource type="Resource" id="Resource_t5bam"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_430ay"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ga1u8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8pfw1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fwi6l"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nv4qs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p5ncy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gu2tu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pestc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dkwso"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2phjr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lahok"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6wmkv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pjbug"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6f6pq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_u24ge"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wvhad"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_skrye"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_cdy7o"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_17g3n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mwopn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p3848"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0l08u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_v1xbo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_o1f1l"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dw07y"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4ruf1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_e6q12"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3gkh3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3owhr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2inlx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_eime0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vj4n4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mvx5y"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_do0h1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ish7f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wrj08"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_e5yud"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_m1rdc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_02l85"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ew2iw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6gvav"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dhd7f"]
+script = ExtResource("5_14mp4")
+lod_factor = 5.0
+activation_range = 10
+voxel_reduction = 97.67857142857144
+metadata/_custom_type_script = "uid://c7pspj4sfiorb"
+
+[sub_resource type="Resource" id="Resource_327ur"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5saq3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fgffb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wga3a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_i2fue"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fisje"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pbja7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4fr7v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_esd83"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vf0au"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ibvy3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_aqi4c"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_crjlj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1tsmi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xv8lh"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y63bn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pq1q6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kr6ou"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n5dn0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hc32e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hf6uo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0f8ed"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0oo7f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t64ko"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xrwt6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j50pw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j0w14"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wlocs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_slbvj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oidqe"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_s6k4h"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7wuot"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wra3i"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_32luv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ihayx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xo8rw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_d6odj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t8al5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7qwlo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lu84f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4nlyt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_k2hbn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6ous7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3nfva"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hmvv3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j0qtc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_yofsy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ytl8v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mfwpj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_m5eel"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vrpem"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_is4bl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vcvv1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_begt4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pxn76"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5c3b4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_263i8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_g7vtm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_twju5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_f1k6d"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pjunv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tjvbx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6jdak"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gvpv8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_neyhg"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kv3qe"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8jtq5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_us01b"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_a60ox"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5xpvd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1g755"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ck66g"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3rs61"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mrjxl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_st62h"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gnrwx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_co7cg"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xh1ic"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_23owf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_sw1vt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_iigft"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_khcnt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3hj7g"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lq20q"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8bnd3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_s28y7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_beann"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_v36u8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0hmyd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uct7h"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_x3lqt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ehc3n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_h0ii5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_326kr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8i5xw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_l5kd3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fm1n7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_bg8u3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_f74pu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n72vm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6x1l8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3xatu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_33o1q"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7korx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6gv2r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ckmwm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5fbd4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oa16v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oisl8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_k1ynb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0q2pq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ysew7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_026b3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8cvca"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_53o40"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ltk7b"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_r50gw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tw7pu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_84d05"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tcr7r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1rgof"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qtct6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_cx47n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vxjgn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gp8ol"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c7fd4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7jmis"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6rcnt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kiemf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wd6dd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8n4n4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_h6t4t"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vsmol"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lvb47"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rf04m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_18pd3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wjqod"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2cn1l"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_04w6n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_l6hv5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6fbi5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oldlj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c3pvb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2muyq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0vmdy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5sfhs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ylehv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jx2ap"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nlmkc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_i68sj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_sgtyb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mlf6m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rpjnb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fdooo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_io3ar"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_a2u3k"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_beca3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rs4lr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_g16wx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_03s4u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qwest"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p34t7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7kfno"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rb8ao"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ae63m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1sk2m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7s7xs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fbnny"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b6nod"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ifsip"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nx0mv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hrtll"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5pmnt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4vkua"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jr1e7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_balb5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1pph7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vrq2d"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4bovf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0ueu1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_22gch"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gdqk0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tu7fn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ot0l2"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xrtvo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tipht"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pvvow"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xsd1j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dwbya"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4htv7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qb6w3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qe38j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_goqtc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xpvtb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_e4ast"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_yhx3r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t3lba"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_h0j8k"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_cgvi5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dtnlj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3uk67"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jj375"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_028sj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_w6xsy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wyfc4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xfupw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jbjph"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oh7eq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c1xvi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p7oy0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nfgfw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4sl4g"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8iqtd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wroar"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_yrm37"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ptvgx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_cmgsp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1sywr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nf4ht"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ytavj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tms5o"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_70lsv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jtnmm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mcsmp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hwe2v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rrxsf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_h0st6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_f6jiu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_o3ywd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_eqewq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ku3b0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rdcp8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dwnok"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1lpa1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7t5tb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ry5i6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b7dco"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nxa84"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1amyl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_supxv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7ii6r"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_bpfx8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_miaen"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0v8lw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vh8vh"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vgosu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xjaxu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_i5fqi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uswjl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xoh3s"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0yv52"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hxb2c"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0icc6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n0i0j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_re4mx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_7cd4a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gw5p7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5sxr6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6p63n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nka41"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oqtgr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_osfn7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_30bvi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8bbmx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_imn51"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wqolb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rnf2s"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nrncf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qiwro"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ao6eu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4xued"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ins23"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dmioc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ljgre"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4fks6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2t654"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_crec0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b6gof"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oxmrf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0b6ik"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_80d4h"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hq376"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xv72a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c57o8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8kige"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_usuwp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c38jv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ckbnt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xkrwc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8gdim"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0pmk1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uk5m6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_g5233"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fb72u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pitsn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_17jmf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_c5sup"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0w1ak"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8vat1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jpxxr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_3wvok"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n38j2"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ll02q"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_che5l"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_1mrgl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_stklr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t0sif"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gvgtd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2rpgk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2k2tk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rcv4m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_np1o1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mokx5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_834sr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y1dwk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y3h2e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_irngk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_i3rbb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_33lo4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_bwjm8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5syjg"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0sj67"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_muoci"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0qqmo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_4du24"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ynhob"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jckq1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_j127x"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2xj6e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_eh4ye"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_anhp8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gsyam"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2odn5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fqknp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8rkcl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t228k"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2s3f5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oy6oj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0b61j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ml20f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rpglw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_a7ttl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8jh1w"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_l4ylf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_dqkvf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_plutx"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_bss6i"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uftoj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2xjlr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uxoxj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_myeyy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gsg4v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_oyxfo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y3apk"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gsgfq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_04tkf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_l2872"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wfy1u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_77agd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hsx4s"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vysut"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pdvw4"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_s5b22"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gop32"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lpidc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_w5pak"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ev825"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wype0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_n1un7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ii3j1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pa4rf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lloy1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pd3cd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_yk1sf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_d1xgt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ko6v5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_o5jnt"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b5wsp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_os6s5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_r3bho"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qbtbq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_l2dq6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_soiml"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ad6c7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8u5kq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_puoto"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2g5k5"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wlgha"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_6dscl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jn20a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ruyau"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_y3kym"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_25ahr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8cfls"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t1u7j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2cyb6"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_2gscw"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_au62s"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_a7elc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vaoqa"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b3y2a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_q0sue"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_qs83v"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fdmd3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ubqav"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ggy2b"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_g0mpd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kfr8u"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xfn6f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p5yai"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mehtq"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kjkio"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gldqb"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xyyie"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ksqd3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ni87k"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8rax7"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ebamp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_v2w1e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jawiv"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rdw6e"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_i40ck"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_urjgs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_fh65n"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_p2iqr"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_pabu8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_61oti"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0p3fl"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_o7hjp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_gbdyn"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xxfdd"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rw25d"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_5xw2a"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_sc3mf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_t3xra"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_wnfr3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ekdcm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_xmfxh"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_k1yt3"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_jlmc0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_rb3uo"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_72wee"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_nbunf"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ttxau"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_x1rfe"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0l1a2"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hd7gi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ca5mh"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_vpuhu"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_or68m"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_mr3ya"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0eh8j"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ctmkc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uq1bs"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_w0qvi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ywun1"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_lu0ao"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tco86"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ub5s0"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_00pdp"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_uwtyi"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_g6bgm"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_ve2a2"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_8ams8"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_kb2hj"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_0adiy"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_hcprc"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_b4l4f"]
+script = ExtResource("5_14mp4")
+voxel_reduction = 73.92857142857143
+
+[sub_resource type="Resource" id="Resource_tv1k5"]
+script = ExtResource("5_4ivll")
+_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("1_6rus3"),"script":ExtResource("3_14mp4"),"populate":Callable(),"voxel_resource":ExtResource("4_6rus3"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":1,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.05,"light_dithering":0.05,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"lod_addon":SubResource("Resource_tv1k5"),"last_damage_time":-1,"debris_ammount":0,"health":56000,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_current_cache":"res://addons/VoxelDestruction/Cache/VoxelObject6987.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+
+_voxel_meshes = Array[ExtResource("2_4ivll")]([ExtResource("6_xbn3n")])
+_default_voxel_mesh = ExtResource("1_6rus3")
+lod_settings = Array[ExtResource("5_14mp4")]([SubResource("Resource_03s4u")])
+_current_cache = Dictionary[ExtResource("5_14mp4"), Variant]({
+SubResource("Resource_osfn7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9495.tres",
+SubResource("Resource_30bvi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6285.tres",
+SubResource("Resource_8bbmx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5862.tres",
+SubResource("Resource_imn51"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2394.tres",
+SubResource("Resource_wqolb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4481.tres",
+SubResource("Resource_rnf2s"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6122.tres",
+SubResource("Resource_nrncf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8957.tres",
+SubResource("Resource_qiwro"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3156.tres",
+SubResource("Resource_ao6eu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7771.tres",
+SubResource("Resource_4xued"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8656.tres",
+SubResource("Resource_ins23"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9938.tres",
+SubResource("Resource_dmioc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5983.tres",
+SubResource("Resource_ljgre"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7675.tres",
+SubResource("Resource_4fks6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3804.tres",
+SubResource("Resource_2t654"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7767.tres",
+SubResource("Resource_crec0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1805.tres",
+SubResource("Resource_b6gof"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8771.tres",
+SubResource("Resource_oxmrf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2119.tres",
+SubResource("Resource_miaen"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4880.tres",
+SubResource("Resource_0v8lw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5081.tres",
+SubResource("Resource_vh8vh"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9423.tres",
+SubResource("Resource_vgosu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5263.tres",
+SubResource("Resource_xjaxu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4138.tres",
+SubResource("Resource_i5fqi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2625.tres",
+SubResource("Resource_uswjl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4978.tres",
+SubResource("Resource_xoh3s"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1610.tres",
+SubResource("Resource_0yv52"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4716.tres",
+SubResource("Resource_hxb2c"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8790.tres",
+SubResource("Resource_0icc6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3176.tres",
+SubResource("Resource_n0i0j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9677.tres",
+SubResource("Resource_re4mx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7928.tres",
+SubResource("Resource_7cd4a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5283.tres",
+SubResource("Resource_gw5p7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3463.tres",
+SubResource("Resource_5sxr6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8377.tres",
+SubResource("Resource_6p63n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7362.tres",
+SubResource("Resource_nka41"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4683.tres",
+SubResource("Resource_oqtgr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5698.tres",
+SubResource("Resource_8vat1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5563.tres",
+SubResource("Resource_jpxxr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9150.tres",
+SubResource("Resource_3wvok"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9965.tres",
+SubResource("Resource_n38j2"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1637.tres",
+SubResource("Resource_ll02q"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7354.tres",
+SubResource("Resource_che5l"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4600.tres",
+SubResource("Resource_1mrgl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9552.tres",
+SubResource("Resource_stklr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1140.tres",
+SubResource("Resource_t0sif"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8988.tres",
+SubResource("Resource_gvgtd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7206.tres",
+SubResource("Resource_2rpgk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4097.tres",
+SubResource("Resource_2k2tk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6052.tres",
+SubResource("Resource_rcv4m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1510.tres",
+SubResource("Resource_np1o1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9298.tres",
+SubResource("Resource_mokx5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3439.tres",
+SubResource("Resource_834sr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3907.tres",
+SubResource("Resource_y1dwk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9040.tres",
+SubResource("Resource_y3h2e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9505.tres",
+SubResource("Resource_irngk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5540.tres",
+SubResource("Resource_0b6ik"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5480.tres",
+SubResource("Resource_80d4h"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8930.tres",
+SubResource("Resource_hq376"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6015.tres",
+SubResource("Resource_xv72a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7819.tres",
+SubResource("Resource_c57o8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8786.tres",
+SubResource("Resource_8kige"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5447.tres",
+SubResource("Resource_usuwp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2298.tres",
+SubResource("Resource_c38jv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1452.tres",
+SubResource("Resource_ckbnt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8432.tres",
+SubResource("Resource_xkrwc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8912.tres",
+SubResource("Resource_8gdim"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1419.tres",
+SubResource("Resource_0pmk1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4292.tres",
+SubResource("Resource_uk5m6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5169.tres",
+SubResource("Resource_g5233"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8209.tres",
+SubResource("Resource_fb72u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2169.tres",
+SubResource("Resource_pitsn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3359.tres",
+SubResource("Resource_17jmf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1543.tres",
+SubResource("Resource_c5sup"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8370.tres",
+SubResource("Resource_0w1ak"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7096.tres",
+SubResource("Resource_tipht"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9753.tres",
+SubResource("Resource_pvvow"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3064.tres",
+SubResource("Resource_xsd1j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3549.tres",
+SubResource("Resource_dwbya"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9639.tres",
+SubResource("Resource_4htv7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8384.tres",
+SubResource("Resource_qb6w3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7619.tres",
+SubResource("Resource_qe38j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8180.tres",
+SubResource("Resource_goqtc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8356.tres",
+SubResource("Resource_xpvtb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2107.tres",
+SubResource("Resource_e4ast"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4218.tres",
+SubResource("Resource_yhx3r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1362.tres",
+SubResource("Resource_t3lba"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7990.tres",
+SubResource("Resource_h0j8k"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6019.tres",
+SubResource("Resource_cgvi5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7294.tres",
+SubResource("Resource_dtnlj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2502.tres",
+SubResource("Resource_3uk67"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9046.tres",
+SubResource("Resource_jj375"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4782.tres",
+SubResource("Resource_028sj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4751.tres",
+SubResource("Resource_w6xsy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8027.tres",
+SubResource("Resource_7s7xs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9458.tres",
+SubResource("Resource_fbnny"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4291.tres",
+SubResource("Resource_b6nod"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9974.tres",
+SubResource("Resource_ifsip"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5368.tres",
+SubResource("Resource_nx0mv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2871.tres",
+SubResource("Resource_hrtll"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2941.tres",
+SubResource("Resource_5pmnt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9032.tres",
+SubResource("Resource_4vkua"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2094.tres",
+SubResource("Resource_jr1e7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7937.tres",
+SubResource("Resource_balb5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6176.tres",
+SubResource("Resource_1pph7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5254.tres",
+SubResource("Resource_vrq2d"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2604.tres",
+SubResource("Resource_4bovf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1521.tres",
+SubResource("Resource_0ueu1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2298.tres",
+SubResource("Resource_22gch"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8409.tres",
+SubResource("Resource_gdqk0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9537.tres",
+SubResource("Resource_tu7fn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5930.tres",
+SubResource("Resource_ot0l2"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1933.tres",
+SubResource("Resource_xrtvo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1922.tres",
+SubResource("Resource_mcsmp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1257.tres",
+SubResource("Resource_hwe2v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4386.tres",
+SubResource("Resource_rrxsf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4441.tres",
+SubResource("Resource_h0st6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2912.tres",
+SubResource("Resource_f6jiu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2423.tres",
+SubResource("Resource_o3ywd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1288.tres",
+SubResource("Resource_eqewq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2409.tres",
+SubResource("Resource_ku3b0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6315.tres",
+SubResource("Resource_rdcp8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6505.tres",
+SubResource("Resource_dwnok"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4464.tres",
+SubResource("Resource_1lpa1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5422.tres",
+SubResource("Resource_7t5tb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6380.tres",
+SubResource("Resource_ry5i6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3222.tres",
+SubResource("Resource_b7dco"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5888.tres",
+SubResource("Resource_nxa84"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5201.tres",
+SubResource("Resource_1amyl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6870.tres",
+SubResource("Resource_supxv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9930.tres",
+SubResource("Resource_7ii6r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6219.tres",
+SubResource("Resource_bpfx8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7905.tres",
+SubResource("Resource_wyfc4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1901.tres",
+SubResource("Resource_xfupw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4692.tres",
+SubResource("Resource_jbjph"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8542.tres",
+SubResource("Resource_oh7eq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4880.tres",
+SubResource("Resource_c1xvi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7606.tres",
+SubResource("Resource_p7oy0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5247.tres",
+SubResource("Resource_nfgfw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7136.tres",
+SubResource("Resource_4sl4g"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8784.tres",
+SubResource("Resource_8iqtd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6371.tres",
+SubResource("Resource_wroar"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7089.tres",
+SubResource("Resource_yrm37"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8909.tres",
+SubResource("Resource_ptvgx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6788.tres",
+SubResource("Resource_cmgsp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6887.tres",
+SubResource("Resource_1sywr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8942.tres",
+SubResource("Resource_nf4ht"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9159.tres",
+SubResource("Resource_ytavj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3202.tres",
+SubResource("Resource_tms5o"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9446.tres",
+SubResource("Resource_70lsv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7859.tres",
+SubResource("Resource_jtnmm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7123.tres",
+SubResource("Resource_gldqb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5999.tres",
+SubResource("Resource_xyyie"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7085.tres",
+SubResource("Resource_ksqd3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8450.tres",
+SubResource("Resource_ni87k"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2090.tres",
+SubResource("Resource_8rax7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3366.tres",
+SubResource("Resource_ebamp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5794.tres",
+SubResource("Resource_v2w1e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7575.tres",
+SubResource("Resource_jawiv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2581.tres",
+SubResource("Resource_rdw6e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4476.tres",
+SubResource("Resource_i40ck"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7397.tres",
+SubResource("Resource_urjgs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6336.tres",
+SubResource("Resource_fh65n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6721.tres",
+SubResource("Resource_p2iqr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8390.tres",
+SubResource("Resource_pabu8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5164.tres",
+SubResource("Resource_61oti"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4068.tres",
+SubResource("Resource_0p3fl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6345.tres",
+SubResource("Resource_o7hjp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5706.tres",
+SubResource("Resource_gbdyn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4537.tres",
+SubResource("Resource_8cfls"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6350.tres",
+SubResource("Resource_t1u7j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9137.tres",
+SubResource("Resource_2cyb6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1668.tres",
+SubResource("Resource_2gscw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9158.tres",
+SubResource("Resource_au62s"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2384.tres",
+SubResource("Resource_a7elc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6297.tres",
+SubResource("Resource_vaoqa"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5025.tres",
+SubResource("Resource_b3y2a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1631.tres",
+SubResource("Resource_q0sue"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6549.tres",
+SubResource("Resource_qs83v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5215.tres",
+SubResource("Resource_fdmd3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8932.tres",
+SubResource("Resource_ubqav"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7143.tres",
+SubResource("Resource_ggy2b"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9623.tres",
+SubResource("Resource_g0mpd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6999.tres",
+SubResource("Resource_kfr8u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1687.tres",
+SubResource("Resource_xfn6f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2925.tres",
+SubResource("Resource_p5yai"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6054.tres",
+SubResource("Resource_mehtq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2205.tres",
+SubResource("Resource_kjkio"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6904.tres",
+SubResource("Resource_or68m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1201.tres",
+SubResource("Resource_mr3ya"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7040.tres",
+SubResource("Resource_0eh8j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8648.tres",
+SubResource("Resource_ctmkc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2294.tres",
+SubResource("Resource_uq1bs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6337.tres",
+SubResource("Resource_w0qvi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5980.tres",
+SubResource("Resource_ywun1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9080.tres",
+SubResource("Resource_lu0ao"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6230.tres",
+SubResource("Resource_tco86"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9198.tres",
+SubResource("Resource_ub5s0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4554.tres",
+SubResource("Resource_00pdp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5411.tres",
+SubResource("Resource_uwtyi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6501.tres",
+SubResource("Resource_g6bgm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4975.tres",
+SubResource("Resource_ve2a2"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8254.tres",
+SubResource("Resource_8ams8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8022.tres",
+SubResource("Resource_kb2hj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2711.tres",
+SubResource("Resource_0adiy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1918.tres",
+SubResource("Resource_hcprc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1728.tres",
+SubResource("Resource_b4l4f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8320.tres",
+SubResource("Resource_xxfdd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1344.tres",
+SubResource("Resource_rw25d"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8888.tres",
+SubResource("Resource_5xw2a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2903.tres",
+SubResource("Resource_sc3mf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7194.tres",
+SubResource("Resource_t3xra"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1458.tres",
+SubResource("Resource_wnfr3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5175.tres",
+SubResource("Resource_ekdcm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8661.tres",
+SubResource("Resource_xmfxh"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4770.tres",
+SubResource("Resource_k1yt3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2256.tres",
+SubResource("Resource_jlmc0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8424.tres",
+SubResource("Resource_rb3uo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5726.tres",
+SubResource("Resource_72wee"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7597.tres",
+SubResource("Resource_nbunf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7267.tres",
+SubResource("Resource_ttxau"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8601.tres",
+SubResource("Resource_x1rfe"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5286.tres",
+SubResource("Resource_0l1a2"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2565.tres",
+SubResource("Resource_hd7gi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1119.tres",
+SubResource("Resource_ca5mh"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2346.tres",
+SubResource("Resource_vpuhu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7831.tres",
+SubResource("Resource_2s3f5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9033.tres",
+SubResource("Resource_oy6oj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5978.tres",
+SubResource("Resource_0b61j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6672.tres",
+SubResource("Resource_ml20f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4350.tres",
+SubResource("Resource_rpglw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8246.tres",
+SubResource("Resource_a7ttl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9481.tres",
+SubResource("Resource_8jh1w"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2609.tres",
+SubResource("Resource_l4ylf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2135.tres",
+SubResource("Resource_dqkvf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6178.tres",
+SubResource("Resource_plutx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9571.tres",
+SubResource("Resource_bss6i"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3747.tres",
+SubResource("Resource_uftoj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5213.tres",
+SubResource("Resource_2xjlr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5910.tres",
+SubResource("Resource_uxoxj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7139.tres",
+SubResource("Resource_myeyy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7559.tres",
+SubResource("Resource_gsg4v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2443.tres",
+SubResource("Resource_oyxfo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2060.tres",
+SubResource("Resource_y3apk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8639.tres",
+SubResource("Resource_gsgfq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8396.tres",
+SubResource("Resource_i3rbb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2339.tres",
+SubResource("Resource_33lo4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7748.tres",
+SubResource("Resource_bwjm8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5870.tres",
+SubResource("Resource_5syjg"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8018.tres",
+SubResource("Resource_0sj67"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2921.tres",
+SubResource("Resource_muoci"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9963.tres",
+SubResource("Resource_0qqmo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5116.tres",
+SubResource("Resource_4du24"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4657.tres",
+SubResource("Resource_ynhob"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1690.tres",
+SubResource("Resource_jckq1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2867.tres",
+SubResource("Resource_j127x"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1654.tres",
+SubResource("Resource_2xj6e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7430.tres",
+SubResource("Resource_eh4ye"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8751.tres",
+SubResource("Resource_anhp8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7264.tres",
+SubResource("Resource_gsyam"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9730.tres",
+SubResource("Resource_2odn5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9072.tres",
+SubResource("Resource_fqknp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3125.tres",
+SubResource("Resource_8rkcl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8005.tres",
+SubResource("Resource_t228k"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5248.tres",
+SubResource("Resource_d1xgt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7400.tres",
+SubResource("Resource_ko6v5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9439.tres",
+SubResource("Resource_o5jnt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3694.tres",
+SubResource("Resource_b5wsp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9958.tres",
+SubResource("Resource_os6s5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6577.tres",
+SubResource("Resource_r3bho"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2230.tres",
+SubResource("Resource_qbtbq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3296.tres",
+SubResource("Resource_l2dq6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1783.tres",
+SubResource("Resource_soiml"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3497.tres",
+SubResource("Resource_ad6c7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4054.tres",
+SubResource("Resource_8u5kq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8785.tres",
+SubResource("Resource_puoto"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1827.tres",
+SubResource("Resource_2g5k5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6530.tres",
+SubResource("Resource_wlgha"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3859.tres",
+SubResource("Resource_6dscl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1579.tres",
+SubResource("Resource_jn20a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9800.tres",
+SubResource("Resource_ruyau"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6140.tres",
+SubResource("Resource_y3kym"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2872.tres",
+SubResource("Resource_25ahr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5061.tres",
+SubResource("Resource_04tkf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7033.tres",
+SubResource("Resource_l2872"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4189.tres",
+SubResource("Resource_wfy1u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7944.tres",
+SubResource("Resource_77agd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4594.tres",
+SubResource("Resource_hsx4s"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2396.tres",
+SubResource("Resource_vysut"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9801.tres",
+SubResource("Resource_pdvw4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8343.tres",
+SubResource("Resource_s5b22"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7129.tres",
+SubResource("Resource_gop32"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3107.tres",
+SubResource("Resource_lpidc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4234.tres",
+SubResource("Resource_w5pak"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8229.tres",
+SubResource("Resource_ev825"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4389.tres",
+SubResource("Resource_wype0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4150.tres",
+SubResource("Resource_n1un7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3228.tres",
+SubResource("Resource_ii3j1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9323.tres",
+SubResource("Resource_pa4rf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3144.tres",
+SubResource("Resource_lloy1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1274.tres",
+SubResource("Resource_pd3cd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8141.tres",
+SubResource("Resource_yk1sf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4570.tres",
+SubResource("Resource_430ay"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3329.tres",
+SubResource("Resource_ga1u8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2201.tres",
+SubResource("Resource_8pfw1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4764.tres",
+SubResource("Resource_fwi6l"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1861.tres",
+SubResource("Resource_nv4qs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2573.tres",
+SubResource("Resource_p5ncy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9506.tres",
+SubResource("Resource_gu2tu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3388.tres",
+SubResource("Resource_pestc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8754.tres",
+SubResource("Resource_dkwso"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2288.tres",
+SubResource("Resource_2phjr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8137.tres",
+SubResource("Resource_lahok"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6775.tres",
+SubResource("Resource_6wmkv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4780.tres",
+SubResource("Resource_pjbug"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8426.tres",
+SubResource("Resource_6f6pq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8031.tres",
+SubResource("Resource_u24ge"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9172.tres",
+SubResource("Resource_wvhad"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7155.tres",
+SubResource("Resource_skrye"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9164.tres",
+SubResource("Resource_cdy7o"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6118.tres",
+SubResource("Resource_k3xs2"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5232.tres",
+SubResource("Resource_5gg1r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3957.tres",
+SubResource("Resource_wq87u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4041.tres",
+SubResource("Resource_rmkep"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4415.tres",
+SubResource("Resource_s11nk"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2294.tres",
+SubResource("Resource_hcx01"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5991.tres",
+SubResource("Resource_lofuo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9549.tres",
+SubResource("Resource_aqikl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4269.tres",
+SubResource("Resource_kl88o"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1850.tres",
+SubResource("Resource_fnnwt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9211.tres",
+SubResource("Resource_lmr1k"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7060.tres",
+SubResource("Resource_beg8m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5648.tres",
+SubResource("Resource_cjbac"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2957.tres",
+SubResource("Resource_rea3b"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3729.tres",
+SubResource("Resource_gqy4e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4334.tres",
+SubResource("Resource_nwr6f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3703.tres",
+SubResource("Resource_1jft1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8660.tres",
+SubResource("Resource_dhlqu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6482.tres",
+SubResource("Resource_t5bam"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9358.tres",
+SubResource("Resource_m1rdc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4986.tres",
+SubResource("Resource_02l85"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1711.tres",
+SubResource("Resource_ew2iw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2902.tres",
+SubResource("Resource_6gvav"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5086.tres",
+SubResource("Resource_dhd7f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6848.tres",
+SubResource("Resource_327ur"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7565.tres",
+SubResource("Resource_5saq3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7712.tres",
+SubResource("Resource_fgffb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7370.tres",
+SubResource("Resource_wga3a"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5695.tres",
+SubResource("Resource_i2fue"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3337.tres",
+SubResource("Resource_fisje"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9131.tres",
+SubResource("Resource_pbja7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8926.tres",
+SubResource("Resource_4fr7v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6537.tres",
+SubResource("Resource_esd83"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7704.tres",
+SubResource("Resource_vf0au"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2412.tres",
+SubResource("Resource_ibvy3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1649.tres",
+SubResource("Resource_aqi4c"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8571.tres",
+SubResource("Resource_crjlj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6855.tres",
+SubResource("Resource_1tsmi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8745.tres",
+SubResource("Resource_17g3n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6442.tres",
+SubResource("Resource_mwopn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1982.tres",
+SubResource("Resource_p3848"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3609.tres",
+SubResource("Resource_0l08u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3131.tres",
+SubResource("Resource_v1xbo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3206.tres",
+SubResource("Resource_o1f1l"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5471.tres",
+SubResource("Resource_dw07y"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7061.tres",
+SubResource("Resource_4ruf1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4520.tres",
+SubResource("Resource_e6q12"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4534.tres",
+SubResource("Resource_3gkh3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2699.tres",
+SubResource("Resource_3owhr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6798.tres",
+SubResource("Resource_2inlx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7861.tres",
+SubResource("Resource_eime0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9225.tres",
+SubResource("Resource_vj4n4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8026.tres",
+SubResource("Resource_mvx5y"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1780.tres",
+SubResource("Resource_do0h1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3053.tres",
+SubResource("Resource_ish7f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3786.tres",
+SubResource("Resource_wrj08"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8915.tres",
+SubResource("Resource_e5yud"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5564.tres",
+SubResource("Resource_xdslm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8772.tres",
+SubResource("Resource_vbxfa"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2529.tres",
+SubResource("Resource_r60y6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1248.tres",
+SubResource("Resource_xu3ca"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7385.tres",
+SubResource("Resource_y45hu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6904.tres",
+SubResource("Resource_phkc0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2448.tres",
+SubResource("Resource_o715w"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7335.tres",
+SubResource("Resource_m0dga"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9843.tres",
+SubResource("Resource_dfp1q"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9444.tres",
+SubResource("Resource_qcdgw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5428.tres",
+SubResource("Resource_awglq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4989.tres",
+SubResource("Resource_ifc3j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3258.tres",
+SubResource("Resource_yok10"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1498.tres",
+SubResource("Resource_3sxie"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6827.tres",
+SubResource("Resource_hbv7b"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2007.tres",
+SubResource("Resource_aego5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5397.tres",
+SubResource("Resource_ie25i"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8326.tres",
+SubResource("Resource_tqbsr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8418.tres",
+SubResource("Resource_r3jit"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5931.tres",
+SubResource("Resource_6rus3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4413.tres",
+SubResource("Resource_xbn3n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7657.tres",
+SubResource("Resource_lcwy5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4396.tres",
+SubResource("Resource_yqqqd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7774.tres",
+SubResource("Resource_u4wa4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6210.tres",
+SubResource("Resource_nh38r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5570.tres",
+SubResource("Resource_kbjks"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6358.tres",
+SubResource("Resource_kwru0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5740.tres",
+SubResource("Resource_hk5et"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8850.tres",
+SubResource("Resource_1u152"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5648.tres",
+SubResource("Resource_0tm7e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4111.tres",
+SubResource("Resource_24hu5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4360.tres",
+SubResource("Resource_ciw0e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3902.tres",
+SubResource("Resource_18ua6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4272.tres",
+SubResource("Resource_bm0gv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2730.tres",
+SubResource("Resource_j2vcv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6138.tres",
+SubResource("Resource_j3bo1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7535.tres",
+SubResource("Resource_vcfnp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8799.tres",
+SubResource("Resource_mn5sh"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7432.tres",
+SubResource("Resource_xhqm6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2840.tres",
+SubResource("Resource_uukky"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8718.tres",
+SubResource("Resource_euow4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6612.tres",
+SubResource("Resource_ounr7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2101.tres",
+SubResource("Resource_hjx6c"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9629.tres",
+SubResource("Resource_8hx6v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3998.tres",
+SubResource("Resource_prnif"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6605.tres",
+SubResource("Resource_3kjyp"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5915.tres",
+SubResource("Resource_n85gy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8347.tres",
+SubResource("Resource_tvgkq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5129.tres",
+SubResource("Resource_alux5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1112.tres",
+SubResource("Resource_e6f7p"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1235.tres",
+SubResource("Resource_60yd5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2964.tres",
+SubResource("Resource_fpux4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2606.tres",
+SubResource("Resource_inn8d"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6218.tres",
+SubResource("Resource_54ffw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6404.tres",
+SubResource("Resource_814hv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3911.tres",
+SubResource("Resource_uwyee"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2418.tres",
+SubResource("Resource_rm7tl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1957.tres",
+SubResource("Resource_kvor1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5647.tres",
+SubResource("Resource_vpaj1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2622.tres",
+SubResource("Resource_uhat4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8021.tres",
+SubResource("Resource_hapgb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6763.tres",
+SubResource("Resource_0gbn6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9812.tres",
+SubResource("Resource_tnlsi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9100.tres",
+SubResource("Resource_3nh1v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4477.tres",
+SubResource("Resource_toe8j"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3214.tres",
+SubResource("Resource_d3jeg"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3957.tres",
+SubResource("Resource_tr5g8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2345.tres",
+SubResource("Resource_3a86f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7521.tres",
+SubResource("Resource_0i7ug"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2349.tres",
+SubResource("Resource_pnxdi"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4606.tres",
+SubResource("Resource_1qy2w"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1698.tres",
+SubResource("Resource_gbwbj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8532.tres",
+SubResource("Resource_c3t7l"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6784.tres",
+SubResource("Resource_dq37o"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3004.tres",
+SubResource("Resource_twols"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2386.tres",
+SubResource("Resource_41b51"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3219.tres",
+SubResource("Resource_k1ynb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4846.tres",
+SubResource("Resource_0q2pq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3122.tres",
+SubResource("Resource_ysew7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1601.tres",
+SubResource("Resource_026b3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7231.tres",
+SubResource("Resource_8cvca"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2451.tres",
+SubResource("Resource_53o40"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6225.tres",
+SubResource("Resource_ltk7b"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9334.tres",
+SubResource("Resource_r50gw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3927.tres",
+SubResource("Resource_tw7pu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2676.tres",
+SubResource("Resource_84d05"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1551.tres",
+SubResource("Resource_tcr7r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1564.tres",
+SubResource("Resource_1rgof"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9760.tres",
+SubResource("Resource_qtct6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1202.tres",
+SubResource("Resource_cx47n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5745.tres",
+SubResource("Resource_vxjgn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1118.tres",
+SubResource("Resource_gp8ol"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3982.tres",
+SubResource("Resource_c7fd4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7385.tres",
+SubResource("Resource_7jmis"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3065.tres",
+SubResource("Resource_6rcnt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1139.tres",
+SubResource("Resource_x3lqt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1213.tres",
+SubResource("Resource_ehc3n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2757.tres",
+SubResource("Resource_h0ii5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3386.tres",
+SubResource("Resource_326kr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5583.tres",
+SubResource("Resource_8i5xw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8351.tres",
+SubResource("Resource_l5kd3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8743.tres",
+SubResource("Resource_fm1n7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8686.tres",
+SubResource("Resource_bg8u3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8551.tres",
+SubResource("Resource_f74pu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3972.tres",
+SubResource("Resource_n72vm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9100.tres",
+SubResource("Resource_6x1l8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1828.tres",
+SubResource("Resource_3xatu"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5472.tres",
+SubResource("Resource_33o1q"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1673.tres",
+SubResource("Resource_7korx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8980.tres",
+SubResource("Resource_6gv2r"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9403.tres",
+SubResource("Resource_ckmwm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8421.tres",
+SubResource("Resource_5fbd4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2399.tres",
+SubResource("Resource_oa16v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4241.tres",
+SubResource("Resource_oisl8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8065.tres",
+SubResource("Resource_jx2ap"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7387.tres",
+SubResource("Resource_nlmkc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1235.tres",
+SubResource("Resource_i68sj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2401.tres",
+SubResource("Resource_sgtyb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3301.tres",
+SubResource("Resource_mlf6m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9842.tres",
+SubResource("Resource_rpjnb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9385.tres",
+SubResource("Resource_fdooo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4630.tres",
+SubResource("Resource_io3ar"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5182.tres",
+SubResource("Resource_a2u3k"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7825.tres",
+SubResource("Resource_beca3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3692.tres",
+SubResource("Resource_rs4lr"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1787.tres",
+SubResource("Resource_g16wx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2683.tres",
+SubResource("Resource_03s4u"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9142.tres",
+SubResource("Resource_qwest"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8990.tres",
+SubResource("Resource_p34t7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7313.tres",
+SubResource("Resource_7kfno"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3600.tres",
+SubResource("Resource_rb8ao"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8067.tres",
+SubResource("Resource_ae63m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5925.tres",
+SubResource("Resource_1sk2m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4416.tres",
+SubResource("Resource_kiemf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8430.tres",
+SubResource("Resource_wd6dd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5568.tres",
+SubResource("Resource_8n4n4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9302.tres",
+SubResource("Resource_h6t4t"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5230.tres",
+SubResource("Resource_vsmol"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1987.tres",
+SubResource("Resource_lvb47"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7009.tres",
+SubResource("Resource_rf04m"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9460.tres",
+SubResource("Resource_18pd3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4313.tres",
+SubResource("Resource_wjqod"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1720.tres",
+SubResource("Resource_2cn1l"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1559.tres",
+SubResource("Resource_04w6n"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2411.tres",
+SubResource("Resource_l6hv5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1733.tres",
+SubResource("Resource_6fbi5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8161.tres",
+SubResource("Resource_oldlj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2059.tres",
+SubResource("Resource_c3pvb"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6809.tres",
+SubResource("Resource_2muyq"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6693.tres",
+SubResource("Resource_0vmdy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7771.tres",
+SubResource("Resource_5sfhs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8781.tres",
+SubResource("Resource_ylehv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9691.tres",
+SubResource("Resource_32luv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9211.tres",
+SubResource("Resource_ihayx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6644.tres",
+SubResource("Resource_xo8rw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8793.tres",
+SubResource("Resource_d6odj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8110.tres",
+SubResource("Resource_t8al5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2034.tres",
+SubResource("Resource_7qwlo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9045.tres",
+SubResource("Resource_lu84f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1322.tres",
+SubResource("Resource_4nlyt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7260.tres",
+SubResource("Resource_k2hbn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6562.tres",
+SubResource("Resource_6ous7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6400.tres",
+SubResource("Resource_3nfva"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3903.tres",
+SubResource("Resource_hmvv3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1458.tres",
+SubResource("Resource_j0qtc"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2301.tres",
+SubResource("Resource_yofsy"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6561.tres",
+SubResource("Resource_ytl8v"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4300.tres",
+SubResource("Resource_mfwpj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1309.tres",
+SubResource("Resource_m5eel"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1636.tres",
+SubResource("Resource_vrpem"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2193.tres",
+SubResource("Resource_is4bl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6086.tres",
+SubResource("Resource_xv8lh"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9248.tres",
+SubResource("Resource_y63bn"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9814.tres",
+SubResource("Resource_pq1q6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6290.tres",
+SubResource("Resource_kr6ou"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8484.tres",
+SubResource("Resource_n5dn0"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9758.tres",
+SubResource("Resource_hc32e"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5002.tres",
+SubResource("Resource_hf6uo"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7189.tres",
+SubResource("Resource_0f8ed"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2315.tres",
+SubResource("Resource_0oo7f"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5230.tres",
+SubResource("Resource_t64ko"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3758.tres",
+SubResource("Resource_xrwt6"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5747.tres",
+SubResource("Resource_j50pw"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4134.tres",
+SubResource("Resource_j0w14"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9162.tres",
+SubResource("Resource_wlocs"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3270.tres",
+SubResource("Resource_slbvj"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6139.tres",
+SubResource("Resource_oidqe"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4710.tres",
+SubResource("Resource_s6k4h"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7177.tres",
+SubResource("Resource_7wuot"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5244.tres",
+SubResource("Resource_wra3i"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8601.tres",
+SubResource("Resource_ck66g"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1952.tres",
+SubResource("Resource_3rs61"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8984.tres",
+SubResource("Resource_mrjxl"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6224.tres",
+SubResource("Resource_st62h"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6159.tres",
+SubResource("Resource_gnrwx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6726.tres",
+SubResource("Resource_co7cg"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9634.tres",
+SubResource("Resource_xh1ic"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2700.tres",
+SubResource("Resource_23owf"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5371.tres",
+SubResource("Resource_sw1vt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3903.tres",
+SubResource("Resource_iigft"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4907.tres",
+SubResource("Resource_khcnt"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9881.tres",
+SubResource("Resource_3hj7g"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8768.tres",
+SubResource("Resource_lq20q"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3641.tres",
+SubResource("Resource_8bnd3"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9036.tres",
+SubResource("Resource_s28y7"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2522.tres",
+SubResource("Resource_beann"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3073.tres",
+SubResource("Resource_v36u8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9271.tres",
+SubResource("Resource_0hmyd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3758.tres",
+SubResource("Resource_uct7h"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5381.tres",
+SubResource("Resource_vcvv1"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9579.tres",
+SubResource("Resource_begt4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7278.tres",
+SubResource("Resource_pxn76"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD6675.tres",
+SubResource("Resource_5c3b4"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5824.tres",
+SubResource("Resource_263i8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4736.tres",
+SubResource("Resource_g7vtm"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5872.tres",
+SubResource("Resource_twju5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3782.tres",
+SubResource("Resource_f1k6d"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9963.tres",
+SubResource("Resource_pjunv"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3694.tres",
+SubResource("Resource_tjvbx"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1313.tres",
+SubResource("Resource_6jdak"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD5818.tres",
+SubResource("Resource_gvpv8"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD8715.tres",
+SubResource("Resource_neyhg"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD7868.tres",
+SubResource("Resource_kv3qe"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2653.tres",
+SubResource("Resource_8jtq5"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD4598.tres",
+SubResource("Resource_us01b"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD9854.tres",
+SubResource("Resource_a60ox"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD2132.tres",
+SubResource("Resource_5xpvd"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD3325.tres",
+SubResource("Resource_1g755"): "res://addons/VoxelDestruction/Cache/VoxelObjectLOD1863.tres"
+})
 metadata/_custom_type_script = "uid://banjh65d6cs5m"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_6rus3"]
@@ -150,17 +3062,18 @@ background_mode = 2
 sky = SubResource("Sky_1yaoi")
 tonemap_mode = 2
 
-[node name="LodTest" type="Node3D"]
+[node name="Testing" type="Node3D"]
 
 [node name="VoxelObject" type="MultiMeshInstance3D" parent="."]
-multimesh = SubResource("MultiMesh_6rus3")
+multimesh = ExtResource("1_6rus3")
 script = ExtResource("3_14mp4")
 voxel_resource = ExtResource("4_6rus3")
 invulnerable = true
 darkening = false
 dark_dithering = 0.05
 light_dithering = 0.05
-lod_addon = SubResource("Resource_lcwy5")
+lod_addon = SubResource("Resource_tv1k5")
+_current_cache = "res://addons/VoxelDestruction/Cache/VoxelObject6987.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]

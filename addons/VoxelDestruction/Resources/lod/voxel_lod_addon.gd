@@ -13,12 +13,18 @@ class_name VoxelLODAddon
 ## Used to define the strength and activation distance of LODs.
 @export var lod_settings: Array[VoxelLODSetting] = []:
 	set(value):
-		lod_settings = value
-		for setting in lod_settings:
+		lod_settings = []
+		for setting in value:
 			if setting:
+				lod_settings.append(setting)
 				if not setting.is_connected("preview_enabled", _update_preview):
 					setting.connect("preview_enabled", _update_preview)
 					setting.connect("preview_disabled", _disable_preview)
+			else:
+				var new_setting = VoxelLODSetting.new()
+				new_setting.connect("preview_enabled", _update_preview)
+				new_setting.connect("preview_disabled", _disable_preview)
+				lod_settings.append(new_setting)
 		_update_preview()
 
 ## The ammount of hidden voxels that would otherwise be visible during runtime.
@@ -37,6 +43,9 @@ var _id: int = randi_range(0, 100) % 10
 
 func _init() -> void:
 	for setting in lod_settings:
+		if not setting:
+			push_error("[VD Addon] LOD Setting is NULL! Unexpected behavior may occur!")
+			continue
 		setting.preview = false
 		if not setting.is_connected("preview_enabled", _update_preview):
 			setting.connect("preview_enabled", _update_preview)
@@ -80,6 +89,8 @@ func _physics_proccess():
 
 
 func _enable_lod(setting: VoxelLODSetting):
+	if not setting:
+		return
 	if disabled:
 		return
 	if _parent and setting != _current_setting:
@@ -106,6 +117,7 @@ func _update_preview():
 	var activated_preview = null
 	for setting in lod_settings:
 		if not setting:
+			push_error("[VD Addon] LOD Setting is NULL! Unexpected behavior may occur!")
 			return
 		if setting.preview:
 			if setting == _last_preview:
@@ -124,14 +136,18 @@ func _disable_preview():
 	if disabled:
 		return
 	for setting in lod_settings:
+		if not setting:
+			continue
 		if setting.preview:
 			return
+	_last_preview = null
 	_disabled_lod()
 
 
 ## (Re)populate [VoxelMultiMesh]s used for [VoxelLODSetting]s during previews and runtime [br]
 ## Called when parent [VoxelObject] is (re)populated
 func repopulate():
+	_invalidate_cache()
 	_default_voxel_mesh = _parent.multimesh
 	_voxel_meshes = []
 	for setting in lod_settings:
@@ -250,6 +266,23 @@ func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
 	return null
 
 @export_storage var _current_cache: Dictionary[VoxelLODSetting, Variant] = {}
+
+func _invalidate_cache():
+	var cache_dir := "res://addons/VoxelDestruction/Cache/"
+	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
+	var log_path := cache_dir + "old_cache.txt"
+	for indexed_current_cache in _current_cache.values():
+		if indexed_current_cache and indexed_current_cache != "" and FileAccess.file_exists(indexed_current_cache):
+			var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
+			if file == null:
+				file = FileAccess.open(log_path, FileAccess.WRITE)
+
+			if file:
+				file.seek_end()
+				file.store_line(indexed_current_cache)
+				file.close()
+			else:
+				push_error("[VD ADDON] Failed to open old_cache.txt")
 
 func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
