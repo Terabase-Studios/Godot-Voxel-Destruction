@@ -8,6 +8,7 @@ class_name VoxelObject
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
 const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
+const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
 
 ## (Re)populate this object and attatched addons with new voxel data.
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
@@ -25,7 +26,6 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 ## [b]Disable[/b]: Frees as much memory as possible. [br]
 ## [b]Queue_free()[/b]: Calls queue_free [br]
 @export_enum("nothing", "disable", "queue_free()") var end_of_life = 1
-@export var queue_attacks: bool = true
 @export_subgroup("Debris")
 ## Type of debris generated [br]
 ## [b]None[/b]: No debris will be generated [br]
@@ -35,7 +35,7 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 ## Strength of gravity on debris
 @export var debris_weight = 1
 ## Chance of generating debris per destroyed voxel
-@export_range(0, 1, .1) var debris_density = .2
+@export_range(0, 1, .05) var debris_density = .1
 ## Time in seconds before debris are deleted
 @export var debris_lifetime = 5
 ## Maximum ammount of rigid body debris
@@ -61,6 +61,10 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 ## Remove detached voxels
 ## @experimental: This property is unstable.
 @export var flood_fill = false
+## @experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
+## Queue attacks so one attack is being processed at a time with a small cooldown inbetween. [br]
+## This has a chance to increase performace when multiple attacks damage the [VoxelObject] in a short period.
+@export var queue_attacks: bool = false
 @export_subgroup("Addons")
 ## Used to reduce rendering costs at varying distances.
 @export var lod_addon: VoxelLODAddon:
@@ -70,31 +74,33 @@ const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 		else:
 			lod_addon = value.duplicate(true)
 			lod_addon._parent = self
-
-
 ## Used to debug the amount of time damaging takes. Measured in milliseconds
 var last_damage_time: int = -1
 ## The ammount of debris deployed by the [VoxelObject]
 var debris_ammount: int = 0
 ## The total health of all voxels
-@onready var health: int = voxel_resource.vox_count * 100 
+var health: int = 0
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
 var _disabled_locks = []
 var _disabled: bool = false
 var _body_last_transform: Transform3D
 var _proccessing_attack = false
+var _proccess_attack_queue: Array[int] = []
+var _next_attack_to_proccess: int
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
-signal _process_next_attack
 
 func _ready() -> void:
 	if not Engine.is_editor_hint():
 		if not voxel_resource:
-			push_warning("Voxel object has no VoxelResource")
+			push_warning("[VD Addon] Missing voxel_resource! ", name)
+			_disabled_locks.append("NO VOXEL RESOURCE")
 			return
 		
+		health = voxel_resource.vox_count * 100 
+
 		voxel_resource = voxel_resource.duplicate(true)
 		
 		# Preload rigid body debris (limit to 1000)
@@ -195,6 +201,7 @@ func update_physics() -> void:
 		center *= voxel_resource.vox_size
 		_collision_body.center_of_mass = center
 
+
 func _update_collision_nodes():
 	# Separate budgets
 	var add_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
@@ -221,7 +228,6 @@ func _update_collision_nodes():
 		if is_instance_valid(shape):
 			shape.call_deferred("queue_free")
 			remove_budget -= 1
-
 
 
 func _populate_mesh() -> void:
@@ -291,9 +297,19 @@ func _get_vox_color(voxid: int) -> Color:
 
 
 func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
-	if _proccessing_attack:
-		return
-	_proccessing_attack = true
+	var damager_global_pos = damager.global_position
+	if queue_attacks:
+		if _proccessing_attack:
+			var id = randi_range(1111, 9999)
+			_proccess_attack_queue.append(id)
+			var waiting = true
+			while waiting:
+				#var next_up = await _proccess_attack_queue
+				await get_tree().physics_frame
+				if _next_attack_to_proccess == id:
+					waiting = false
+				_next_attack_to_proccess = -1
+		_proccessing_attack = true
 	last_damage_time = Time.get_ticks_msec()
 	voxel_resource.buffer("health")
 	voxel_resource.buffer("positions_dict")
@@ -304,7 +320,7 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 	# resize to make modifing thread-safe
 	damage_results.resize(voxel_count)
 	var group_id = WorkerThreadPool.add_group_task(
-		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damage_results), 
+		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damager_global_pos, damage_results), 
 		voxel_count, -1, true, "Calculating Voxel Damage"
 	)
 	
@@ -327,7 +343,7 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 	_apply_damage_results(damager, damage_results)
 
 
-func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damage_results: Array) -> void: 
+func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void: 
 	# Get positions and vox_ids to modify later and calculate damage
 	var vox_position: Vector3 = global_voxel_positions[voxel]
 	var vox_pos3i: Vector3i = voxel_positions[voxel]
@@ -337,7 +353,7 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 	if vox_id == -1:
 		return  
 	
-	var decay: float = damager.global_pos.distance_squared_to(vox_position) / (damager.range * damager.range)
+	var decay: float = damager_global_pos.distance_squared_to(vox_position) / (damager.range * damager.range)
 	var decay_sample: float = damager.damage_curve.sample(decay)
 	
 	# Skip processing if damage is negligible
@@ -437,6 +453,9 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	if physics:
 		update_physics()
 	
+	if queue_attacks:
+		_handle_attack_queue()
+	
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
 			match debris_type:
@@ -451,6 +470,14 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	
 	if flood_fill:
 		await _detach_disconnected_voxels()
+
+func _handle_attack_queue():
+	await get_tree().create_timer(_TIME_BETWEEN_PROCESSING_ATTACKS).timeout
+	if _proccess_attack_queue.is_empty():
+		_proccessing_attack = false
+	else:
+		var next_up = _proccess_attack_queue.pop_front()
+		_next_attack_to_proccess = next_up
 
 var _shapes_to_add: Dictionary[Vector3, Array] = {}
 var _shapes_to_remove: Array[Node3D] = []
