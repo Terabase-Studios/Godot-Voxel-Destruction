@@ -33,7 +33,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mouse_captured: _rotate_camera()
 	if Input.is_action_just_pressed("ui_select"): jumping = true
 	if Input.is_action_just_pressed("ui_cancel"): get_tree().quit()
-	if Input.is_mouse_button_pressed(MouseButton.MOUSE_BUTTON_LEFT): _fire()
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
+			_fire()
 
 func _physics_process(delta: float) -> void:
 	#if mouse_captured: _handle_joypad_camera_rotation(delta)

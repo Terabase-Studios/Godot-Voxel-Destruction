@@ -105,7 +105,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Read the file header
 	var magic = file.get_buffer(4).get_string_from_ascii()
 	if magic != "VOX ":
-		push_error("Invalid .vox file format!")
+		push_error("Invalid .vox file format!: ", source_file)
 		file.close()
 		return []
 	
@@ -113,7 +113,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	
 	var wait = 0
 	# Read chunks
-	while not file.eof_reached() and not wait == 20:
+	while not file.eof_reached() and not wait == 20000:
 		var chunk_id = file.get_buffer(4).get_string_from_ascii()
 		var chunk_size = file.get_32()
 		var child_chunk_size = file.get_32()
@@ -182,14 +182,14 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Create Object/Add colors/Update Positions
 	var start_voxel = voxels[0]
 	if not start_voxel.has("color") or not start_voxel["color"] or not start_voxel["color"] is Color: 
-		push_warning("Color data missing or invalid; Import Failed")
-		return
+		push_warning("Color data missing or invalid: ", source_file)
+
 	if start_voxel["position"] == null or not (start_voxel["position"] is Vector3 or start_voxel["position"] is Vector3i): 
-		push_warning("Positions data missing or invalid; Import Failed")
+		push_warning("Positions data missing or invalid; Import Failed: ", source_file)
 		return
 	var index = 0
 	for voxel in voxels:
-		var color = voxel["color"]
+		var color = voxel.get("color", Color.WHITE)
 		if color not in voxel_resource.colors:
 			voxel_resource.colors.append(color)
 		voxel_resource.color_index.append(voxel_resource.colors.find(color))

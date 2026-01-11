@@ -1,10 +1,7 @@
-[gd_scene load_steps=10 format=3 uid="uid://cdk6hwb4hi2wc"]
+[gd_scene load_steps=7 format=3 uid="uid://cdk6hwb4hi2wc"]
 
 [ext_resource type="Script" uid="uid://dyi37ehqm4dff" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd" id="1_2f8j2"]
 [ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="2_ehonj"]
-[ext_resource type="MultiMesh" uid="uid://vlduymfo7k0" path="res://addons/VoxelDestruction/Cache/gun9617.tres" id="3_2qy1s"]
-[ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="4_3vrry"]
-[ext_resource type="Resource" uid="uid://gwrfrs18mp10" path="res://addons/VoxelDestruction/VD Extra Resources/Downloaded Assets/Voxel Weapons/Sniper.vox" id="5_q4y3a"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3rsb5"]
 radius = 0.3
@@ -92,23 +89,8 @@ text = "Jump - Space"
 
 [node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-text = "Fire -  Right Mouse"
+text = "Fire -  Left Mouse"
 
 [node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Quit - Escape"
-
-[node name="gun" type="MultiMeshInstance3D" parent="."]
-transform = Transform3D(-1.3760586e-09, 1, 4.3689724e-08, -0.03148055, -4.371139e-08, 0.9995044, 0.9995044, 0, 0.03148055, 0.27803385, 1.2454734, -1.2992657)
-multimesh = ExtResource("3_2qy1s")
-script = ExtResource("4_3vrry")
-voxel_resource = ExtResource("5_q4y3a")
-invulnerable = true
-darkening = false
-debris_type = 0
-_current_cache = "res://addons/VoxelDestruction/Cache/gun9617.tres"
-metadata/_custom_type_script = "uid://y48ewqgyud4h"
-
-[node name="melee" type="MultiMeshInstance3D" parent="."]
-script = ExtResource("4_3vrry")
-metadata/_custom_type_script = "uid://y48ewqgyud4h"

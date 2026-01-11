@@ -55,6 +55,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		if not _destroyed and _voxel_coords not in get_parent().voxel_resource.positions_dict:
 			print("DESROYED")
+			position_hint_color = Color(0, 0, 0,position_hint_color.a)
 			_destroyed = true
 
 

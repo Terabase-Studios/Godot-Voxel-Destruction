@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://b00vbu7qaduud"
+path="res://.godot/imported/untitled.vox-48e63b299da14f1cd0d760043e1c2807.tres"
+
+[deps]
+
+source_file="res://dev/untitled.vox"
+dest_files=["res://.godot/imported/untitled.vox-48e63b299da14f1cd0d760043e1c2807.tres"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=0
