@@ -142,7 +142,7 @@ func _ready() -> void:
 			var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
 			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
 			_collision_body.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
-			update_physics()
+			_update_physics()
 
 		add_child(_collision_body)
 
@@ -195,27 +195,30 @@ func _physics_process(delta):
 
 	for task in _regen_tasks:
 		if WorkerThreadPool.is_task_completed(task):
-			var shapes: Array = _regen_tasks[task][0]
+			var shape_datas: Array = _regen_tasks[task][0]
 			var chunk_index: Vector3 = _regen_tasks[task][1]
 			# Remove old shapes
-			var old_shapes = _collision_shapes[chunk_index]
-			VoxelServer.shape_count -= old_shapes.size()
-			for shape in old_shapes:
-				_shapes_to_remove.append(shape)
-			_collision_shapes[chunk_index].clear()
+			if _collision_shapes.has(chunk_index):
+				var old_shapes = _collision_shapes[chunk_index]
+				VoxelServer.shape_count -= old_shapes.size()
+				for shape in old_shapes:
+					_shapes_to_remove.append(shape)
+				_collision_shapes[chunk_index].clear()
 
 
 			# Add shapes and record
 			_shapes_to_add[chunk_index] = []
-			for shape_node in shapes:
-				if shape_node == null:
-					break
+			for shape_data in shape_datas:
+				var shape_node = voxel_resource.get_collision_node()
+				shape_node.position = shape_data["center"]
+				shape_node.shape.extents = shape_data["extents"]
 				_shapes_to_add[chunk_index].append(shape_node)
 				if chunk_index not in _collision_shapes:
 					_collision_shapes[chunk_index] = Array()
 				_collision_shapes[chunk_index].append(shape_node)
 
-			VoxelServer.shape_count += _collision_shapes[chunk_index].size()
+			if _collision_shapes.has(chunk_index):
+				VoxelServer.shape_count += _collision_shapes[chunk_index].size()
 			_regen_tasks.erase(task)
 
 	for task in _damage_tasks:
@@ -245,10 +248,10 @@ func _physics_process(delta):
 		_collision_body.rotation = Vector3.ZERO
 		_body_last_transform = _collision_body.transform
 
-## Recalculates center of mass and awakes if [member VoxelObject.physics] is on. [br]
-## When the [RigidBody3D] updates it's mass, clipping can occur. [br]
-## This function will automatically run when voxels are damaged.
-func update_physics() -> void:
+# Recalculates center of mass and awakes if [member VoxelObject.physics] is on. [br]
+# When the [RigidBody3D] updates it's mass, clipping can occur. [br]
+# This function will automatically run when voxels are damaged.
+func _update_physics() -> void:
 	if physics:
 		var center := Vector3.ZERO
 		var positions = voxel_resource.positions_dict.keys()
@@ -269,7 +272,7 @@ func _update_collision_nodes():
 	var remove_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
 
 	# Process adds first
-	for chunk_index in _shapes_to_add.keys():
+	for chunk_index in _shapes_to_add:
 		if add_budget <= 0:
 			break
 
@@ -287,7 +290,10 @@ func _update_collision_nodes():
 	while remove_budget > 0 and not _shapes_to_remove.is_empty():
 		var shape = _shapes_to_remove.pop_back()
 		if is_instance_valid(shape):
-			shape.call_deferred("queue_free")
+			var shape_parent = shape.get_parent()
+			if shape_parent:
+				shape_parent.call_deferred("remove_child", shape)
+			voxel_resource.call_deferred("return_collision_node", shape)
 			remove_budget -= 1
 
 
@@ -519,7 +525,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		_regen_collision(chunk)
 
 	if physics:
-		update_physics()
+		_update_physics()
 
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
@@ -541,20 +547,21 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 func _regen_collision(chunk_index: Vector3) -> void:
 	_shapes_to_add[chunk_index] = []
 	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
-	# Expand shapes to allow thread-safe modification
-	var shapes = Array()
-	shapes.resize(1000)
+	var shape_datas = Array()
 	# Create shape nodes
 	var task_id = WorkerThreadPool.add_task(
-		_create_shapes.bind(chunk, shapes),
+		_create_shapes.bind(chunk, shape_datas),
 		false, "Calculating Collision Shapes"
 	)
-	_regen_tasks[task_id] = [shapes, chunk_index]
+	_regen_tasks[task_id] = [shape_datas, chunk_index]
 
 # This function is undocumented
-func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
+func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
+	var chunk_set := {}
+	for pos in chunk:
+		chunk_set[pos] = true
 
 	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
 		var start
@@ -568,7 +575,7 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 			for y in range(int(start.y), int(end.y) + 1):
 				for z in range(int(start.z), int(end.z) + 1):
 					var check_pos = Vector3(x, y, z)
-					if not chunk.has(check_pos) or visited.get(check_pos, false):
+					if not chunk_set.has(check_pos) or visited.get(check_pos, false):
 						return false
 		return true
 
@@ -596,19 +603,12 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 				for z in range(int(box_min.z), int(box_max.z) + 1):
 					visited[Vector3(x, y, z)] = true
 
-		boxes.append({"min": box_min, "max": box_max})
-	var i = -1
-	for box in boxes:
-		i += 1
-		var min_pos = box["min"]
-		var max_pos = box["max"]
+		var min_pos = box_min
+		var max_pos = box_max
 		var center = (min_pos + max_pos) * 0.5 * voxel_resource.vox_size
-		var shape_node = CollisionShape3D.new()
-		var shape = BoxShape3D.new()
-		shape_node.shape = shape
-		shape.extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
-		shape_node.position = center
-		shapes[i] = shape_node
+		var extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
+		boxes.append({"center": center, "extents": extents})
+	shape_datas.assign(boxes)
 
 
 func _create_debri_multimesh(debris_queue: Array) -> void:
@@ -778,7 +778,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 		debri.get_child(0).scale = Vector3.ONE
 		debri.get_child(1).scale = Vector3.ONE
 
-		voxel_resource.debris_pool.append(debri)
+		voxel_resource.return_debri(debri)
 		debris_ammount -= 1
 
 
@@ -903,7 +903,7 @@ func _apply_flood_fill_results(to_remove: Array) -> void:
 		_regen_collision(chunk)
 
 	if physics:
-		update_physics()
+		_update_physics()
 
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:

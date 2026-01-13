@@ -26,10 +26,15 @@ func pool_rigid_bodies(vox_amount: int) -> void:
 ## Returns a debri from the [member debri_pool]
 func get_debri() -> RigidBody3D:
 	if debris_pool.size() > 0:
-		return debris_pool.pop_front()
+		return debris_pool.pop_back()
 	var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
 	debri.hide()
 	return debri
+
+
+## Adds a debri to the [member debri_pool]
+func return_debri(debri) -> void:
+	debris_pool.append(debri)
 
 
 ## Creates [CollisionShape3D]s with a [BoxShape3D] and saves them to [member collision_pool]
@@ -44,8 +49,13 @@ func pool_collision_nodes(vox_amount: int) -> void:
 ## Returns a [CollisionShape3D] with a [BoxShape3D] from the [member collision_pool]
 func get_collision_node() -> CollisionShape3D:
 	if collision_pool.size() > 0:
-		return collision_pool.pop_front()
+		return collision_pool.pop_back()
 	var collision_node := CollisionShape3D.new()
 	var collision_shape := BoxShape3D.new()
 	collision_node.shape = collision_shape
 	return collision_node
+
+
+## Adds a [CollisionShape3D] with a [BoxShape3D] to the [member collision_pool]
+func return_collision_node(node: CollisionShape3D) -> void:
+	collision_pool.append(node)
