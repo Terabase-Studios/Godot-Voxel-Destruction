@@ -150,6 +150,7 @@ func repopulate():
 	_invalidate_cache()
 	_default_voxel_mesh = _parent.multimesh
 	_voxel_meshes = []
+	_parent.voxel_resource.buffer()
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
 		setting.voxel_reduction = lod_resource.voxel_reduction * 100

@@ -1,9 +1,17 @@
 @tool
 extends Marker3D
 class_name VoxelMarker
+## Snaps to the grid of the parent [VoxelObject] and attaches to an existing [u]voxel[/u]. [br]
+## Emits [signal destroyed] when the attached voxel is destroyed. Can optionally [member queue_free_on_destroyed].
+
 
 const _POSITION_CHANGED_TIMER_SET: float = .5
 
+## Run call_deferred("queue_free") when the attached voxel is destroyed.
+@export var queue_free_on_destroyed: bool = false
+
+@export_subgroup("Debug")
+## Displays a box around itself while editing.
 @export var show_postion_hint_in_editor: bool = true:
 	set(value):
 		show_postion_hint_in_editor = value
@@ -13,7 +21,8 @@ const _POSITION_CHANGED_TIMER_SET: float = .5
 			if is_instance_valid(_hint_collision_node):
 				remove_child(_hint_collision_node)
 				_hint_collision_node.queue_free()
-@export var show_postion_hint_during_runtime: bool = true:
+## Displays a box around itself during runtime.
+@export var show_postion_hint_during_runtime: bool = false:
 	set(value):
 		show_postion_hint_during_runtime = value
 		if value:
@@ -22,6 +31,7 @@ const _POSITION_CHANGED_TIMER_SET: float = .5
 			if is_instance_valid(_hint_collision_node):
 				remove_child(_hint_collision_node)
 				_hint_collision_node.queue_free()
+## Color of the position hint when the attached voxel is intact.
 @export var position_hint_color: Color = Color(1, 0, 0, .5):
 	set(value):
 		position_hint_color = value
@@ -34,6 +44,9 @@ var _voxel_coords
 var _invalid = false
 var _hint_collision_node: MeshInstance3D
 var _destroyed: bool = false
+
+## Emitted when attached voxel is destroyed.
+signal destroyed
 
 func _ready():
 	if not Engine.is_editor_hint():
@@ -54,10 +67,11 @@ func _physics_process(delta: float) -> void:
 				_snap()
 	else:
 		if not _destroyed and _voxel_coords not in get_parent().voxel_resource.positions_dict:
-			print("DESROYED")
 			position_hint_color = Color(0, 0, 0,position_hint_color.a)
 			_destroyed = true
-
+			destroyed.emit()
+			if queue_free_on_destroyed:
+				call_deferred("queue_free")
 
 func _snap(voxel_scale: Vector3 = _voxel_scale):
 	if _invalid:
@@ -124,13 +138,13 @@ func _notification(what):
 	elif what == NOTIFICATION_PARENTED:
 		var parent = get_parent()
 		if parent is VoxelObject:
-			parent.connect("repopulated", repopulate)
+			parent.connect("repopulated", _repopulate)
 			_update()
 		update_configuration_warnings()
 	
 	elif what == NOTIFICATION_UNPARENTED:
 		if get_parent() is VoxelObject:
-			get_parent().disconnect("repopulated", repopulate)
+			get_parent().disconnect("repopulated", _repopulate)
 		#_populated = false
 		_voxel_scale = Vector2.ZERO
 		_voxel_coords = null
@@ -154,5 +168,5 @@ func _get_configuration_warnings():
 	return errors
 
 
-func repopulate() -> void:
+func _repopulate() -> void:
 	_update()
