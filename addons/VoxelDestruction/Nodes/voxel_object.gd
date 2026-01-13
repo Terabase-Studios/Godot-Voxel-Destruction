@@ -85,9 +85,8 @@ var _collision_body: PhysicsBody3D
 var _disabled_locks = []
 var _disabled: bool = false
 var _body_last_transform: Transform3D
-var _proccessing_attack = false
-var _proccess_attack_queue: Array[int] = []
-var _next_attack_to_proccess: int
+var _attack_queue: Array[Dictionary] = []
+var _is_processing: bool = false
 var _shapes_to_add: Dictionary[Vector3, Array] = {}
 var _shapes_to_remove: Array[Node3D] = []
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
@@ -305,19 +304,39 @@ func _get_vox_color(voxid: int) -> Color:
 
 
 func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
-	var damager_global_pos = damager.global_position
+	var attack_data := {
+		"damager": damager,
+		"voxel_count": voxel_count,
+		"voxel_positions": voxel_positions,
+		"global_voxel_positions": global_voxel_positions
+	}
 	if queue_attacks:
-		if _proccessing_attack:
-			var id = randi_range(1111, 9999)
-			_proccess_attack_queue.append(id)
-			var waiting = true
-			while waiting:
-				#var next_up = await _proccess_attack_queue
-				await get_tree().physics_frame
-				if _next_attack_to_proccess == id:
-					waiting = false
-				_next_attack_to_proccess = -1
-		_proccessing_attack = true
+		_attack_queue.append(attack_data)
+		_process_attack_queue()
+	else:
+		_perform_damage_calculation(attack_data)
+
+
+func _process_attack_queue() -> void:
+	if _is_processing or _attack_queue.is_empty():
+		return
+
+	_is_processing = true
+	while not _attack_queue.is_empty():
+		var attack_data = _attack_queue.pop_front()
+		_perform_damage_calculation(attack_data)
+		await get_tree().physics_frame
+
+	_is_processing = false
+
+
+func _perform_damage_calculation(attack_data: Dictionary) -> void:
+	var damager: VoxelDamager = attack_data["damager"]
+	var voxel_count: int = attack_data["voxel_count"]
+	var voxel_positions: PackedVector3Array = attack_data["voxel_positions"]
+	var global_voxel_positions: PackedVector3Array = attack_data["global_voxel_positions"]
+	var damager_global_pos = damager.global_position
+
 	last_damage_time = Time.get_ticks_msec()
 	voxel_resource.buffer("health")
 	voxel_resource.buffer("positions_dict")
@@ -461,9 +480,6 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	if physics:
 		update_physics()
 
-	if queue_attacks:
-		_handle_attack_queue()
-
 	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
 			match debris_type:
@@ -479,14 +495,6 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	if flood_fill:
 		await _detach_disconnected_voxels()
 
-
-func _handle_attack_queue():
-	await get_tree().create_timer(_TIME_BETWEEN_PROCESSING_ATTACKS).timeout
-	if _proccess_attack_queue.is_empty():
-		_proccessing_attack = false
-	else:
-		var next_up = _proccess_attack_queue.pop_front()
-		_next_attack_to_proccess = next_up
 
 
 func _regen_collision(chunk_index: Vector3) -> void:

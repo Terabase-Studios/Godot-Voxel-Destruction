@@ -1,6 +1,9 @@
 # Courtesy of rbarongr at https://github.com/rbarongr/GodotFirstPersonController with adaptations
 class_name Player extends CharacterBody3D
 
+## Limit one input to one attack. If false, checks for attacks every physics frame.
+@export var single_attack: bool = true
+
 @export_category("Player")
 @export_range(1, 35, 1) var speed: float = 10 # m/s
 @export_range(10, 400, 1) var acceleration: float = 100 # m/s^2
@@ -33,11 +36,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		if mouse_captured: _rotate_camera()
 	if Input.is_action_just_pressed("ui_select"): jumping = true
 	if Input.is_action_just_pressed("ui_cancel"): get_tree().quit()
-	if event is InputEventMouseButton:
+	if single_attack and event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.is_pressed():
 			_fire()
 
 func _physics_process(delta: float) -> void:
+	if not single_attack:
+		if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_fire()
 	#if mouse_captured: _handle_joypad_camera_rotation(delta)
 	cooldown = clamp(cooldown-delta, 0, .1)
 	velocity = _walk(delta) + _gravity(delta) + _jump(delta)
