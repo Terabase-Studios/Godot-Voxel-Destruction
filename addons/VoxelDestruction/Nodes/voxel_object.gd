@@ -10,6 +10,8 @@ class_name VoxelObject
 const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
 
+const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
+
 ## (Re)populate this object and attatched addons with new voxel data.
 @export_tool_button("(Re)populate Mesh") var populate = _populate_mesh
 ## Resource to display. Use an imported [VoxelResource] or [CompactVoxelResource]
@@ -89,6 +91,11 @@ var _attack_queue: Array[Dictionary] = []
 var _is_processing: bool = false
 var _shapes_to_add: Dictionary[Vector3, Array] = {}
 var _shapes_to_remove: Array[Node3D] = []
+var _damage_tasks: Dictionary = {}
+var _regen_tasks: Dictionary = {}
+var _rigid_body_debris_creation_queue: Array = []
+var _multimesh_debris_creation_queue: Array = []
+var _flood_fill_tasks: Dictionary = {}
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
@@ -170,6 +177,47 @@ func _ready() -> void:
 
 
 func _physics_process(delta):
+	for task in _flood_fill_tasks:
+		if WorkerThreadPool.is_task_completed(task):
+			var to_remove: Array = _flood_fill_tasks[task]
+			_apply_flood_fill_results(to_remove)
+			_flood_fill_tasks.erase(task)
+
+	_process_multimesh_debris_creation_queue()
+	_process_rigid_body_debris_creation_queue()
+
+	for task in _regen_tasks:
+		if WorkerThreadPool.is_task_completed(task):
+			var shapes: Array = _regen_tasks[task][0]
+			var chunk_index: Vector3 = _regen_tasks[task][1]
+			# Remove old shapes
+			var old_shapes = _collision_shapes[chunk_index]
+			VoxelServer.shape_count -= old_shapes.size()
+			for shape in old_shapes:
+				_shapes_to_remove.append(shape)
+			_collision_shapes[chunk_index].clear()
+
+
+			# Add shapes and record
+			_shapes_to_add[chunk_index] = []
+			for shape_node in shapes:
+				if shape_node == null:
+					break
+				_shapes_to_add[chunk_index].append(shape_node)
+				if chunk_index not in _collision_shapes:
+					_collision_shapes[chunk_index] = Array()
+				_collision_shapes[chunk_index].append(shape_node)
+
+			VoxelServer.shape_count += _collision_shapes[chunk_index].size()
+			_regen_tasks.erase(task)
+
+	for task in _damage_tasks:
+		if WorkerThreadPool.is_group_task_completed(task):
+			var damage_results: Array = _damage_tasks[task][0]
+			var damager: VoxelDamager = _damage_tasks[task][1]
+			_apply_damage_results(damager, damage_results)
+			_damage_tasks.erase(task)
+
 	_update_collision_nodes()
 
 	if lod_addon:
@@ -350,24 +398,7 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damager_global_pos, damage_results),
 		voxel_count, 1, true, "Calculating Voxel Damage"
 	)
-
-	# Wait and buffer
-	var last_buffer_time := Time.get_ticks_msec()
-	var buffer_interval := 20
-
-	while not WorkerThreadPool.is_group_task_completed(group_id):
-		var current_time = Time.get_ticks_msec()
-
-		# Buffer only if enough time has passed
-		if current_time - last_buffer_time >= buffer_interval:
-			voxel_resource.buffer("health")
-			voxel_resource.buffer("positions_dict")
-			voxel_resource.buffer("vox_chunk_indices")
-			voxel_resource.buffer("chunks")
-			last_buffer_time = current_time  # Update last buffer time
-
-		await get_tree().process_frame  # Allow UI to update
-	_apply_damage_results(damager, damage_results)
+	_damage_tasks[group_id] = [damage_results, damager]
 
 
 func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void:
@@ -421,6 +452,8 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	var scaled_basis := basis.scaled(voxel_resource.vox_size)
 	# Prevent showing voxels that are queued for destruction
 	var destroyed_voxels = PackedInt32Array()
+	# First loop: identify all voxels that will be destroyed in this damage step.
+	# This is done to prevent a destroyed voxel from revealing a neighbor that is also about to be destroyed.
 	for result in damage_results:
 		# Skip results
 		if result == null:
@@ -428,6 +461,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		if result["health"] <= 0:
 			destroyed_voxels.append(result["vox_id"] )
 
+	# Second loop: apply the damage, update health, and handle destruction.
 	for result in damage_results:
 		# Skip results
 		if result == null:
@@ -449,7 +483,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 			VoxelServer.total_active_voxels -= 1
 
 			var chunk = result["chunk"]
-			voxel_resource.chunks[chunk][result["chunk_pos"]] = Vector3(-1, -7, -7)
+			voxel_resource.chunks[chunk][result["chunk_pos"]] = _REMOVED_VOXEL_MARKER
 
 			if chunk not in chunks_to_regen:
 				chunks_to_regen.append(chunk)
@@ -493,7 +527,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		return
 
 	if flood_fill:
-		await _detach_disconnected_voxels()
+		await _detach_disconnected_voxels(damager.global_position)
 
 
 
@@ -508,30 +542,7 @@ func _regen_collision(chunk_index: Vector3) -> void:
 		_create_shapes.bind(chunk, shapes),
 		false, "Calculating Collision Shapes"
 	)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame
-
-	if health <= 0: return
-
-	# Remove old shapes
-	var old_shapes = _collision_shapes[chunk_index]
-	VoxelServer.shape_count -= old_shapes.size()
-	for shape in old_shapes:
-		_shapes_to_remove.append(shape)
-	_collision_shapes[chunk_index].clear()
-
-
-	# Add shapes and record
-	_shapes_to_add[chunk_index] = []
-	for shape_node in shapes:
-		if shape_node == null:
-			break
-		_shapes_to_add[chunk_index].append(shape_node)
-		if chunk_index not in _collision_shapes:
-			_collision_shapes[chunk_index] = Array()
-		_collision_shapes[chunk_index].append(shape_node)
-
-	VoxelServer.shape_count += _collision_shapes[chunk_index].size()
+	_regen_tasks[task_id] = [shapes, chunk_index]
 
 # This function is undocumented
 func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
@@ -557,7 +568,7 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 	for pos in chunk:
 		if visited.get(pos, false):
 			continue
-		if pos == Vector3(-1, -7, -7):
+		if pos == _REMOVED_VOXEL_MARKER:
 			continue
 
 		var box_min = pos
@@ -594,6 +605,20 @@ func _create_shapes(chunk: PackedVector3Array, shapes) -> void:
 
 
 func _create_debri_multimesh(debris_queue: Array) -> void:
+	_multimesh_debris_creation_queue.append_array(debris_queue)
+
+func _process_multimesh_debris_creation_queue():
+	if _multimesh_debris_creation_queue.is_empty():
+		return
+
+	var batch_size = 100 # Create 100 debris per frame
+	var current_batch = []
+	while len(current_batch) < batch_size and not _multimesh_debris_creation_queue.is_empty():
+		current_batch.append(_multimesh_debris_creation_queue.pop_front())
+
+	if current_batch.is_empty():
+		return
+
 	# Create MultiMesh
 	var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
 	var debri_states = []
@@ -605,12 +630,12 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
 	multi_mesh.mesh.size = voxel_resource.vox_size
 	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
-	multi_mesh.instance_count = debris_queue.size()
+	multi_mesh.instance_count = current_batch.size()
 	add_child(multi_mesh_instance)
 
 	# Initialize debris and store physics states
 	var idx = 0
-	for debris_data in debris_queue:
+	for debris_data in current_batch:
 		if randf() > debris_density: continue  # Control debris density
 
 		var debris_pos = debris_data.pos
@@ -655,19 +680,30 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 
 
 func _create_debri_rigid_bodies(debris_queue: Array) -> void:
+	_rigid_body_debris_creation_queue.append_array(debris_queue)
+
+func _process_rigid_body_debris_creation_queue() -> void:
+	if _rigid_body_debris_creation_queue.is_empty():
+		return
+
 	if not voxel_resource:
+		_rigid_body_debris_creation_queue.clear()
 		return
 
 	var size = voxel_resource.vox_size
 	var debris_objects: Array = []
+	var created_count = 0
+	var batch_size = 10  # Create 10 debris per frame
 
-	# Spawn debris (use pool if available)
-	for debris_data in debris_queue:
+	while created_count < batch_size and not _rigid_body_debris_creation_queue.is_empty():
+		var debris_data = _rigid_body_debris_creation_queue.pop_front()
+
 		if randf() > debris_density:
 			continue
 
 		# Respect maximum debris
 		if maximum_debris != -1 and debris_ammount >= maximum_debris:
+			_rigid_body_debris_creation_queue.clear() # No more debris allowed
 			break
 
 		# Get debris from pool or create new
@@ -700,6 +736,10 @@ func _create_debri_rigid_bodies(debris_queue: Array) -> void:
 		# Track active debris
 		debris_objects.append(debri)
 		debris_ammount += 1
+		created_count += 1
+
+	if debris_objects.is_empty():
+		return
 
 	# Wait for debris lifetime
 	var timer = get_tree().create_timer(debris_lifetime)
@@ -735,7 +775,7 @@ func _create_debri_rigid_bodies(debris_queue: Array) -> void:
 		debris_ammount -= 1
 
 
-func _flood_fill(to_remove: Array) -> void:
+func _flood_fill(to_remove: Array, origin: Vector3i) -> void:
 	# Update buffers to ensure current data.
 	voxel_resource.buffer("positions")
 	voxel_resource.buffer("positions_dict")
@@ -743,11 +783,11 @@ func _flood_fill(to_remove: Array) -> void:
 	# Retrieve positions dctionar for iteration later.
 	var positions_dict = voxel_resource.positions_dict
 
-	var queue = [voxel_resource.origin]
+	var queue = [origin]
 	var queue_index = 0  # Points to the current element in the queue.
 
 	var visited = {}
-	visited[voxel_resource.origin] = true
+	visited[origin] = true
 
 	# Offsets for the six cardinal directions.
 	var offsets = [
@@ -779,26 +819,47 @@ func _flood_fill(to_remove: Array) -> void:
 	visited.clear()
 
 
-func _detach_disconnected_voxels() -> void:
+func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	var origin: Vector3i = voxel_resource.origin
-	if not voxel_resource.origin in voxel_resource.positions_dict:
+	if not start_pos == Vector3.INF:
+		var start_pos_local = voxel_resource.world_to_vox(start_pos)
+		var offsets = [
+			Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
+			Vector3i(0, 1, 0), Vector3i(0, -1, 0),
+			Vector3i(0, 0, 1), Vector3i(0, 0, -1)
+		]
+		var found_new_origin = false
+		for offset in offsets:
+			var neighbor_vox = start_pos_local + offset
+			if voxel_resource.positions_dict.has(neighbor_vox):
+				origin = neighbor_vox
+				found_new_origin = true
+				break
+		if not found_new_origin:
+			if not voxel_resource.positions.is_empty():
+				origin = Vector3i(Array(voxel_resource.positions).pick_random())
+
+	if not origin in voxel_resource.positions_dict:
 		if not voxel_resource.positions.is_empty():
 			voxel_resource.origin = Vector3i(Array(voxel_resource.positions).pick_random())
+			origin = voxel_resource.origin
+		else:
+			return # No voxels left
 
 	voxel_resource.buffer("positions")
 	voxel_resource.buffer("positions_dict")
 	var to_remove = Array()
 	to_remove.resize(voxel_resource.positions.size())
 	var task_id = WorkerThreadPool.add_task(
-		_flood_fill.bind(to_remove),
+		_flood_fill.bind(to_remove, origin),
 		false, "Flood-Fill"
 	)
-	while not WorkerThreadPool.is_task_completed(task_id):
-		await get_tree().process_frame
+	_flood_fill_tasks[task_id] = to_remove
 
+func _apply_flood_fill_results(to_remove: Array) -> void:
 	var scaled_basis := basis.scaled(voxel_resource.vox_size)
 	var chunks_to_regen = PackedVector3Array()
-	var debris_queue = Dictionary()
+	var debris_queue = []
 
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("chunks")
@@ -813,7 +874,7 @@ func _detach_disconnected_voxels() -> void:
 
 		var chunk = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
-		voxel_resource.chunks[chunk][chunk_pos] = Vector3(-1, -7, -7)
+		voxel_resource.chunks[chunk][chunk_pos] = _REMOVED_VOXEL_MARKER
 
 		if chunk not in chunks_to_regen:
 			chunks_to_regen.append(chunk)
@@ -845,6 +906,7 @@ func _detach_disconnected_voxels() -> void:
 				2:
 					if maximum_debris == -1 or debris_ammount <= maximum_debris:
 						_create_debri_rigid_bodies(debris_queue)
+
 
 
 func _end_of_life() -> void:
