@@ -60,8 +60,12 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 ## [PhysicsMaterial] passed down to [member RigidBody3D.physics_material]
 @export var physics_material: PhysicsMaterial
 @export_subgroup("Experimental")
-## Remove detached voxels
+## @experimental: Changing this value may cause unintended behavior.
+## The ammount of [CollisionShape3D]s to preload for collision generation. [br]
+## If this value is too low then studdering may occur, to high and excessive memory will be used.
+@export_range(0.0, 1.0, .01) var collision_preload_percent: float = .5
 ## @experimental: This property is unstable.
+## Remove detached voxels
 @export var flood_fill = false
 ## @experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
 ## Queue attacks so one attack is being processed at a time with a small cooldown inbetween. [br]
@@ -119,6 +123,9 @@ func _ready() -> void:
 		# Preload rigid body debris (limit to 1000)
 		if debris_type == 2:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
+		
+		# Preload collision_nodes
+		voxel_resource.pool_collision_nodes(floor(collision_preload_percent * voxel_resource.vox_count))
 
 		# Add to VoxelServer
 		VoxelServer.voxel_objects.append(self)
