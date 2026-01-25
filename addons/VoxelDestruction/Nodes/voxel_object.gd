@@ -57,7 +57,7 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 ## @experimental: Clipping is common when damaging the [VoxelObject]
 @export var physics = false
 ## Density for mass calculations. How much one cube meter of voxel weighs in kilograms.
-@export var density = 1
+@export var density: float = 1.0
 ## [PhysicsMaterial] passed down to [member RigidBody3D.physics_material]
 @export var physics_material: PhysicsMaterial
 @export_subgroup("Experimental")
@@ -148,6 +148,8 @@ func _ready() -> void:
 		else:
 			_collision_body = RigidBody3D.new()
 			_collision_body.freeze = true
+			_collision_body.top_level = true
+			_collision_body.global_transform = global_transform
 			_collision_body.physics_material_override  = physics_material
 			var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
 			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
@@ -253,10 +255,12 @@ func _physics_process(delta):
 
 	if not physics or Engine.is_editor_hint(): return
 	if _body_last_transform != _collision_body.transform:
-		position += _collision_body.position
-		rotation += _collision_body.rotation
-		_collision_body.position = Vector3.ZERO
-		_collision_body.rotation = Vector3.ZERO
+		var new_pos := position
+		var new_rot := rotation
+		if new_pos.is_finite():
+			position = _collision_body.position
+		if new_rot.is_finite():
+			rotation = _collision_body.rotation
 		_body_last_transform = _collision_body.transform
 
 
