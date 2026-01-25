@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://cpy5nnkjqxlrb"]
+[gd_scene format=3 uid="uid://cpy5nnkjqxlrb"]
 
 [ext_resource type="PackedScene" uid="uid://cdk6hwb4hi2wc" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn" id="1_v0olj"]
 [ext_resource type="MultiMesh" uid="uid://de8j4dl2lukl6" path="res://addons/VoxelDestruction/Cache/LargeCube3046.tres" id="2_5i50c"]
@@ -82,7 +82,7 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_33auh"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.0529013, -4.838),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("2_5i50c"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("4_706gn"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":1,"debris_weight":1,"debris_density":0.05,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.1,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"queue_attacks":true,"lod_addon":SubResource("Resource_33auh"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_current_cache":"res://addons/VoxelDestruction/Cache/LargeCube3046.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.0529013, -4.838),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("2_5i50c"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("4_706gn"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":1,"debris_weight":1,"debris_density":0.05,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.1,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"collision_preload_percent":0.5,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_33auh"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_current_cache":"res://addons/VoxelDestruction/Cache/LargeCube3046.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
 _voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("7_33auh")])
 _default_voxel_mesh = ExtResource("2_5i50c")
@@ -101,7 +101,7 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_nmjiv"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.0529013, -3.5),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("9_iiuyx"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("5_1yaoi"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":2,"debris_weight":1,"debris_density":0.05,"debris_lifetime":5,"maximum_debris":3000,"dark_dithering":0.1,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_nmjiv"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_current_cache":"res://addons/VoxelDestruction/Cache/MediumCube9310.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.0529013, -3.5),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("9_iiuyx"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("5_1yaoi"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":2,"debris_weight":1,"debris_density":0.05,"debris_lifetime":5,"maximum_debris":3000,"dark_dithering":0.1,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"collision_preload_percent":0.5,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_nmjiv"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_current_cache":"res://addons/VoxelDestruction/Cache/MediumCube9310.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
 _voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("11_nmjiv")])
 _default_voxel_mesh = ExtResource("9_iiuyx")
@@ -120,7 +120,7 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_klbof"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.0529013, -2.5),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("13_wtllw"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("6_7mc1g"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.1,"light_dithering":0.01,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_klbof"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_current_cache":"res://addons/VoxelDestruction/Cache/SmallCube9277.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.0529013, -2.5),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("13_wtllw"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("6_7mc1g"),"invulnerable":false,"darkening":true,"end_of_life":2,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.1,"light_dithering":0.01,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"collision_preload_percent":0.5,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_klbof"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_current_cache":"res://addons/VoxelDestruction/Cache/SmallCube9277.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
 _voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("15_klbof")])
 _default_voxel_mesh = ExtResource("13_wtllw")
@@ -180,7 +180,7 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_1yl3c"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"_import_path":NodePath(""),"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("18_5uij5"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":1,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_1yl3c"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_current_cache":"res://addons/VoxelDestruction/Cache/LODCat4123.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("18_5uij5"),"script":ExtResource("6_706gn"),"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":1,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"physics":false,"density":1,"physics_material":null,"collision_preload_percent":0.5,"flood_fill":false,"queue_attacks":false,"lod_addon":SubResource("Resource_1yl3c"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_current_cache":"res://addons/VoxelDestruction/Cache/LODCat4123.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
 _voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("19_kegbc"), ExtResource("20_1yl3c"), ExtResource("21_2olqu")])
 _default_voxel_mesh = ExtResource("18_5uij5")
@@ -225,84 +225,85 @@ albedo_color = Color(1, 0.5254902, 0, 1)
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q8kok"]
 albedo_color = Color(0, 0.8, 0.03999996, 1)
 
-[node name="Demo" type="Node3D"]
+[node name="Demo" type="Node3D" unique_id=277048707]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=640444369]
 transform = Transform3D(-0.866023, -0.433016, 0.250001, 0, 0.499998, 0.866027, -0.500003, 0.749999, -0.43301, 0, 0, 0)
 shadow_enabled = true
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=38392865]
 environment = SubResource("Environment_7mc1g")
 
-[node name="Player" parent="." instance=ExtResource("1_v0olj")]
+[node name="Player" parent="." unique_id=2047173417 instance=ExtResource("1_v0olj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 15.423088)
+single_attack = false
 camera_sens = 2.0
 
-[node name="Map" type="Node3D" parent="."]
+[node name="Map" type="Node3D" parent="." unique_id=314514017]
 
-[node name="CubeRoom" type="StaticBody3D" parent="Map"]
+[node name="CubeRoom" type="StaticBody3D" parent="Map" unique_id=1297704149]
 
-[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=1934361004]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.497098, 0)
 mesh = SubResource("BoxMesh_6asdb")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_pt2a5")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=317103427]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.497098, 0)
 shape = SubResource("ConvexPolygonShape3D_2k6rh")
 
-[node name="CSGMesh3D2" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D2" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=9756114]
 transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -10, 3, 0)
 mesh = SubResource("BoxMesh_8l2rk")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=162899809]
 transform = Transform3D(-4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0, 1, -10, 3, 0)
 shape = SubResource("ConvexPolygonShape3D_87teg")
 
-[node name="CSGMesh3D3" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D3" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=1288131985]
 transform = Transform3D(1.31134e-07, -1, 0, 1, 1.31134e-07, 0, 0, 0, 1, 10, 3, 0)
 mesh = SubResource("BoxMesh_ye2ff")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=808620909]
 transform = Transform3D(1.31134e-07, -1, 0, 1, 1.31134e-07, 0, 0, 0, 1, 10, 3, 0)
 shape = SubResource("ConvexPolygonShape3D_wa3xy")
 
-[node name="CSGMesh3D4" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D4" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=1579517064]
 transform = Transform3D(-7.10543e-15, 5.96046e-08, 1, 1, 1.31134e-07, 0, -1.31134e-07, 1, -5.96046e-08, 0, 3, -7.5)
 mesh = SubResource("BoxMesh_5nd2i")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=2010438360]
 transform = Transform3D(-7.10543e-15, 5.96046e-08, 1, 1, 1.31134e-07, 0, -1.31134e-07, 1, -5.96046e-08, 0, 3, -7.5)
 shape = SubResource("ConvexPolygonShape3D_lipka")
 
-[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=343637855]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, -6.9849977, 3, 7.5)
 mesh = SubResource("BoxMesh_kc2ys")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=2128240298]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, -6.9849977, 3, 7.5)
 shape = SubResource("ConvexPolygonShape3D_cypvw")
 
-[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/CubeRoom"]
+[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=28645791]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 6.999565, 3, 7.5)
 mesh = SubResource("BoxMesh_kc2ys")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="Map/CubeRoom"]
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="Map/CubeRoom" unique_id=1720510505]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 6.999565, 3, 7.5)
 shape = SubResource("ConvexPolygonShape3D_0kh1a")
 
-[node name="LargeCube" type="MultiMeshInstance3D" parent="Map/CubeRoom"]
+[node name="LargeCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1758150382]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.0529013, -4.838)
 multimesh = ExtResource("2_5i50c")
 script = ExtResource("6_706gn")
@@ -310,12 +311,11 @@ voxel_resource = ExtResource("4_706gn")
 end_of_life = 2
 debris_density = 0.05
 dark_dithering = 0.1
-queue_attacks = true
 lod_addon = SubResource("Resource_33auh")
 _current_cache = "res://addons/VoxelDestruction/Cache/LargeCube3046.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
-[node name="MediumCube" type="MultiMeshInstance3D" parent="Map/CubeRoom"]
+[node name="MediumCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1056690526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.0529013, -3.5)
 multimesh = ExtResource("9_iiuyx")
 script = ExtResource("6_706gn")
@@ -329,12 +329,12 @@ lod_addon = SubResource("Resource_nmjiv")
 _current_cache = "res://addons/VoxelDestruction/Cache/MediumCube9310.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
-[node name="VoxelMarker" type="Marker3D" parent="Map/CubeRoom/MediumCube"]
+[node name="VoxelMarker" type="Marker3D" parent="Map/CubeRoom/MediumCube" unique_id=1356467656]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.7, 1.6, 2.9)
 script = ExtResource("17_5i50c")
 metadata/_custom_type_script = "uid://bdwqfgxjneqbu"
 
-[node name="SmallCube" type="MultiMeshInstance3D" parent="Map/CubeRoom"]
+[node name="SmallCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1391113918]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.0529013, -2.5)
 multimesh = ExtResource("13_wtllw")
 script = ExtResource("6_706gn")
@@ -348,7 +348,7 @@ lod_addon = SubResource("Resource_klbof")
 _current_cache = "res://addons/VoxelDestruction/Cache/SmallCube9277.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
-[node name="Cat" type="MultiMeshInstance3D" parent="Map/CubeRoom"]
+[node name="Cat" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=893280728]
 transform = Transform3D(-0.668235, 0, 0.74395, 0, 1, 0, -0.74395, 0, -0.668235, 8.5, 0.0529013, -5.5)
 multimesh = ExtResource("16_45q0v")
 script = ExtResource("6_706gn")
@@ -358,7 +358,7 @@ debris_density = 0.2
 _current_cache = "res://addons/VoxelDestruction/Cache/Cat5340.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
-[node name="Label3D" type="Label3D" parent="Map/CubeRoom"]
+[node name="Label3D" type="Label3D" parent="Map/CubeRoom" unique_id=1117315592]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06386185, 1.9959848, 7.616699)
 billboard = 1
 text = "There are different types of debri!
@@ -372,83 +372,83 @@ your large Voxel Creations into multiple, smaller VoxelObjects ( < 30,000 )
 can significantly improve performance!
 "
 
-[node name="4Way" type="StaticBody3D" parent="Map"]
+[node name="4Way" type="StaticBody3D" parent="Map" unique_id=1726828263]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 14.87455)
 
-[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/4Way" unique_id=1800514654]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.497098, 0)
 mesh = SubResource("BoxMesh_iiuyx")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_pt2a5")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/4Way" unique_id=143423181]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.497098, 0)
 shape = SubResource("ConcavePolygonShape3D_nmjiv")
 
-[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/4Way" unique_id=320693894]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, -6.9849977, 3, 7.5)
 mesh = SubResource("BoxMesh_kc2ys")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/4Way" unique_id=186989470]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, -6.9849977, 3, 7.5)
 shape = SubResource("ConcavePolygonShape3D_wtllw")
 
-[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/4Way" unique_id=1397325991]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 6.999565, 3, 7.5)
 mesh = SubResource("BoxMesh_kc2ys")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/4Way" unique_id=1120500958]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 6.999565, 3, 7.5)
 shape = SubResource("ConcavePolygonShape3D_klbof")
 
-[node name="CSGMesh3D7" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D7" type="MeshInstance3D" parent="Map/4Way" unique_id=84427029]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, 7.8217993, 2.999999, -5.543682)
 mesh = SubResource("BoxMesh_45q0v")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/4Way" unique_id=727700773]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, 7.8217993, 2.999999, -5.543682)
 shape = SubResource("ConcavePolygonShape3D_5uij5")
 
-[node name="CSGMesh3D8" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D8" type="MeshInstance3D" parent="Map/4Way" unique_id=1807528125]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, 7.8217983, 2.999999, 6.0148525)
 mesh = SubResource("BoxMesh_45q0v")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="Map/4Way" unique_id=465575336]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, 7.8217983, 2.999999, 6.0148525)
 shape = SubResource("ConcavePolygonShape3D_kegbc")
 
-[node name="CSGMesh3D9" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D9" type="MeshInstance3D" parent="Map/4Way" unique_id=178876060]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, -8.018018, 2.999999, -5.543682)
 mesh = SubResource("BoxMesh_45q0v")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="Map/4Way" unique_id=1940686876]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, -8.018018, 2.999999, -5.543682)
 shape = SubResource("ConcavePolygonShape3D_1yl3c")
 
-[node name="CSGMesh3D10" type="MeshInstance3D" parent="Map/4Way"]
+[node name="CSGMesh3D10" type="MeshInstance3D" parent="Map/4Way" unique_id=117570697]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, -8.018019, 2.999999, 6.0148525)
 mesh = SubResource("BoxMesh_45q0v")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D7" type="CollisionShape3D" parent="Map/4Way"]
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="Map/4Way" unique_id=1952749504]
 transform = Transform3D(-1.31134e-07, 1, -1.589321e-08, 1, 1.31134e-07, 0, -5.73205e-15, -1.589321e-08, -1, -8.018019, 2.999999, 6.0148525)
 shape = SubResource("ConcavePolygonShape3D_2olqu")
 
-[node name="LODRoom" type="StaticBody3D" parent="Map"]
+[node name="LODRoom" type="StaticBody3D" parent="Map" unique_id=1317335690]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.895562, 0, 14.87455)
 
-[node name="LODCat" type="MultiMeshInstance3D" parent="Map/LODRoom"]
+[node name="LODCat" type="MultiMeshInstance3D" parent="Map/LODRoom" unique_id=273801921]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889)
 multimesh = ExtResource("18_5uij5")
 script = ExtResource("6_706gn")
@@ -460,7 +460,7 @@ lod_addon = SubResource("Resource_1yl3c")
 _current_cache = "res://addons/VoxelDestruction/Cache/LODCat4123.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
-[node name="Label3D" type="Label3D" parent="Map/LODRoom"]
+[node name="Label3D" type="Label3D" parent="Map/LODRoom" unique_id=273713702]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.075696, 1.9959857, 0.24564362)
 billboard = 1
 text = "This is the LOD system. As you get further, the 
@@ -472,59 +472,59 @@ the VoxelObject does not show/take damage
 
 This cat has been set to invulnerable. =)"
 
-[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="CSGMesh3D" type="MeshInstance3D" parent="Map/LODRoom" unique_id=349094093]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1805334, -0.497098, 0)
 mesh = SubResource("BoxMesh_6q7xl")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_pt2a5")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/LODRoom"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="Map/LODRoom" unique_id=242108656]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1805334, -0.497098, 0)
 shape = SubResource("ConcavePolygonShape3D_28sam")
 
-[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="CSGMesh3D5" type="MeshInstance3D" parent="Map/LODRoom" unique_id=637110966]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 4.598874, 3, 7.5)
 mesh = SubResource("BoxMesh_u282f")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/LODRoom"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="Map/LODRoom" unique_id=1058621512]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 4.598874, 3, 7.5)
 shape = SubResource("ConcavePolygonShape3D_qxqjo")
 
-[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="CSGMesh3D6" type="MeshInstance3D" parent="Map/LODRoom" unique_id=1776018400]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 4.598874, 3, -7.5472593)
 mesh = SubResource("BoxMesh_u282f")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/LODRoom"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="Map/LODRoom" unique_id=2125367196]
 transform = Transform3D(0, -5.96046e-08, -1, 1, 1.31134e-07, 0, 1.31134e-07, -1, 5.96046e-08, 4.598874, 3, -7.5472593)
 shape = SubResource("ConcavePolygonShape3D_skhtk")
 
-[node name="CSGMesh3D7" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="CSGMesh3D7" type="MeshInstance3D" parent="Map/LODRoom" unique_id=52631966]
 transform = Transform3D(1.31134e-07, -1, 1.0331598e-07, 1, 1.31134e-07, 0, -5.73205e-15, 1.0331598e-07, 1, 14.172154, 3, 0.021705627)
 mesh = SubResource("BoxMesh_3t72t")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_5i50c")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/LODRoom"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Map/LODRoom" unique_id=1299911795]
 transform = Transform3D(1.31134e-07, -1, 1.0331598e-07, 1, 1.31134e-07, 0, -5.73205e-15, 1.0331598e-07, 1, 14.172154, 3, 0.021705627)
 shape = SubResource("ConcavePolygonShape3D_3f5ef")
 
-[node name="red" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="red" type="MeshInstance3D" parent="Map/LODRoom" unique_id=1891988989]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.295843, -0.36417678, 0)
 mesh = SubResource("BoxMesh_g57p8")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_30wio")
 
-[node name="orange" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="orange" type="MeshInstance3D" parent="Map/LODRoom" unique_id=657694939]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15184116, -0.36417678, 0)
 mesh = SubResource("BoxMesh_g57p8")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_nu0d5")
 
-[node name="green" type="MeshInstance3D" parent="Map/LODRoom"]
+[node name="green" type="MeshInstance3D" parent="Map/LODRoom" unique_id=233754984]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.915271, -0.36417678, 0)
 mesh = SubResource("BoxMesh_g57p8")
 skeleton = NodePath("../..")

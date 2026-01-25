@@ -2,6 +2,8 @@
 @tool
 extends EditorImportPlugin
 
+const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
+
 enum Resource_type {
 	DEFAULT = 0,
 	COMPACT = 2
@@ -306,6 +308,8 @@ func create_boxes(chunk: PackedVector3Array) -> Array:
 	
 	for pos in chunk:
 		if visited.get(pos, false):
+			continue
+		if pos == _REMOVED_VOXEL_MARKER:
 			continue
 		
 		var box_min = pos

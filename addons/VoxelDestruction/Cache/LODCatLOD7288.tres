@@ -1,4 +1,4 @@
-[gd_resource type="MultiMesh" script_class="VoxelMultiMesh" load_steps=4 format=3 uid="uid://dx4je7uj40h0"]
+[gd_resource type="MultiMesh" script_class="VoxelMultiMesh" format=3 uid="uid://dx4je7uj40h0"]
 
 [ext_resource type="Material" uid="uid://bqifsbjmettt2" path="res://addons/VoxelDestruction/Resources/voxel_material.tres" id="1_8v5gw"]
 [ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="2_4nx3y"]
