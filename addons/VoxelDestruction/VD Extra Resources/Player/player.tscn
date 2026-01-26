@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://cdk6hwb4hi2wc"]
+[gd_scene format=3 uid="uid://cdk6hwb4hi2wc"]
 
 [ext_resource type="Script" uid="uid://dyi37ehqm4dff" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd" id="1_2f8j2"]
 [ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="2_ehonj"]
@@ -17,28 +17,28 @@ point_count = 2
 [sub_resource type="BoxShape3D" id="BoxShape3D_bcjde"]
 size = Vector3(2, 2, 2)
 
-[node name="Player" type="CharacterBody3D"]
+[node name="Player" type="CharacterBody3D" unique_id=1532079223]
 script = ExtResource("1_2f8j2")
 
-[node name="CShape" type="CollisionShape3D" parent="."]
+[node name="CShape" type="CollisionShape3D" parent="." unique_id=1432789878]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
 shape = SubResource("CapsuleShape3D_3rsb5")
 
-[node name="Camera" type="Camera3D" parent="."]
+[node name="Camera" type="Camera3D" parent="." unique_id=897401530]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 fov = 80.0
 
-[node name="crosshair" type="MeshInstance3D" parent="Camera"]
+[node name="crosshair" type="MeshInstance3D" parent="Camera" unique_id=2002199434]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
 mesh = SubResource("PlaneMesh_71ahc")
 
-[node name="RayCast3D" type="RayCast3D" parent="Camera/crosshair"]
+[node name="RayCast3D" type="RayCast3D" parent="Camera/crosshair" unique_id=697674247]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, -4.37114e-08, 0, 4.37114e-08, 1, 0, 0, 0)
 target_position = Vector3(0, -10, 0)
 
-[node name="VoxelDamager" type="Area3D" parent="Camera"]
+[node name="VoxelDamager" type="Area3D" parent="Camera" unique_id=1535566846]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 top_level = true
@@ -49,12 +49,12 @@ base_power = 2
 power_curve = SubResource("Curve_wnqqp")
 knock_back_debri = true
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager" unique_id=667477308]
 shape = SubResource("BoxShape3D_bcjde")
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1876926232]
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer"]
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer" unique_id=1716937924]
 anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
@@ -65,32 +65,32 @@ offset_top = -124.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/PanelContainer" unique_id=718281983]
 layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 10
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/PanelContainer/MarginContainer" unique_id=1511701023]
 layout_mode = 2
 
-[node name="Label2" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label2" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=2075590802]
 layout_mode = 2
 text = "Move - wasd"
 
-[node name="Label5" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label5" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1194626961]
 layout_mode = 2
 text = "Look - Mouse"
 
-[node name="Label3" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label3" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1220699528]
 layout_mode = 2
 text = "Jump - Space"
 
-[node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1772263662]
 layout_mode = 2
 text = "Fire -  Left Mouse"
 
-[node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=2057473880]
 layout_mode = 2
 text = "Quit - Escape"

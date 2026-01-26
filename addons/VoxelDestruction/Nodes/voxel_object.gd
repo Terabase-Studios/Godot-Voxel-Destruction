@@ -52,6 +52,8 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 @export_range(0, 1, .1) var dithering_bias = 0.5
 ## Seed used when choosing if and to what extent a voxel is lightened or darkened.
 @export var dithering_seed: int = 0
+@export_subgroup("Material")
+@export var use_material: bool = true
 @export_subgroup("Physics")
 ## Acts as a [RigidBody3D]
 ## @experimental: Clipping is common when damaging the [VoxelObject]
@@ -179,6 +181,7 @@ func _ready() -> void:
 		voxel_resource.buffer("visible_voxels")
 		voxel_resource.visible_voxels.clear()
 		voxel_resource.debuffer("visible_voxels")
+		voxel_resource.materials.clear()
 
 		# Update voxel colors for dithering
 		if dark_dithering != 0 or light_dithering != 0:
@@ -422,7 +425,8 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		if vox_health > 0:
 			if darkening:
 				multimesh.voxel_set_instance_color(vox_id, _get_vox_color(vox_id).darkened(1.0 - (vox_health * 0.01)))
-				multimesh.voxel_set_instance_custom_data(vox_id, Color())
+				if use_material:
+					multimesh.voxel_set_instance_custom_data(vox_id, Color())
 		else:
 			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_visibility(vox_id, false)
@@ -871,7 +875,8 @@ func _populate_mesh() -> void:
 		var _multimesh = VoxelMultiMesh.new()
 		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		_multimesh.use_colors = true
-		_multimesh.use_custom_data = true
+		if use_material:
+			_multimesh.use_custom_data = true
 		_multimesh.instance_count = voxel_resource.vox_count
 		_multimesh.create_indexes()
 		_multimesh.visible_instance_count = 0
@@ -902,8 +907,9 @@ func _populate_mesh() -> void:
 			var vox_pos = voxel_resource.positions[i]
 			if vox_pos in voxel_resource.visible_voxels:
 				_multimesh.set_instance_visibility(i, true)
-			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos*voxel_resource.vox_size))
-			_multimesh.voxel_set_instance_custom_data(i, voxel_resource.materials[vox_color])
+			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos * voxel_resource.vox_size))
+			if use_material:
+				_multimesh.voxel_set_instance_custom_data(i, voxel_resource.materials[vox_color])
 			_multimesh.voxel_set_instance_color(i, dithered_color.darkened(.1))
 
 		_multimesh = _cache_resource(_multimesh)

@@ -1,0 +1,11 @@
+res://addons/VoxelDestruction/Cache/LODCat6682.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD8391.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD3727.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD8594.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD8391.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD3727.tres
+res://addons/VoxelDestruction/Cache/LODCatLOD8594.tres
+res://addons/VoxelDestruction/Cache/VoxelObject6021.tres
+res://addons/VoxelDestruction/Cache/VoxelObject6702.tres
+res://addons/VoxelDestruction/Cache/VoxelObject1698.tres
+res://addons/VoxelDestruction/Cache/VoxelObject5847.tres
