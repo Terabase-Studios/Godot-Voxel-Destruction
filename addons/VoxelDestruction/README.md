@@ -20,9 +20,10 @@ Wiki: https://github.com/Terabase-Studios/Godot-Voxel-Destruction/wiki
 	a multimesh and because of the shear amount of voxels - even when occluding 
 	the inside ones - oclusion comes at a high cost. This cost is expecially 
 	high for complex voxel objects. I am planning to look into ways to reduce 
-	load on proccessing and the GPU. =)
+	load on proccessing and the GPU. Use the VoxelLODAddon to reduce rendering
+	costs when further away from voxel objects=)
 	
-	4. Rigidbodies for debri lag the game and disappear. There is a rigidbody
+	4. Rigidbodies for debri may lag the game and disappear. There is a rigidbody
 	debris cap that rmoves excess debris. Also, every Rigidbody debri is its
 	own physics object which slows down the game for sure. I would recommend
 	using the Jolt physics engine in project setting. However, you would 
