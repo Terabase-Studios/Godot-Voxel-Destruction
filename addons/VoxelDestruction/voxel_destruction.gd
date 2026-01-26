@@ -5,12 +5,12 @@ class_name VoxelDestructionGodot
 var vox_importer
 
 func _enter_tree() -> void:
+	add_autoload_singleton("VoxelServer", "voxel_server.gd")
 	vox_importer= preload("vox_importer.gd").new()
 	add_import_plugin(vox_importer, true)
 	add_custom_type("VoxelObject", "Gridmap", preload("Nodes/voxel_object.gd"), preload("Nodes/voxel_object.svg"))
 	add_custom_type("VoxelDamager", "Area3D", preload("Nodes/voxel_damager.gd"), preload("Nodes/voxel_damager.svg"))
 	add_custom_type("VoxelMarker", "Marker3D", preload("Nodes/voxel_marker.gd"), preload("Nodes/voxel_marker.svg"))
-	add_autoload_singleton("VoxelServer", "voxel_server.gd")
 	_clean_cache()
 
 
