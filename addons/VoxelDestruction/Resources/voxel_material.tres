@@ -1,13 +1,54 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://bqifsbjmettt2"]
 
 [sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_fsjw1"]
+output_port_for_preview = 0
+expanded_output_ports = [0]
 input_name = "color"
 
+[sub_resource type="VisualShaderNodeVaryingGetter" id="VisualShaderNodeVaryingGetter_6n3bb"]
+expanded_output_ports = [0]
+varying_name = "custom"
+varying_type = 5
+
+[sub_resource type="VisualShaderNodeVectorOp" id="VisualShaderNodeVectorOp_6n3bb"]
+output_port_for_preview = 0
+default_input_values = [0, Vector3(0, 0, 0), 1, Vector3(1, 1, 1)]
+operator = 2
+
+[sub_resource type="VisualShaderNodeFloatOp" id="VisualShaderNodeFloatOp_6n3bb"]
+default_input_values = [0, 1.0, 1, 6.64]
+operator = 1
+
+[sub_resource type="VisualShaderNodeColorFunc" id="VisualShaderNodeColorFunc_ax3tw"]
+function = 5
+
+[sub_resource type="VisualShaderNodeInput" id="VisualShaderNodeInput_u842o"]
+input_name = "instance_custom"
+
+[sub_resource type="VisualShaderNodeVaryingSetter" id="VisualShaderNodeVaryingSetter_5na5v"]
+varying_name = "custom"
+varying_type = 5
+
 [sub_resource type="VisualShader" id="VisualShader_v568b"]
-nodes/fragment/0/position = Vector2(360, 220)
+varyings/custom = "0,5"
+nodes/vertex/0/position = Vector2(400, 100)
+nodes/vertex/2/node = SubResource("VisualShaderNodeInput_u842o")
+nodes/vertex/2/position = Vector2(-160, 100)
+nodes/vertex/3/node = SubResource("VisualShaderNodeVaryingSetter_5na5v")
+nodes/vertex/3/position = Vector2(180, 100)
+nodes/vertex/connections = PackedInt32Array(2, 0, 3, 0)
+nodes/fragment/0/position = Vector2(600, 840)
 nodes/fragment/2/node = SubResource("VisualShaderNodeInput_fsjw1")
-nodes/fragment/2/position = Vector2(-20, 220)
-nodes/fragment/connections = PackedInt32Array(2, 0, 0, 0)
+nodes/fragment/2/position = Vector2(-280, 640)
+nodes/fragment/4/node = SubResource("VisualShaderNodeVaryingGetter_6n3bb")
+nodes/fragment/4/position = Vector2(-260, 1240)
+nodes/fragment/5/node = SubResource("VisualShaderNodeVectorOp_6n3bb")
+nodes/fragment/5/position = Vector2(20, 900)
+nodes/fragment/6/node = SubResource("VisualShaderNodeFloatOp_6n3bb")
+nodes/fragment/6/position = Vector2(320, 1140)
+nodes/fragment/7/node = SubResource("VisualShaderNodeColorFunc_ax3tw")
+nodes/fragment/7/position = Vector2(180, 720)
+nodes/fragment/connections = PackedInt32Array(2, 0, 5, 0, 4, 3, 5, 1, 5, 0, 0, 5, 4, 1, 0, 2, 4, 2, 6, 1, 6, 0, 0, 3, 2, 0, 7, 0, 7, 0, 0, 0)
 
 [resource]
 render_priority = 0

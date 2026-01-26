@@ -76,7 +76,7 @@ func voxel_set_instance_color(instance: int, color: Color) -> void:
 
 ## See [member MultiMesh.set_instance_custom_data]
 func voxel_set_instance_custom_data(instance: int, custom_data: Color) -> void:
-	set_instance_color(induces[instance], custom_data)
+	set_instance_custom_data(induces[instance], custom_data)
 
 
 ## Use this instead of [member MultiMesh.set_instance_transform]

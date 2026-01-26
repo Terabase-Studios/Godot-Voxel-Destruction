@@ -422,6 +422,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		if vox_health > 0:
 			if darkening:
 				multimesh.voxel_set_instance_color(vox_id, _get_vox_color(vox_id).darkened(1.0 - (vox_health * 0.01)))
+				multimesh.voxel_set_instance_custom_data(vox_id, Color())
 		else:
 			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_visibility(vox_id, false)
@@ -870,6 +871,7 @@ func _populate_mesh() -> void:
 		var _multimesh = VoxelMultiMesh.new()
 		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
 		_multimesh.use_colors = true
+		_multimesh.use_custom_data = true
 		_multimesh.instance_count = voxel_resource.vox_count
 		_multimesh.create_indexes()
 		_multimesh.visible_instance_count = 0
@@ -889,18 +891,20 @@ func _populate_mesh() -> void:
 			var dark_variation = random.randf_range(0, dark_dithering)
 			var light_variation = random.randf_range(0, light_dithering)
 			var dithered_color = Color.WHITE
+			var vox_color: Color = _get_vox_color(i)
 			if dark_dithering == 0 or light_dithering == 0:
 				if dark_dithering == 0:
-					dithered_color = _get_vox_color(i).lightened(light_variation)
+					dithered_color = vox_color.lightened(light_variation)
 				elif light_dithering == 0:
-					dithered_color = _get_vox_color(i).darkened(dark_variation)
+					dithered_color = vox_color.darkened(dark_variation)
 			else:
-				dithered_color = _get_vox_color(i).darkened(dark_variation) if randf() > dithering_bias else _get_vox_color(i).lightened(light_variation)
+				dithered_color = vox_color.darkened(dark_variation) if randf() > dithering_bias else vox_color.lightened(light_variation)
 			var vox_pos = voxel_resource.positions[i]
 			if vox_pos in voxel_resource.visible_voxels:
 				_multimesh.set_instance_visibility(i, true)
 			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos*voxel_resource.vox_size))
-			_multimesh.voxel_set_instance_color(i, dithered_color)
+			_multimesh.voxel_set_instance_custom_data(i, voxel_resource.materials[vox_color])
+			_multimesh.voxel_set_instance_color(i, dithered_color.darkened(.1))
 
 		_multimesh = _cache_resource(_multimesh)
 

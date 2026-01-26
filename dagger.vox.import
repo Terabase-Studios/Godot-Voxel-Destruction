@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://cbnsljssngj28"
+path="res://.godot/imported/dagger.vox-0db53cf12a84e542e03c5bd7e516aec2.tres"
+
+[deps]
+
+source_file="res://dagger.vox"
+dest_files=["res://.godot/imported/dagger.vox-0db53cf12a84e542e03c5bd7e516aec2.tres"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=0

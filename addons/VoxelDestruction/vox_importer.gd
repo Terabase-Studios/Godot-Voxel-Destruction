@@ -89,6 +89,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	# Create vars for resource
 	var positions: PackedVector3Array
 	var colors: PackedColorArray
+	var materials: Dictionary
 	var size: Vector3
 	
 	# Load settings
@@ -151,6 +152,31 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 				voxel["color"] = palette[voxel["color_index"] - 1]
 				colors.append(palette[voxel["color_index"] - 1])
 		
+		elif chunk_id == "MATL":
+			var material_id := file.get_32()
+			var property_count := file.get_32()
+
+			var mat := Color(0, 1, 0, 0)
+
+			for i in range(property_count):
+				var key_len := file.get_32()
+				var key := file.get_buffer(key_len).get_string_from_ascii()
+
+				var val_len := file.get_32()
+				var val := file.get_buffer(val_len).get_string_from_ascii()
+
+				match key:
+					"_metal": mat.r = float(val)
+					"_rough": mat.g = float(val)
+					"_emit":  mat.b = float(val)
+					"_trans": mat.a = float(val)
+					"_ior": pass
+					"_d": pass
+					"_type": pass
+
+			# Store by material_id (1-based, like palette)
+			materials[material_id] = mat
+
 		else:
 			# Skip unknown or unused chunks
 			file.seek(file.get_position() + chunk_size)
@@ -162,6 +188,14 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	if voxels.is_empty():
 		push_error("No voxel data found.")
 		return ERR_FILE_CORRUPT
+	
+	# Map materials to voxels
+	for voxel in voxels:
+		var id = voxel["color_index"]
+		if materials.has(id):
+			voxel["material"] = materials[id]
+		else:
+			voxel["material"] = Color(0, 1, 0, 0)
 	
 	# Find the origin
 	var origin = size/Vector3(round(2), round(2), round(2))
@@ -180,7 +214,6 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	voxel_resource.health.resize(positions.size())
 	voxel_resource.health.fill(100)
 	
-	
 	# Create Object/Add colors/Update Positions
 	var start_voxel = voxels[0]
 	if not start_voxel.has("color") or not start_voxel["color"] or not start_voxel["color"] is Color: 
@@ -191,9 +224,10 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		return
 	var index = 0
 	for voxel in voxels:
-		var color = voxel.get("color", Color.WHITE)
+		var color = voxel.get("color", Color.PURPLE)
 		if color not in voxel_resource.colors:
 			voxel_resource.colors.append(color)
+			voxel_resource.materials[color] = voxel["material"]
 		voxel_resource.color_index.append(voxel_resource.colors.find(color))
 		
 		var position = voxel["position"]
