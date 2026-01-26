@@ -44,9 +44,12 @@ var _voxel_coords
 var _invalid = false
 var _hint_collision_node: MeshInstance3D
 var _destroyed: bool = false
+var _last_health: int = 100
 
 ## Emitted when attached voxel is destroyed.
 signal destroyed
+## Emitted when attached voxel is damaged, returns (health after damage, health before damage).
+signal damaged
 
 func _ready():
 	if not Engine.is_editor_hint():
@@ -66,12 +69,23 @@ func _physics_process(delta: float) -> void:
 			if _position_changed_timer == 0:
 				_snap()
 	else:
-		if not _destroyed and _voxel_coords not in get_parent().voxel_resource.positions_dict:
-			position_hint_color = Color(0, 0, 0,position_hint_color.a)
-			_destroyed = true
-			destroyed.emit()
-			if queue_free_on_destroyed:
-				call_deferred("queue_free")
+		if not _destroyed:
+			var parent = get_parent()
+			if _voxel_coords not in parent.voxel_resource.positions_dict:
+				position_hint_color = Color(0, 0, 0,position_hint_color.a)
+				_destroyed = true
+				damaged.emit()
+				destroyed.emit()
+				if queue_free_on_destroyed:
+					call_deferred("queue_free")
+			else:
+				var index = parent.voxel_resource.positions_dict.get(_voxel_coords, false)
+				if index:
+					var health = parent.voxel_resource.health[index]
+					if health != _last_health:
+						damaged.emit(health, _last_health)
+						_last_health = health
+						
 
 func _snap(voxel_scale: Vector3 = _voxel_scale):
 	if _invalid:
