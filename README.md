@@ -2,7 +2,8 @@
 
 ![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Rigid%20Body%20Demo.png)
 
-A flexible and efficient voxel-based destruction system for Godot 4.1+. This addon allows you to create dynamic, destructible objects from `.vox` files.
+A flexible and efficient voxel-based destruction system for Godot 4.1+. This addon allows you to create dynamic, destructible objects from `.vox` files.  
+Please checkl out the [roadmap](https://github.com/users/Terabase-Studios/projects/2)!
 
 ---
 
@@ -13,7 +14,7 @@ A flexible and efficient voxel-based destruction system for Godot 4.1+. This add
 *   **Debris Modes:** Offers multiple debris modes for varying levels of realism and performance.
 *   **Dithering:** Supports adjustable dithering effects for enhanced visual realism during destruction.
 *   **Easy Integration:** Designed for seamless integration into existing Godot projects.
-*   **VoxelObject Health and Damage tracking** Mark voxels and track health for enemies or breaking lights.
+*   **VoxelObject Health and Damage tracking** Mark voxels and track health for enemies or indivisual voxels.
 
 ## Contribution
 I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance whats so ever, please reach me at terabasestudios@gmail.com =)
