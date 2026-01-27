@@ -156,7 +156,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 			var material_id := file.get_32()
 			var property_count := file.get_32()
 
-			var mat := Color(0, 1, 0, 0)
+			var mat := Color(0, 0, 0, 0)
 
 			for i in range(property_count):
 				var key_len := file.get_32()
@@ -195,7 +195,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 		if materials.has(id):
 			voxel["material"] = materials[id]
 		else:
-			voxel["material"] = Color(0, 1, 0, 0)
+			voxel["material"] = Color(0, 0, 0, 0)
 	
 	# Find the origin
 	var origin = size/Vector3(round(2), round(2), round(2))
