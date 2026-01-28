@@ -93,6 +93,7 @@ var debris_ammount: int = 0
 var health: int = 0
 #endregion
 #region Private Variables
+@onready var _voxel_server = get_node("/root/VoxelServer")
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
 var _disabled_locks = []
@@ -123,6 +124,9 @@ func _ready() -> void:
 			#voxel_resource = null
 			_populate_mesh(false)
 	else:
+		if not _voxel_server:
+			push_error("VoxelServer Autoload not found! Please (re)enable the addon")
+			_voxel_server = voxel_server.new()
 		if multimesh.get_reference_count() > 8:
 			multimesh = multimesh.duplicate(true)
 			
@@ -146,10 +150,10 @@ func _ready() -> void:
 		# Preload collision_nodes
 		voxel_resource.pool_collision_nodes(floor(collision_preload_percent * voxel_resource.vox_count))
 
-		# Add to VoxelServer
-		VoxelServer.voxel_objects.append(self)
-		VoxelServer.total_active_voxels += voxel_resource.vox_count
-		VoxelServer.shape_count += voxel_resource.starting_shapes.size()
+		# Add to _voxel_server
+		_voxel_server.voxel_objects.append(self)
+		_voxel_server.total_active_voxels += voxel_resource.vox_count
+		_voxel_server.shape_count += voxel_resource.starting_shapes.size()
 
 		# Create collision body
 		if not physics:
@@ -225,7 +229,7 @@ func _physics_process(delta):
 			# Remove old shapes
 			if _collision_shapes.has(chunk_index):
 				var old_shapes = _collision_shapes[chunk_index]
-				VoxelServer.shape_count -= old_shapes.size()
+				_voxel_server.shape_count -= old_shapes.size()
 				for shape in old_shapes:
 					_shapes_to_remove.append(shape)
 				_collision_shapes[chunk_index].clear()
@@ -243,7 +247,7 @@ func _physics_process(delta):
 				_collision_shapes[chunk_index].append(shape_node)
 
 			if _collision_shapes.has(chunk_index):
-				VoxelServer.shape_count += _collision_shapes[chunk_index].size()
+				_voxel_server.shape_count += _collision_shapes[chunk_index].size()
 			_regen_tasks.erase(task)
 
 	for task in _damage_tasks:
@@ -440,7 +444,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_visibility(vox_id, false)
 			voxel_resource.positions_dict.erase(vox_pos3i)
-			VoxelServer.total_active_voxels -= 1
+			_voxel_server.total_active_voxels -= 1
 
 			var chunk = result["chunk"]
 			voxel_resource.chunks[chunk][result["chunk_pos"]] = _REMOVED_VOXEL_MARKER
@@ -830,7 +834,7 @@ func _apply_flood_fill_results(to_remove: Array) -> void:
 		# Remove voxel from valid positions, chunks, and multimesh
 		multimesh.set_instance_visibility(vox_id, false)
 		voxel_resource.positions_dict.erase(vox_pos3i)
-		VoxelServer.total_active_voxels -= 1
+		_voxel_server.total_active_voxels -= 1
 
 		var chunk = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
@@ -989,10 +993,10 @@ func _end_of_life() -> void:
 			if lod_addon:
 				lod_addon.disabled = true
 			multimesh = null
-			VoxelServer.voxel_objects.erase(self)
-			VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
+			_voxel_server.voxel_objects.erase(self)
+			_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
 			for key in _collision_shapes:
-				VoxelServer.shape_count -= _collision_shapes[key].size()
+				_voxel_server.shape_count -= _collision_shapes[key].size()
 				for shape in _collision_shapes[key]:
 					shape.disabled = true
 			await get_tree().create_timer(10).timeout
@@ -1016,7 +1020,7 @@ func _end_of_life() -> void:
 # Ran when removed from tree
 func _exit_tree():
 	if not Engine.is_editor_hint():
-		VoxelServer.voxel_objects.erase(self)
-		VoxelServer.total_active_voxels -= voxel_resource.positions_dict.size()
+		_voxel_server.voxel_objects.erase(self)
+		_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
 		for key in _collision_shapes:
-			VoxelServer.shape_count -= _collision_shapes[key].size()
+			_voxel_server.shape_count -= _collision_shapes[key].size()

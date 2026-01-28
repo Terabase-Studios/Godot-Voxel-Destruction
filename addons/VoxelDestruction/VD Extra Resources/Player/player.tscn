@@ -94,3 +94,7 @@ text = "Fire -  Left Mouse"
 [node name="Label4" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=2057473880]
 layout_mode = 2
 text = "Quit - Escape"
+
+[node name="Label6" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=237690725]
+layout_mode = 2
+text = "Check Readme"

@@ -25,11 +25,16 @@ class_name VoxelDamager
 var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var global_pos = global_position
+@onready var _voxel_server = get_node("/root/VoxelServer")
+
 
 var _killed = false
 
 func _ready() -> void:
-	VoxelServer.voxel_damagers.append(self)
+	if not _voxel_server and not Engine.is_editor_hint():
+		push_error("VoxelServer Autoload not found! Please (re)enable the addon")
+		_voxel_server = voxel_server.new()
+	_voxel_server.voxel_damagers.append(self)
 	var collision_shape = get_child(0).shape
 	if collision_shape is not BoxShape3D:
 		push_error("[VD ADDON] VoxelDamager collision shape must be BoxShape3D")
@@ -154,4 +159,4 @@ func _convert_curve_to_squared(curve: Curve) -> Curve:
 
 
 func _exit_tree() -> void:
-	VoxelServer.voxel_damagers.erase(self)
+	_voxel_server.voxel_damagers.erase(self)
