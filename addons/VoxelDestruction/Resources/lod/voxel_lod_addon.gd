@@ -146,7 +146,7 @@ func _disable_preview():
 
 ## (Re)populate [VoxelMultiMesh]s used for [VoxelLODSetting]s during previews and runtime [br]
 ## Called when parent [VoxelObject] is (re)populated
-func repopulate():
+func repopulate(delete_old_cache: bool = true):
 	_invalidate_cache()
 	_default_voxel_mesh = _parent.multimesh
 	_voxel_meshes = []
@@ -154,7 +154,7 @@ func repopulate():
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
 		setting.voxel_reduction = lod_resource.voxel_reduction * 100
-		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource), setting))
+		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource), setting, delete_old_cache))
 	for setting in lod_settings:
 		setting.preview = false
 
@@ -285,7 +285,7 @@ func _invalidate_cache():
 			else:
 				push_error("[VD ADDON] Failed to open old_cache.txt")
 
-func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
+func _cache_resource(resource: Resource, setting: VoxelLODSetting, delete_old_cache: bool = true) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
 	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
 	var log_path := cache_dir + "old_cache.txt"
@@ -300,7 +300,7 @@ func _cache_resource(resource: Resource, setting: VoxelLODSetting) -> Resource:
 		if file == null:
 			file = FileAccess.open(log_path, FileAccess.WRITE)
 
-		if file:
+		if file and delete_old_cache:
 			file.seek_end()
 			file.store_line(indexed_current_cache)
 			file.close()

@@ -118,7 +118,11 @@ signal repopulated
 
 
 func _ready() -> void:
-	if not Engine.is_editor_hint():
+	if Engine.is_editor_hint():
+		if multimesh.get_reference_count() > 8:
+			#voxel_resource = null
+			_populate_mesh(false)
+	else:
 		if not voxel_resource:
 			push_warning("[VD Addon] Missing voxel_resource! ", name)
 			_disabled_locks.append("NO VOXEL RESOURCE")
@@ -200,6 +204,8 @@ func _ready() -> void:
 
 #region Every Physics Frame
 func _physics_process(delta):
+	if Engine.is_editor_hint():
+		return
 	for task in _flood_fill_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var to_remove: Array = _flood_fill_tasks[task]
@@ -860,7 +866,7 @@ func _apply_flood_fill_results(to_remove: Array) -> void:
 #endregion
 
 # Ran on populate, update voxel resource changes here.
-func _populate_mesh() -> void:
+func _populate_mesh(delete_old_cache: bool = true) -> void:
 	if voxel_resource:
 		# Buffers vars to prevent performence drop
 		# when finding vox color/position
@@ -912,7 +918,7 @@ func _populate_mesh() -> void:
 				_multimesh.voxel_set_instance_custom_data(i, voxel_resource.materials[vox_color])
 			_multimesh.voxel_set_instance_color(i, dithered_color.darkened(.1))
 
-		_multimesh = _cache_resource(_multimesh)
+		_multimesh = _cache_resource(_multimesh, delete_old_cache)
 
 		#var undo_redo = EditorInterface.get_editor_undo_redo()
 		#undo_redo.create_action("Populated Voxel Object")
@@ -923,7 +929,7 @@ func _populate_mesh() -> void:
 		repopulated.emit()
 		if lod_addon:
 			lod_addon._parent = self
-			lod_addon.repopulate()
+			lod_addon.repopulate(delete_old_cache)
 
 # Utility function that takes a voxid and returns a color
 func _get_vox_color(voxid: int) -> Color:
@@ -949,7 +955,7 @@ func _update_physics() -> void:
 		_collision_body.center_of_mass = center
 
 # Caches voxel_resource
-func _cache_resource(resource: Resource) -> Resource:
+func _cache_resource(resource: Resource, delete_old_cache: bool = true) -> Resource:
 	var cache_dir := "res://addons/VoxelDestruction/Cache/"
 	var path := "%s%s%d.tres" % [cache_dir, name, randi_range(1111, 9999)]
 	var log_path := cache_dir + "old_cache.txt"
@@ -961,7 +967,7 @@ func _cache_resource(resource: Resource) -> Resource:
 		if file == null:
 			file = FileAccess.open(log_path, FileAccess.WRITE)
 
-		if file:
+		if file and delete_old_cache:
 			file.seek_end()
 			file.store_line(_current_cache)
 			file.close()
