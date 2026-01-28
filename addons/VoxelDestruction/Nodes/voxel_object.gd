@@ -8,7 +8,7 @@ class_name VoxelObject
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
 #region Constants
-const _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = 50
+var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
 const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 #endregion
@@ -31,10 +31,11 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 @export_enum("nothing", "disable", "queue_free()") var end_of_life = 1
 @export_subgroup("Debris")
 ## Type of debris generated [br]
+## [b]Default[/b]: Default to ProjectSettings "voxel_destruction/performance/collision_preload_percent"[br]
 ## [b]None[/b]: No debris will be generated [br]
 ## [b]Multimesh[/b]: Debri has limited physics and no collision [br]
 ## [b]Rigid body[/b]: Debris are made up of rigid bodies, heavy performance reduction [br]
-@export_enum("None", "Multimesh", "Rigid Bodies") var debris_type = 1
+@export_enum("Default", "None", "Multimesh", "Rigid Bodies") var debris_type = 0
 ## Strength of gravity on debris
 @export var debris_weight = 1
 ## Chance of generating debris per destroyed voxel
@@ -63,17 +64,10 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 ## [PhysicsMaterial] passed down to [member RigidBody3D.physics_material]
 @export var physics_material: PhysicsMaterial
 @export_subgroup("Experimental")
-## @experimental: Changing this value may cause unintended behavior.
-## The ammount of [CollisionShape3D]s to preload for collision generation. [br]
-## If this value is too low then studdering may occur, to high and excessive memory will be used.
-@export_range(0.0, 1.0, .01) var collision_preload_percent: float = .5
 ## @experimental: This property is unstable.
 ## Remove detached voxels
 @export var flood_fill = false
-## @experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
-## Queue attacks so one attack is being processed at a time with a small cooldown inbetween. [br]
-## This has a chance to increase performace when multiple attacks damage the [VoxelObject] in a short period.
-@export var queue_attacks: bool = false
+
 @export_subgroup("Addons")
 ## Used to reduce rendering costs at varying distances.
 @export var lod_addon: VoxelLODAddon:
@@ -108,6 +102,7 @@ var _regen_tasks: Dictionary = {}
 var _rigid_body_debris_creation_queue: Array = []
 var _multimesh_debris_creation_queue: Array = []
 var _flood_fill_tasks: Dictionary = {}
+var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
 
 @export_storage var _current_cache: String
 #endregion
@@ -127,8 +122,6 @@ func _ready() -> void:
 		if not _voxel_server:
 			push_error("VoxelServer Autoload not found! Please (re)enable the addon")
 			_voxel_server = voxel_server.new()
-		if multimesh.get_reference_count() > 8:
-			multimesh = multimesh.duplicate(true)
 			
 		if not voxel_resource:
 			push_warning("[VD Addon] Missing voxel_resource! ", name)
@@ -138,7 +131,11 @@ func _ready() -> void:
 			push_warning("[VD Addon] VoxelObject is unpopulated! ", name)
 			_disabled_locks.append("NO VOXEL MULTIMESH")
 			return
+		if multimesh.get_reference_count() > 8:
+			multimesh = multimesh.duplicate(true)
 
+		if debris_type == 0:
+			debris_type = ProjectSettings.get_setting("voxel_destruction/debris/default_type", 2) + 1
 		health = voxel_resource.vox_count * 100
 
 		voxel_resource = voxel_resource.duplicate(true)
@@ -148,7 +145,7 @@ func _ready() -> void:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
 		# Preload collision_nodes
-		voxel_resource.pool_collision_nodes(floor(collision_preload_percent * voxel_resource.vox_count))
+		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.1) * voxel_resource.vox_count))
 
 		# Add to _voxel_server
 		_voxel_server.voxel_objects.append(self)
@@ -320,7 +317,7 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 		"voxel_positions": voxel_positions,
 		"global_voxel_positions": global_voxel_positions
 	}
-	if queue_attacks:
+	if _queue_attacks:
 		_attack_queue.append(attack_data)
 		_process_attack_queue()
 	else:
@@ -478,12 +475,12 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 	if physics:
 		_update_physics()
 
-	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
+	if (debris_type != 0 or debris_type != 1) and not debris_queue.is_empty() and debris_density > 0:
 		if debris_lifetime > 0 and maximum_debris > 0:
 			match debris_type:
-				1:
-					_create_debri_multimesh(debris_queue)
 				2:
+					_create_debri_multimesh(debris_queue)
+				3:
 					if maximum_debris == -1 or debris_ammount <= maximum_debris:
 						_create_debri_rigid_bodies(debris_queue)
 	if health <= 0:
