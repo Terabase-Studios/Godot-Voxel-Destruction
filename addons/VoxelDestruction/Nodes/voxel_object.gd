@@ -123,6 +123,9 @@ func _ready() -> void:
 			#voxel_resource = null
 			_populate_mesh(false)
 	else:
+		if multimesh.get_reference_count() > 8:
+			multimesh = multimesh.duplicate(true)
+			
 		if not voxel_resource:
 			push_warning("[VD Addon] Missing voxel_resource! ", name)
 			_disabled_locks.append("NO VOXEL RESOURCE")
