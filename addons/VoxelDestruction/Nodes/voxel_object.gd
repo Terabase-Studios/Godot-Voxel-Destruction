@@ -145,7 +145,7 @@ func _ready() -> void:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
 		# Preload collision_nodes
-		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.1) * voxel_resource.vox_count))
+		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.0) * voxel_resource.vox_count))
 
 		# Add to _voxel_server
 		_voxel_server.voxel_objects.append(self)
@@ -983,6 +983,8 @@ func _cache_resource(resource: Resource, delete_old_cache: bool = true) -> Resou
 
 # Ran when all voxels are destroyed
 func _end_of_life() -> void:
+	voxel_resource._clear()
+	multimesh.instance_count = 0
 	match end_of_life:
 		1:
 			_disabled_locks.append("END OF LIFE")

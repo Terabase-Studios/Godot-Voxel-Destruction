@@ -67,6 +67,8 @@ func hit():
 		await get_tree().process_frame  # Allow UI to update
 	aabb = aabb[0]
 	for body in get_overlapping_bodies():
+		if not is_instance_valid(body):
+			continue
 		if "VoxelDebri" in body.name:
 			if knock_back_debri and body.is_inside_tree():
 				var decay = global_position.distance_to(body.global_position) / range

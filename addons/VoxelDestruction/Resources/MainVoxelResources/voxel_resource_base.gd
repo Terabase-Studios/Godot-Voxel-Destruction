@@ -16,6 +16,8 @@ var debris_pool: Array[RigidBody3D]
 ## Pool of collision nodes
 var collision_pool: Array[CollisionShape3D]
 
+var _cleared = false
+
 ## Creates debris and saves them to [member debri_pool]
 func pool_rigid_bodies(vox_amount: int) -> void:
 	for i in range(0, vox_amount):
@@ -35,6 +37,10 @@ func get_debri() -> RigidBody3D:
 
 ## Adds a debri to the [member debri_pool]
 func return_debri(debri) -> void:
+	if _cleared:
+		if is_instance_valid(debri):
+			debri.queue_free()
+		return
 	debris_pool.append(debri)
 
 
@@ -59,4 +65,24 @@ func get_collision_node() -> CollisionShape3D:
 
 ## Adds a [CollisionShape3D] with a [BoxShape3D] to the [member collision_pool]
 func return_collision_node(node: CollisionShape3D) -> void:
+	if _cleared:
+		if is_instance_valid(node):
+			node.queue_free()
+		return
 	collision_pool.append(node)
+
+
+func _clear() -> void:
+	_cleared = true
+	starting_shapes.clear()
+	materials.clear()
+
+	for node in collision_pool:
+		if is_instance_valid(node):
+			node.queue_free()
+	collision_pool.clear()
+
+	for node in debris_pool:
+		if is_instance_valid(node):
+			node.queue_free()
+	debris_pool.clear()

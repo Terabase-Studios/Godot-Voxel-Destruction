@@ -47,10 +47,10 @@ This has a chance to increase performace when multiple attacks damage the [Voxel
 
 # ==================================================================================================
 	property = "voxel_destruction/performance/collision_preload_percent"
-	value = 0.1
+	value = 0.0
 	description = """@experimental: Changing this value may cause unintended behavior.
-The ammount of [CollisionShape3D]s to preload for collision generation. [br]
-Increase this value to potentially reduce studdering but to high values and excessive memory will be used."""
+The amount of [CollisionShape3D]s to preload for collision generation. [br]
+Increase this value to potentially reduce studdering but may use excessive memory."""
 	if not ProjectSettings.has_setting(property):
 		ProjectSettings.set_setting(property, value)
 	property_info = {

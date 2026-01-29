@@ -174,3 +174,10 @@ func buffer_all():
 func debuffer_all():
 	for property in data_buffer.keys():
 		debuffer(property)
+
+
+func _clear():
+	debuffer_all()
+	_data.clear()
+	_property_size.clear()
+	super()

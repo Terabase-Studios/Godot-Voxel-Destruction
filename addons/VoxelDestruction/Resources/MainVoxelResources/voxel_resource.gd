@@ -27,3 +27,14 @@ func buffer_all():
 ## @deprecated: This function is not available for this Resource
 func debuffer_all():
 	return
+
+func _clear():
+	colors.clear()
+	color_index.clear()
+	health.clear()
+	positions.clear()
+	positions_dict.clear()
+	vox_chunk_indices.clear()
+	chunks.clear()
+	visible_voxels.clear()
+	super()
