@@ -2,23 +2,26 @@
 
 [ext_resource type="Script" uid="uid://dyi37ehqm4dff" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.gd" id="1_2f8j2"]
 [ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="2_ehonj"]
+[ext_resource type="Texture2D" uid="uid://jufujpuvvl2c" path="res://addons/VoxelDestruction/VD Extra Resources/Player/crosshair.png" id="3_wmlkp"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_3rsb5"]
 radius = 0.3
 height = 1.8
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_71ahc"]
-size = Vector2(0.05, 0.05)
-
-[sub_resource type="Curve" id="Curve_wnqqp"]
+[sub_resource type="Curve" id="Curve_sdui0"]
 _data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
 point_count = 2
+
+[sub_resource type="Curve" id="Curve_wnqqp"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(0.111764714, 0.995252), -0.26905337, -0.26905337, 0, 0, Vector2(0.22352943, 0.8005844), 0.0, 0.0, 0, 0, Vector2(0.3156863, 0.58692473), 0.0, 0.0, 0, 0, Vector2(0.50392157, 0.37326515), -2.081811, 0.0, 0, 0, Vector2(1, 0), -1.6963637, 0.0, 0, 0]
+point_count = 6
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_bcjde"]
 size = Vector3(2, 2, 2)
 
 [node name="Player" type="CharacterBody3D" unique_id=1532079223]
 script = ExtResource("1_2f8j2")
+jump_height = 2.0
 
 [node name="CShape" type="CollisionShape3D" parent="." unique_id=1432789878]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
@@ -28,29 +31,24 @@ shape = SubResource("CapsuleShape3D_3rsb5")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 fov = 80.0
 
-[node name="crosshair" type="MeshInstance3D" parent="Camera" unique_id=2002199434]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, -1)
-mesh = SubResource("PlaneMesh_71ahc")
-
-[node name="RayCast3D" type="RayCast3D" parent="Camera/crosshair" unique_id=697674247]
-unique_name_in_owner = true
-transform = Transform3D(1, 0, 0, 0, 1, -4.37114e-08, 0, 4.37114e-08, 1, 0, 0, 0)
-target_position = Vector3(0, -10, 0)
-
 [node name="VoxelDamager" type="Area3D" parent="Camera" unique_id=1535566846]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 top_level = true
 script = ExtResource("2_ehonj")
 base_damage = 120.0
-damage_curve = SubResource("Curve_wnqqp")
+damage_curve = SubResource("Curve_sdui0")
 base_power = 2
 power_curve = SubResource("Curve_wnqqp")
 knock_back_debri = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Camera/VoxelDamager" unique_id=667477308]
 shape = SubResource("BoxShape3D_bcjde")
+
+[node name="RayCast3D" type="RayCast3D" parent="Camera" unique_id=697674247]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, -8.742279e-08, -1, 0, 1, -8.742279e-08, 0, 0, -0.050547577)
+target_position = Vector3(0, -10, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1876926232]
 
@@ -98,3 +96,17 @@ text = "Quit - Escape"
 [node name="Label6" type="Label" parent="CanvasLayer/PanelContainer/MarginContainer/VBoxContainer" unique_id=237690725]
 layout_mode = 2
 text = "Check Readme"
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer" unique_id=1923221571]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 24.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_wmlkp")
