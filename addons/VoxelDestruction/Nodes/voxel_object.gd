@@ -115,7 +115,7 @@ signal repopulated
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
-		if multimesh.get_reference_count() > 8:
+		if multimesh.get_reference_count() > 6:
 			#voxel_resource = null
 			_populate_mesh(false)
 	else:
