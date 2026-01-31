@@ -283,7 +283,7 @@ transform = Transform3D(-0.668235, 0, 0.74395, 0, 1, 0, -0.74395, 0, -0.668235, 
 multimesh = ExtResource("16_45q0v")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("8_7mc1g")
-debris_density = 1.0
+debris_density = 0.2
 _current_cache = "res://addons/VoxelDestruction/Cache/Cat1756.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
