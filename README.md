@@ -15,6 +15,9 @@ Please checkl out the [roadmap](https://github.com/users/Terabase-Studios/projec
 *   **Dithering:** Supports adjustable dithering effects for enhanced visual realism during destruction.
 *   **Easy Integration:** Designed for seamless integration into existing Godot projects.
 *   **VoxelObject Health and Damage tracking** Mark voxels and track health for enemies or indivisual voxels.
+*   **Custom Monitors** View VoxelDestruction specific statistics real time in Debugger/Monitors.
+*   **Custom Project Settings** Change VoxelDestruction specific settings built into the ProjectSettings.
+
 
 ## Contribution
 I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance whats so ever, please reach me at terabasestudios@gmail.com =)
@@ -22,18 +25,18 @@ I want to make this the best addon it can be! Feel free to open an issue or pull
 ## Installation
 
 1.  **Godot Asset Library:**
-    *   Open the "AssetLib" tab in the Godot editor.
-    *   Search for "Voxel Destruction" and click on the addon.
-    *   Click "Download" and then "Install".
+	*   Open the "AssetLib" tab in the Godot editor.
+	*   Search for "Voxel Destruction" and click on the addon.
+	*   Click "Download" and then "Install".
 
 2.  **Enable the Plugin:**
-    *   Go to `Project` > `Project Settings` > `Plugins`.
-    *   Find "Voxel Destruction" in the list and check the "Enable" box.
+	*   Go to `Project` > `Project Settings` > `Plugins`.
+	*   Find "Voxel Destruction" in the list and check the "Enable" box.
 
 ## Getting Started
 
 1.  **Import a `.vox` file:**
-    *   Drag and drop a `.vox` file into your project's file system.
+	*   Drag and drop a `.vox` file into your project's file system.
     *   The custom importer will automatically create a `VoxelResource` file.
 
 2.  **Create a `VoxelObject`:**
@@ -55,41 +58,11 @@ I want to make this the best addon it can be! Feel free to open an issue or pull
             $VoxelDamager.hit()
     ```
 
-## VoxelObject Settings
-
-The `VoxelObject` node has several settings to customize its behavior:
-
-| Setting         | Description                                                                                                                              |
-| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `voxel_resource`  | The `VoxelResource` or `CompactVoxelResource` to display.                                                                                |
-| `invulnerable`    | If `true`, the object cannot be damaged.                                                                                                 |
-| `darkening`       | If `true`, damaged voxels will be darkened based on their health.                                                                        |
-| `end_of_life`     | What the object should do when its health reaches 0 (`Nothing`, `Disable`, `Queue_free()`).                                                |
-| `debris_type`     | The type of debris to generate (`None`, `Multimesh`, `Rigid Bodies`).                                                                      |
-| `debris_weight`   | The strength of gravity on the debris.                                                                                                   |
-| `debris_density`  | The chance of generating debris per destroyed voxel (0.0 to 1.0).                                                                        |
-| `debris_lifetime` | The time in seconds before debris is deleted.                                                                                            |
-| `maximum_debris`  | The maximum number of rigid body debris that can be active at once.                                                                      |
-| `dark_dithering`  | The maximum amount of random darkening applied to voxels.                                                                                |
-| `light_dithering` | The maximum amount of random lightening applied to voxels.                                                                               |
-| `dithering_bias`  | The ratio of random darkening to lightening.                                                                                             |
-| `dithering_seed`  | The seed used for the dithering effect.                                                                                                  |
-| `physics`         | If `true`, the `VoxelObject` will act as a `RigidBody3D`. This is an experimental feature.                                                |
-| `density`         | The density of the object in kilograms per cubic meter, used for mass calculations when `physics` is enabled.                            |
-| `physics_material`| The `PhysicsMaterial` to use when `physics` is enabled.                                                                                  |
-| `flood_fill`      | If `true`, disconnected voxels will be removed after destruction. This is an experimental feature.                                       |
-| `queue_attacks`   | If `true`, damage attacks will be queued and processed one at a time. This can improve performance when many attacks happen at once. |
-| `lod_addon`       | A `VoxelLODAddon` resource to enable Level of Detail for the object.                                                                    |
-
 ## API Reference
 
 ### VoxelDamager
 
 *   `hit()`: Damages all `VoxelObject`s within the damager's range.
-
-### VoxelObject
-
-*   `update_physics()`: Recalculates the center of mass and wakes the object if `physics` is enabled. This is called automatically when voxels are damaged.
 
 ## Contributing
 
