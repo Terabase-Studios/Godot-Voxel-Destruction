@@ -1,6 +1,6 @@
 # Godot Voxel Destruction
 
-![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Rigid%20Body%20Demo.png)
+![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Demo.png)
 
 A flexible and efficient voxel-based destruction system for Godot 4.1+. This addon allows you to create dynamic, destructible objects from `.vox` files.  
 Please checkl out the [roadmap](https://github.com/users/Terabase-Studios/projects/2)!
@@ -71,3 +71,7 @@ Contributions are welcome! If you find a bug or have an idea for a new feature, 
 ## License
 
 This addon is licensed under the MIT License. See the `LICENSE` file for more details.
+
+![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Monitors.png) 
+![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Settings.png)
+![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Lochs_Cat.png)
