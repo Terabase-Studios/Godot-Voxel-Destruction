@@ -20,7 +20,7 @@ Please checkl out the [roadmap](https://github.com/users/Terabase-Studios/projec
 
 
 ## Contribution
-I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance whats so ever, please reach me at terabasestudios@gmail.com =)
+I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance what so ever, please reach me at terabasestudios@gmail.com =)
 
 ## Installation
 
