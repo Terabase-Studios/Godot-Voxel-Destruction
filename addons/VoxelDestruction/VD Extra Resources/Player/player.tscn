@@ -48,6 +48,7 @@ shape = SubResource("BoxShape3D_bcjde")
 [node name="RayCast3D" type="RayCast3D" parent="Camera" unique_id=697674247]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, -8.742279e-08, -1, 0, 1, -8.742279e-08, 0, 0, -0.050547577)
+visible = false
 target_position = Vector3(0, -10, 0)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1876926232]

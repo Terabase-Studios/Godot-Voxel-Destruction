@@ -103,6 +103,7 @@ var _rigid_body_debris_creation_queue: Array = []
 var _multimesh_debris_creation_queue: Array = []
 var _flood_fill_tasks: Dictionary = {}
 var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
+var _culling_body: StaticBody3D
 
 @export_storage var _current_cache: String
 #endregion
@@ -167,6 +168,21 @@ func _ready() -> void:
 			_update_physics()
 
 		add_child(_collision_body)
+
+		
+		_culling_body = StaticBody3D.new()
+		var real_size = voxel_resource.size * voxel_resource.vox_size
+		var culling_shape_node = CollisionShape3D.new()
+		var culling_shape_resource = BoxShape3D.new()
+		culling_shape_resource.size = real_size
+		culling_shape_node.shape = culling_shape_resource
+		_culling_body.add_child(culling_shape_node)
+		culling_shape_node.position = real_size / 2
+		_culling_body.set_collision_mask_value(1, false)
+		_culling_body.set_collision_layer_value(1, false)
+		_culling_body.set_collision_layer_value(11, true)
+		culling_shape_node.debug_color = Color.RED
+		add_child(_culling_body)
 
 		# Create starting shapes
 		var shapes_dict = {}  # Cache for _collision_shapes
