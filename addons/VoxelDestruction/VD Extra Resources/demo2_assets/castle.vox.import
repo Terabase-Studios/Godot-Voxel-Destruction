@@ -1,0 +1,17 @@
+[remap]
+
+importer="vox_object.voxel_destruction"
+type="VoxelResource"
+uid="uid://dtt56nvghrp2x"
+path="res://.godot/imported/castle.vox-2868932b81ebadf77a069153e61be391.tres"
+
+[deps]
+
+source_file="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/castle.vox"
+dest_files=["res://.godot/imported/castle.vox-2868932b81ebadf77a069153e61be391.tres"]
+
+[params]
+
+Scale=Vector3(0.1, 0.1, 0.1)
+Chunk_Size=Vector3(16, 16, 16)
+Resource_type=0

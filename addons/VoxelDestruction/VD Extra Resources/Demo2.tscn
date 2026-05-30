@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://main"]
+
+[ext_resource type="Script" uid="uid://bxsx48ynbg25q" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/main.gd" id="1_6q3hf"]
+[ext_resource type="Script" uid="uid://clqr3c4eyqexg" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/camera_free.gd" id="2_giqsj"]
+[ext_resource type="MultiMesh" uid="uid://6xb2dgim0v1u" path="res://addons/VoxelDestruction/Cache/VoxelObject3283.tres" id="3_wmklt"]
+[ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="4_gag3f"]
+[ext_resource type="Resource" uid="uid://dtt56nvghrp2x" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/castle.vox" id="5_nghnw"]
+[ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="6_4lswk"]
+[ext_resource type="Script" uid="uid://b8nwcw2tr2ff2" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/debug_collisionboxes.gd" id="7_mmqss"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(20, 0.5, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(20, 0.5, 20)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
+albedo_color = Color(0.3, 0.3, 0.3, 1)
+
+[sub_resource type="Curve" id="Curve_tefeu"]
+_data = [Vector2(0, 1), 0.0, 0.0, 0, 0, Vector2(1, 0), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tefeu"]
+size = Vector3(2, 2, 2)
+
+[node name="Main" type="Node3D" unique_id=2145385552]
+script = ExtResource("1_6q3hf")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=36954640]
+transform = Transform3D(1, 0, 0, 0, 0.76592153, 0.64293414, 0, -0.64293414, 0.76592153, 0.93985045, 2.3180685, 3.0380683)
+script = ExtResource("2_giqsj")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1833161756]
+transform = Transform3D(0.866, -0.354, 0.354, 0, 0.707, 0.707, -0.5, -0.612, 0.612, 0, 10, 0)
+light_energy = 1.5
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=815632966]
+
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1031964052]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.25, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=1991198000]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=745569063]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("StandardMaterial3D_floor")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=884839527]
+
+[node name="Label" type="Label" parent="HUD" unique_id=846426757]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = 50.0
+text = "Left Click on the castle to destroy it | F1 = toggle debug boxes"
+horizontal_alignment = 1
+
+[node name="VoxelObject" type="MultiMeshInstance3D" parent="." unique_id=43950003]
+multimesh = ExtResource("3_wmklt")
+script = ExtResource("4_gag3f")
+voxel_resource = ExtResource("5_nghnw")
+debris_weight = 2
+debris_density = 0.25
+debris_lifetime = 6
+flood_fill = true
+structural_physics = true
+_current_cache = "res://addons/VoxelDestruction/Cache/VoxelObject3283.tres"
+metadata/_custom_type_script = "uid://y48ewqgyud4h"
+
+[node name="VoxelDamager" type="Area3D" parent="." unique_id=1148610850]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+script = ExtResource("6_4lswk")
+base_damage = 50.0
+damage_curve = SubResource("Curve_tefeu")
+power_curve = SubResource("Curve_tefeu")
+metadata/_custom_type_script = "uid://b533raywjeqla"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VoxelDamager" unique_id=1181519691]
+shape = SubResource("BoxShape3D_tefeu")
+debug_color = Color(0.023529412, 1, 0.2, 0.41960785)
+
+[node name="Debug" type="Node3D" parent="." unique_id=601745002]
+script = ExtResource("7_mmqss")

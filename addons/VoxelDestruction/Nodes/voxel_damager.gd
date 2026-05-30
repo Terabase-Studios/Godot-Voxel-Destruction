@@ -12,12 +12,12 @@ class_name VoxelDamager
 @export var group: String
 @export_subgroup("Damage")
 ## Damage at damager origin
-@export var base_damage: float
+@export var base_damage: float = 30.0
 ## Damage decay from left (Origin) to right (Collision edge)
 @export var damage_curve: Curve
 @export_subgroup("Power")
 ## Launch power of debris at damager origin.
-@export var base_power: int
+@export var base_power: int = 10
 ## Power decay from left (Origin) to right (Collision edge)
 @export var power_curve: Curve = Curve.new()
 ## Knock back rigid body debris.
@@ -90,7 +90,7 @@ func hit():
 				var voxels = Array()
 				voxels.resize(3)
 				task_id = WorkerThreadPool.add_task(
-					_get_voxels_in_aabb.bind(aabb, parent, parent.transform, voxels),
+					_get_voxels_in_aabb.bind(aabb, parent, parent.global_transform, voxels),
 					false, "Getting Voxels to Damage"
 				)
 				while not WorkerThreadPool.is_task_completed(task_id):
