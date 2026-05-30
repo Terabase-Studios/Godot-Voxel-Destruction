@@ -18,6 +18,8 @@ Please checkl out the [roadmap](https://github.com/users/Terabase-Studios/projec
 *   **Custom Monitors** View VoxelDestruction specific statistics real time in Debugger/Monitors.
 *   **Custom Project Settings** Change VoxelDestruction specific settings built into the ProjectSettings.
 
+## Project State
+This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned.
 
 ## Contribution
 I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance what so ever, please reach me at support@terabasestudios.com =)
