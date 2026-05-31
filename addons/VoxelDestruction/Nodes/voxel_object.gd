@@ -416,6 +416,12 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 
 
 func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void:
+	# Drop late-arriving damage tasks against a dead multimesh. _end_of_life()
+	# may have set instance_count = 0 and/or nulled multimesh while
+	# WorkerThreadPool tasks were still in flight; applying them against the
+	# dead multimesh produces "Instance index out of bounds" spam.
+	if multimesh == null or multimesh.instance_count == 0:
+		return
 	voxel_resource.buffer("positions")
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("chunks")
