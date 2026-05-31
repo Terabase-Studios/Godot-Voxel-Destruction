@@ -70,8 +70,7 @@ voxel_resource = ExtResource("5_nghnw")
 debris_weight = 2
 debris_density = 0.25
 debris_lifetime = 6
-flood_fill = true
-structural_physics = true
+flood_fill = 3
 _current_cache = "res://addons/VoxelDestruction/Cache/VoxelObject3283.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
