@@ -1148,3 +1148,10 @@ func _exit_tree():
 		_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
 		for key in _collision_shapes:
 			_voxel_server.shape_count -= _collision_shapes[key].size()
+		# Free orphaned collision/debris pool nodes on the queue_free() path.
+		# _end_of_life() calls _clear() but _exit_tree() does not; partially-carved
+		# objects freed via queue_free() leak ~33 CollisionShape3D per object.
+		# Guard prevents double-free on the _end_of_life(end_of_life=2) path,
+		# which already calls _clear() before queue_free().
+		if voxel_resource != null and not voxel_resource._cleared:
+			voxel_resource._clear()
