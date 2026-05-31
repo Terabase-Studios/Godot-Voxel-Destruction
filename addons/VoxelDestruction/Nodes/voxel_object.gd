@@ -7,6 +7,7 @@ class_name VoxelObject
 ## [br]
 ## Must be damaged by calling [method VoxelDamager.hit] on a nearby [VoxelDamager]
 
+#region Declarations 
 #region Constants
 var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
@@ -65,9 +66,12 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 @export var physics_material: PhysicsMaterial
 @export_subgroup("Experimental")
 ## @experimental: This property is unstable.
-## Remove detached voxels
-@export var flood_fill = false
-
+## Handle detached voxels [br]
+## [b]Default[/b]: Default to ProjectSettings "voxel_destruction/other/flood_fill_default"[br]
+## [b]Disabled[/b]: Do not handle detached voxels [br]
+## [b]Multimesh[/b]: Detached voxels are destroyed[br]
+## [b]Rigid Body[/b]: Detached voxels fall as a rigid body debris and despawns after [member VoxelObject.debris_lifetime][br]
+@export_enum("Default", "Disabled", "Destroy", "Rigid Body") var flood_fill = 0
 @export_subgroup("Addons")
 ## Used to reduce rendering costs at varying distances.
 @export var lod_addon: VoxelLODAddon:
@@ -81,13 +85,13 @@ const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 #region Public Variables
 ## Used to debug the amount of time damaging takes. Measured in milliseconds
 var last_damage_time: int = -1
-## The ammount of debris deployed by the [VoxelObject]
+## The amount of debris deployed by the [VoxelObject]
 var debris_ammount: int = 0
 ## The total health of all voxels
 var health: int = 0
 #endregion
 #region Private Variables
-@onready var _voxel_server = get_node("/root/VoxelServer")
+@onready var _voxel_server = get_node("/root/VoxelServer") if not Engine.is_editor_hint() else null
 var _collision_shapes = Dictionary()
 var _collision_body: PhysicsBody3D
 var _disabled_locks = []
@@ -107,6 +111,7 @@ var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/perfor
 @export_storage var _current_cache: String
 #endregion
 #region Signals
+#endregion
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
@@ -114,8 +119,13 @@ signal repopulated
 
 
 func _ready() -> void:
+	#region Backwards Compatability
+	# flood_fill might be stored as a bool instead of an int.
+	if not flood_fill:
+		flood_fill = 0
+	#endregion
 	if Engine.is_editor_hint():
-		if multimesh.get_reference_count() > 6:
+		if multimesh and multimesh.get_reference_count() > 6:
 			#voxel_resource = null
 			_populate_mesh(false)
 	else:
@@ -134,10 +144,13 @@ func _ready() -> void:
 		if multimesh.get_reference_count() > 8:
 			multimesh = multimesh.duplicate(true)
 
+		# Resolve defaults
 		if debris_type == 0:
 			debris_type = ProjectSettings.get_setting("voxel_destruction/debris/default_type", 2) + 1
-		health = voxel_resource.vox_count * 100
+		if flood_fill == 0:
+			flood_fill = ProjectSettings.get_setting("voxel_destruction/other/flood_fill_default", 1) + 1
 
+		health = voxel_resource.vox_count * 100
 		voxel_resource = voxel_resource.duplicate(true)
 
 		# Preload rigid body debris (limit to 1000)
@@ -212,8 +225,8 @@ func _physics_process(delta):
 		return
 	for task in _flood_fill_tasks:
 		if WorkerThreadPool.is_task_completed(task):
-			var to_remove: Array = _flood_fill_tasks[task]
-			_apply_flood_fill_results(to_remove)
+			var flood_result: Array = _flood_fill_tasks[task]
+			_apply_flood_fill_results(flood_result)
 			_flood_fill_tasks.erase(task)
 
 	_process_multimesh_debris_creation_queue()
@@ -487,7 +500,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		_end_of_life()
 		return
 
-	if flood_fill:
+	if flood_fill != 1:
 		await _detach_disconnected_voxels(damager.global_position)
 
 
@@ -735,54 +748,52 @@ func _process_rigid_body_debris_creation_queue() -> void:
 
 
 #region Flood Fill
-func _flood_fill(to_remove: Array, origin: Vector3i) -> void:
-	# Update buffers to ensure current data.
-	voxel_resource.buffer("positions")
-	voxel_resource.buffer("positions_dict")
 
-	# Retrieve positions dctionar for iteration later.
-	var positions_dict = voxel_resource.positions_dict
-
-	var queue = [origin]
-	var queue_index = 0  # Points to the current element in the queue.
-
-	var visited = {}
-	visited[origin] = true
-
-	# Offsets for the six cardinal directions.
+# BFS from origin. Returns a Dictionary mapping voxel -> group_index,
+# and populates groups (Array of Arrays of Vector3i).
+# The group containing origin is group 0 (the "anchored" group that stays).
+func _flood_fill_groups(positions_dict: Dictionary) -> Array:
 	var offsets = [
 		Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
 		Vector3i(0, 1, 0), Vector3i(0, -1, 0),
 		Vector3i(0, 0, 1), Vector3i(0, 0, -1)
 	]
+	var visited := {}
+	var groups := []  # Array of PackedVector3Array
 
-	# Perform the flood fill without shifting array elements.
-	while queue_index < queue.size():
-		var current_vox = queue[queue_index]
-		queue_index += 1
+	for start_vox in positions_dict.keys():
+		if visited.has(start_vox):
+			continue
+		# BFS from this unvisited voxel
+		var group := []
+		var queue := [start_vox]
+		var qi := 0
+		visited[start_vox] = true
+		while qi < queue.size():
+			var cur: Vector3i = queue[qi]
+			qi += 1
+			group.append(cur)
+			for offset in offsets:
+				var nb: Vector3i = cur + offset
+				if not visited.has(nb) and positions_dict.has(nb):
+					visited[nb] = true
+					queue.append(nb)
+		groups.append(group)
 
-		for offset in offsets:
-			var neighbor_vox = current_vox + offset
-			# Only proceed if neighbor has not been visited and exists in positions_dict.
-			if not visited.has(neighbor_vox) and positions_dict.has(neighbor_vox):
-				visited[neighbor_vox] = true
-				queue.append(neighbor_vox)
-
-	var index = 0
-	for vox: Vector3i in positions_dict.keys():
-		if not visited.has(vox):
-			to_remove[index] = vox
-			index += 1
-
-	positions_dict.clear()
-	queue.clear()
-	visited.clear()
+	return groups
 
 
 func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
+	# Resolve the anchor origin — pick a neighbor of the hit point, or fall back to stored origin
 	var origin: Vector3i = voxel_resource.origin
 	if not start_pos == Vector3.INF:
-		var start_pos_local = voxel_resource.world_to_vox(start_pos)
+		# Convert world hit position to local voxel grid coords
+		var local_pos := global_transform.affine_inverse() * start_pos
+		var start_pos_local := Vector3i(
+			int(floor(local_pos.x / voxel_resource.vox_size.x)),
+			int(floor(local_pos.y / voxel_resource.vox_size.y)),
+			int(floor(local_pos.z / voxel_resource.vox_size.z))
+		)
 		var offsets = [
 			Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
 			Vector3i(0, 1, 0), Vector3i(0, -1, 0),
@@ -790,9 +801,9 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 		]
 		var found_new_origin = false
 		for offset in offsets:
-			var neighbor_vox = start_pos_local + offset
-			if voxel_resource.positions_dict.has(neighbor_vox):
-				origin = neighbor_vox
+			var nb = start_pos_local + offset
+			if voxel_resource.positions_dict.has(nb):
+				origin = nb
 				found_new_origin = true
 				break
 		if not found_new_origin:
@@ -804,50 +815,85 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 			voxel_resource.origin = Vector3i(Array(voxel_resource.positions).pick_random())
 			origin = voxel_resource.origin
 		else:
-			return # No voxels left
+			return
 
 	voxel_resource.buffer("positions")
 	voxel_resource.buffer("positions_dict")
-	var to_remove = Array()
-	to_remove.resize(voxel_resource.positions.size())
-	var task_id = WorkerThreadPool.add_task(
-		_flood_fill.bind(to_remove, origin),
-		false, "Flood-Fill"
-	)
-	_flood_fill_tasks[task_id] = to_remove
+
+	# Run group detection on a thread
+	var result = Array()
+	result.resize(1)
+	result[0] = null
+	var positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
+	var task_callable = func():
+		var groups = _flood_fill_groups(positions_dict_snapshot)
+		# Keep the largest group as the anchored structure.
+		# Sort descending by size so groups[0] is always the biggest.
+		groups.sort_custom(func(a, b): return a.size() > b.size())
+		result[0] = groups
+	var task_id = WorkerThreadPool.add_task(task_callable, false, "Structural Flood-Fill")
+	_flood_fill_tasks[task_id] = result
 
 
-func _apply_flood_fill_results(to_remove: Array) -> void:
-	var scaled_basis := basis.scaled(voxel_resource.vox_size)
-	var chunks_to_regen = PackedVector3Array()
-	var debris_queue = []
+func _apply_flood_fill_results(result: Array) -> void:
+	var groups: Array = result[0]
+	if groups == null or groups.is_empty():
+		return
+
+	# Group 0 is the anchored group (contains origin / largest connected mass).
+	# All other groups are detached and should fall.
+	var anchored_group: Array = groups[0]
+	var anchored_set := {}
+	for v in anchored_group:
+		anchored_set[v] = true
+
+	# Collect all voxels NOT in the anchored group
+	var detached_groups: Array = groups.slice(1)
+	if detached_groups.is_empty():
+		return  # Nothing disconnected — nothing to do
 
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("chunks")
 	voxel_resource.buffer("vox_chunk_indices")
-	for vox_pos3i in to_remove:
-		if not vox_pos3i: break
-		var vox_id = voxel_resource.positions_dict[vox_pos3i]
-		# Remove voxel from valid positions, chunks, and multimesh
-		multimesh.set_instance_visibility(vox_id, false)
-		voxel_resource.positions_dict.erase(vox_pos3i)
-		_voxel_server.total_active_voxels -= 1
 
-		var chunk = voxel_resource.vox_chunk_indices[vox_id]
-		var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
-		voxel_resource.chunks[chunk][chunk_pos] = _REMOVED_VOXEL_MARKER
+	var chunks_to_regen := PackedVector3Array()
+	var scaled_basis := global_transform.basis.scaled(voxel_resource.vox_size)
 
-		if chunk not in chunks_to_regen:
-			chunks_to_regen.append(chunk)
+	if flood_fill == 3:
+		# Spawn each detached group as a falling RigidBody3D with its own MultiMesh
+		for group in detached_groups:
+			if group.is_empty():
+				continue
+			_spawn_falling_chunk(group, scaled_basis, chunks_to_regen)
+	else:
+		# Original behaviour: just delete detached voxels and spawn debris
+		var debris_queue = []
+		for group in detached_groups:
+			for vox_pos3i in group:
+				if not voxel_resource.positions_dict.has(vox_pos3i):
+					continue
+				var vox_id = voxel_resource.positions_dict[vox_pos3i]
+				multimesh.set_instance_visibility(vox_id, false)
+				voxel_resource.positions_dict.erase(vox_pos3i)
+				_voxel_server.total_active_voxels -= 1
+				var chunk = voxel_resource.vox_chunk_indices[vox_id]
+				var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
+				voxel_resource.chunks[chunk][chunk_pos] = _REMOVED_VOXEL_MARKER
+				if chunk not in chunks_to_regen:
+					chunks_to_regen.append(chunk)
+				health -= voxel_resource.health[vox_id]
+				var vt := Transform3D(scaled_basis, global_transform.origin)
+				var lvc = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+				debris_queue.append({ "pos": vt * lvc, "origin": Vector3.ZERO, "power": 0 })
 
-		health -= voxel_resource.health[vox_id]
-
-		# Scale the transform to match the size of each voxel
-		var voxel_transform := Transform3D(scaled_basis, transform.origin)
-		var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
-		# Convert to global space using full transform
-		var voxel_global_pos = voxel_transform * local_voxel_centered
-		debris_queue.append({ "pos": voxel_global_pos, "origin": Vector3.ZERO, "power": 0 })
+		if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
+			if debris_lifetime > 0 and maximum_debris > 0:
+				match debris_type:
+					2:
+						_create_debri_multimesh(debris_queue)
+					3:
+						if maximum_debris == -1 or debris_ammount <= maximum_debris:
+							_create_debri_rigid_bodies(debris_queue)
 
 	if health <= 0:
 		_end_of_life()
@@ -859,15 +905,89 @@ func _apply_flood_fill_results(to_remove: Array) -> void:
 	if physics:
 		_update_physics()
 
-	if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
-		if debris_lifetime > 0 and maximum_debris > 0:
-			match debris_type:
-				1:
-					_create_debri_multimesh(debris_queue)
-				2:
-					if maximum_debris == -1 or debris_ammount <= maximum_debris:
-						_create_debri_rigid_bodies(debris_queue)
+
+func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: PackedVector3Array) -> void:
+	if group.is_empty():
+		return
+
+	# Calculate center of the chunk in global space for the RigidBody origin
+	var vt := Transform3D(scaled_basis, global_transform.origin)
+	var center := Vector3.ZERO
+	for vox_pos3i in group:
+		center += vt * (Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5))
+	center /= group.size()
+
+	# Build a MultiMesh for this chunk
+	var chunk_multimesh := MultiMesh.new()
+	chunk_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	chunk_multimesh.use_colors = true
+	chunk_multimesh.instance_count = group.size()
+
+	# Reuse the same mesh as the parent VoxelObject
+	chunk_multimesh.mesh = multimesh.mesh
+
+	# Set instance transforms relative to the chunk center
+	for i in group.size():
+		var vox_pos3i: Vector3i = group[i]
+		var vox_global := vt * (Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5))
+		var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
+		var local_offset := vox_global - center
+		chunk_multimesh.set_instance_transform(i, Transform3D(Basis(), local_offset))
+		if vox_id >= 0:
+			chunk_multimesh.set_instance_color(i, multimesh.get_instance_color(multimesh.induces.get(vox_id, vox_id)))
+
+	# Create the RigidBody3D with a single box collision covering the chunk AABB
+	var rb := RigidBody3D.new()
+	rb.top_level = true
+	rb.gravity_scale = debris_weight
+	rb.name = "FallingChunk"
+
+	var mmi := MultiMeshInstance3D.new()
+	mmi.multimesh = chunk_multimesh
+	mmi.top_level = false
+	rb.add_child(mmi)
+
+	# Compute AABB of the chunk for a single collision shape
+	var min_v := Vector3(INF, INF, INF)
+	var max_v := Vector3(-INF, -INF, -INF)
+	for vox_pos3i in group:
+		var lv := vt * (Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)) - center
+		min_v = min_v.min(lv - voxel_resource.vox_size * 0.5)
+		max_v = max_v.max(lv + voxel_resource.vox_size * 0.5)
+	var col := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = (max_v - min_v)
+	col.shape = box
+	col.position = (min_v + max_v) * 0.5
+	rb.add_child(col)
+
+	# Remove these voxels from the parent VoxelObject
+	for vox_pos3i in group:
+		if not voxel_resource.positions_dict.has(vox_pos3i):
+			continue
+		var vox_id = voxel_resource.positions_dict[vox_pos3i]
+		multimesh.set_instance_visibility(vox_id, false)
+		voxel_resource.positions_dict.erase(vox_pos3i)
+		_voxel_server.total_active_voxels -= 1
+		health -= voxel_resource.health[vox_id]
+		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
+		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
+		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
+		if chunk_idx not in chunks_to_regen:
+			chunks_to_regen.append(chunk_idx)
+
+	# Add to scene and position at chunk center
+	get_tree().root.add_child(rb)
+	rb.global_position = center
+
+	# Auto-free after debris_lifetime seconds
+	var lifetime = debris_lifetime if debris_lifetime > 0 else 10.0
+	get_tree().create_timer(lifetime).timeout.connect(func():
+		if is_instance_valid(rb):
+			rb.queue_free()
+	)
 #endregion
+
 
 # Ran on populate, update voxel resource changes here.
 func _populate_mesh(delete_old_cache: bool = true) -> void:
@@ -935,11 +1055,13 @@ func _populate_mesh(delete_old_cache: bool = true) -> void:
 			lod_addon._parent = self
 			lod_addon.repopulate(delete_old_cache)
 
+
 # Utility function that takes a voxid and returns a color
 func _get_vox_color(voxid: int) -> Color:
 	voxel_resource.buffer("colors")
 	voxel_resource.buffer("color_index")
 	return voxel_resource.colors[voxel_resource.color_index[voxid]]
+
 
 # Recalculates center of mass and awakes if [member VoxelObject.physics] is on. [br]
 # When the [RigidBody3D] updates it's mass, clipping can occur. [br]
@@ -957,6 +1079,7 @@ func _update_physics() -> void:
 		center /= count
 		center *= voxel_resource.vox_size
 		_collision_body.center_of_mass = center
+
 
 # Caches voxel_resource
 func _cache_resource(resource: Resource, delete_old_cache: bool = true) -> Resource:
@@ -980,6 +1103,7 @@ func _cache_resource(resource: Resource, delete_old_cache: bool = true) -> Resou
 
 	_current_cache = path
 	return ResourceLoader.load(path)
+
 
 # Ran when all voxels are destroyed
 func _end_of_life() -> void:
@@ -1015,6 +1139,7 @@ func _end_of_life() -> void:
 							child.process_mode = proccess_mode
 		2:
 			queue_free()
+
 
 # Ran when removed from tree
 func _exit_tree():

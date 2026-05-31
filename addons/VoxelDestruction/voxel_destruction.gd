@@ -120,6 +120,29 @@ In other words, the amount of time before [CompactVoxelResource] recompresses da
 	ProjectSettings.set_initial_value(property, value)
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
+
+# ==================================================================================================
+	property = "voxel_destruction/other/flood_fill_default"
+	value = 0
+	description = """@experimental: This property is unstable.
+Handle detached voxels [br]
+[b]Disabled[/b]: Do not handle detached voxels [br]
+[b]Multimesh[/b]: Detached voxels are destroyed[br]
+[b]Rigid body[/b]: Detached voxels fall as rigid bodies[br]
+"""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_ENUM,
+		"hint_string": "Disabled,Multimesh,Rigid Body"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
 	ProjectSettings.save()
 
 
@@ -134,6 +157,7 @@ func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/debris/maximum_debris")
 	ProjectSettings.clear("voxel_destruction/physics/default_density")
 	ProjectSettings.clear("voxel_destruction/resources/compact/buffer_lifetime")
+	ProjectSettings.clear("voxel_destruction/other/flood_fill_default")
 
 
 func _clean_cache():
