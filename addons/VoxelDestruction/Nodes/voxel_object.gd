@@ -416,10 +416,7 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 
 
 func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void:
-	# Drop late-arriving damage tasks against a dead multimesh. _end_of_life()
-	# may have set instance_count = 0 and/or nulled multimesh while
-	# WorkerThreadPool tasks were still in flight; applying them against the
-	# dead multimesh produces "Instance index out of bounds" spam.
+	# Drop late-arriving damage tasks against a dead multimesh.
 	if multimesh == null or multimesh.instance_count == 0:
 		return
 	voxel_resource.buffer("positions")
@@ -1155,9 +1152,5 @@ func _exit_tree():
 		for key in _collision_shapes:
 			_voxel_server.shape_count -= _collision_shapes[key].size()
 		# Free orphaned collision/debris pool nodes on the queue_free() path.
-		# _end_of_life() calls _clear() but _exit_tree() does not; partially-carved
-		# objects freed via queue_free() leak ~33 CollisionShape3D per object.
-		# Guard prevents double-free on the _end_of_life(end_of_life=2) path,
-		# which already calls _clear() before queue_free().
 		if voxel_resource != null and not voxel_resource._cleared:
 			voxel_resource._clear()
