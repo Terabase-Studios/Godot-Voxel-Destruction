@@ -103,6 +103,40 @@ Increase this value to potentially reduce studdering but may use excessive memor
 # ==================================================================================================
 
 # ==================================================================================================
+	property = "voxel_destruction/debris/multimesh/batch_size"
+	value = 100
+	description = """Maximum amount of multimesh debris to spawn each physics frame."""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,60,1,hide_control,or_greater"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
+	property = "voxel_destruction/debris/rigid_body/batch_size"
+	value = 10
+	description = """Maximum amount of Rigid Body debris to spawn each physics frame."""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,60,1,hide_control,or_greater"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
 	property = "voxel_destruction/resources/compact/buffer_lifetime"
 	value = 10
 	description = """Time since last buffered before a variable is automatically debuffered. [br]
@@ -123,11 +157,11 @@ In other words, the amount of time before [CompactVoxelResource] recompresses da
 
 # ==================================================================================================
 	property = "voxel_destruction/other/flood_fill_default"
-	value = 0
+	value = 1
 	description = """@experimental: This property is unstable.
 Handle detached voxels [br]
 [b]Disabled[/b]: Do not handle detached voxels [br]
-[b]Multimesh[/b]: Detached voxels are destroyed[br]
+[b]Destroy[/b]: Detached voxels are destroyed[br]
 [b]Rigid body[/b]: Detached voxels fall as rigid bodies[br]
 """
 	if not ProjectSettings.has_setting(property):
@@ -136,7 +170,7 @@ Handle detached voxels [br]
 		"name": property,
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_ENUM,
-		"hint_string": "Disabled,Multimesh,Rigid Body"
+		"hint_string": "Disabled,Destroy,Rigid Body"
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
@@ -155,6 +189,8 @@ func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/debris/default_density")
 	ProjectSettings.clear("voxel_destruction/debris/default_lifetime")
 	ProjectSettings.clear("voxel_destruction/debris/maximum_debris")
+	ProjectSettings.clear("voxel_destruction/debris/multimesh/batch_size")
+	ProjectSettings.clear("voxel_destruction/debris/rigid_body/batch_size")
 	ProjectSettings.clear("voxel_destruction/physics/default_density")
 	ProjectSettings.clear("voxel_destruction/resources/compact/buffer_lifetime")
 	ProjectSettings.clear("voxel_destruction/other/flood_fill_default")

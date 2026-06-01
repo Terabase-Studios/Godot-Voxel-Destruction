@@ -8,15 +8,15 @@
 [ext_resource type="Resource" uid="uid://5tq6g3picvhx" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox" id="6_7mc1g"]
 [ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="6_706gn"]
 [ext_resource type="Resource" uid="uid://baarjudj4cr8a" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/Kitty.vox" id="8_7mc1g"]
-[ext_resource type="MultiMesh" uid="uid://h5ckry0ejrok" path="res://addons/VoxelDestruction/Cache/LODCat1610.tres" id="11_jdfcm"]
+[ext_resource type="MultiMesh" uid="uid://b3f2qtmta7slp" path="res://addons/VoxelDestruction/Cache/LODCat1434.tres" id="11_jdfcm"]
 [ext_resource type="MultiMesh" uid="uid://chg4sdd166ja4" path="res://addons/VoxelDestruction/Cache/SmallCube8217.tres" id="11_y3yxx"]
 [ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="11_ye2ff"]
 [ext_resource type="Script" uid="uid://c7pspj4sfiorb" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_setting.gd" id="12_5nd2i"]
 [ext_resource type="Script" uid="uid://banjh65d6cs5m" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_addon.gd" id="13_kc2ys"]
-[ext_resource type="MultiMesh" uid="uid://bwx8etrx4728d" path="res://addons/VoxelDestruction/Cache/LODCatLOD8749.tres" id="14_6fo1h"]
-[ext_resource type="MultiMesh" uid="uid://c44043ohj7bow" path="res://addons/VoxelDestruction/Cache/LODCatLOD3529.tres" id="15_y3yxx"]
+[ext_resource type="MultiMesh" uid="uid://gtp825e8pg2w" path="res://addons/VoxelDestruction/Cache/LODCatLOD3937.tres" id="14_6fo1h"]
+[ext_resource type="MultiMesh" uid="uid://bwy2k26m4h8t" path="res://addons/VoxelDestruction/Cache/LODCatLOD7523.tres" id="15_y3yxx"]
 [ext_resource type="MultiMesh" uid="uid://bdhqqy8mj4nkv" path="res://addons/VoxelDestruction/Cache/Cat1756.tres" id="16_45q0v"]
-[ext_resource type="MultiMesh" uid="uid://c7t2uqkvyqs3k" path="res://addons/VoxelDestruction/Cache/LODCatLOD2189.tres" id="16_pt2a5"]
+[ext_resource type="MultiMesh" uid="uid://bnq3623ujrhcp" path="res://addons/VoxelDestruction/Cache/LODCatLOD5682.tres" id="16_pt2a5"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_706gn"]
 sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
@@ -137,15 +137,15 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_nmjiv"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("11_jdfcm"),"script":ExtResource("6_706gn"),"_COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME":50,"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"use_material":true,"physics":false,"density":1.0,"physics_material":null,"flood_fill":0,"lod_addon":SubResource("Resource_nmjiv"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_voxel_server":null,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_queue_attacks":false,"_current_cache":"res://addons/VoxelDestruction/Cache/LODCat1610.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("11_jdfcm"),"script":ExtResource("6_706gn"),"_COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME":50,"_MULTIMESH_DEBRIS_BATCH_SIZE":null,"_RIGID_BODY_DEBRIS_BATCH_SIZE":null,"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"use_material":true,"physics":false,"density":1.0,"physics_material":null,"flood_fill":0,"lod_addon":SubResource("Resource_nmjiv"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_voxel_server":null,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_queue_attacks":false,"_current_cache":"res://addons/VoxelDestruction/Cache/LODCat1434.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
 _voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("14_6fo1h"), ExtResource("15_y3yxx"), ExtResource("16_pt2a5")])
 _default_voxel_mesh = ExtResource("11_jdfcm")
 lod_settings = Array[ExtResource("12_5nd2i")]([SubResource("Resource_5i50c"), SubResource("Resource_33auh"), SubResource("Resource_iiuyx")])
 _current_cache = Dictionary[ExtResource("12_5nd2i"), Variant]({
-SubResource("Resource_5i50c"): "res://addons/VoxelDestruction/Cache/LODCatLOD8749.tres",
-SubResource("Resource_33auh"): "res://addons/VoxelDestruction/Cache/LODCatLOD3529.tres",
-SubResource("Resource_iiuyx"): "res://addons/VoxelDestruction/Cache/LODCatLOD2189.tres"
+SubResource("Resource_5i50c"): "res://addons/VoxelDestruction/Cache/LODCatLOD3937.tres",
+SubResource("Resource_33auh"): "res://addons/VoxelDestruction/Cache/LODCatLOD7523.tres",
+SubResource("Resource_iiuyx"): "res://addons/VoxelDestruction/Cache/LODCatLOD5682.tres"
 })
 metadata/_custom_type_script = "uid://banjh65d6cs5m"
 
@@ -193,6 +193,7 @@ environment = SubResource("Environment_7mc1g")
 
 [node name="Player" parent="." unique_id=2047173417 instance=ExtResource("1_v0olj")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 15.423088)
+single_attack = false
 camera_sens = 2.0
 
 [node name="Map" type="Node3D" parent="." unique_id=314514017]
@@ -221,6 +222,7 @@ debris_type = 3
 debris_density = 0.05
 maximum_debris = 3000
 dark_dithering = 0.1
+flood_fill = 2
 _current_cache = "res://addons/VoxelDestruction/Cache/MediumCube8329.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
@@ -440,7 +442,7 @@ invulnerable = true
 darkening = false
 debris_density = 0.2
 lod_addon = SubResource("Resource_nmjiv")
-_current_cache = "res://addons/VoxelDestruction/Cache/LODCat1610.tres"
+_current_cache = "res://addons/VoxelDestruction/Cache/LODCat1434.tres"
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="Label3D" type="Label3D" parent="Map/LODRoom" unique_id=273713702]

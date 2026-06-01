@@ -12,6 +12,9 @@ class_name VoxelObject
 var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
 const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
+var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
+var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
+
 #endregion
 #region Exported Variables
 ## (Re)populate this object and attatched addons with new voxel data.
@@ -111,10 +114,10 @@ var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/perfor
 @export_storage var _current_cache: String
 #endregion
 #region Signals
-#endregion
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
 ## This commonly occurs when (Re)populate Mesh is pressed
 signal repopulated
+#endregion
 #endregion
 
 
@@ -225,7 +228,7 @@ func _physics_process(delta):
 		return
 	for task in _flood_fill_tasks:
 		if WorkerThreadPool.is_task_completed(task):
-			var flood_result: Array = _flood_fill_tasks[task]
+			var flood_result: Dictionary = _flood_fill_tasks[task]
 			_apply_flood_fill_results(flood_result)
 			_flood_fill_tasks.erase(task)
 
@@ -584,7 +587,7 @@ func _process_multimesh_debris_creation_queue():
 	if _multimesh_debris_creation_queue.is_empty():
 		return
 
-	var batch_size = 100 # Create 100 debris per frame
+	var batch_size = _MULTIMESH_DEBRIS_BATCH_SIZE # Create 100 debris per frame
 	var current_batch = []
 	while len(current_batch) < batch_size and not _multimesh_debris_creation_queue.is_empty():
 		current_batch.append(_multimesh_debris_creation_queue.pop_front())
@@ -667,7 +670,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 	var size = voxel_resource.vox_size
 	var debris_objects: Array = []
 	var created_count = 0
-	var batch_size = 10  # Create 10 debris per frame
+	var batch_size = _RIGID_BODY_DEBRIS_BATCH_SIZE  # Create 10 debris per frame
 
 	while created_count < batch_size and not _rigid_body_debris_creation_queue.is_empty():
 		var debris_data = _rigid_body_debris_creation_queue.pop_front()
@@ -824,36 +827,38 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	voxel_resource.buffer("positions_dict")
 
 	# Run group detection on a thread
-	var result = Array()
-	result.resize(1)
-	result[0] = null
+	var result = {
+		"detached_voxels": null
+	}
 	var positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
 	var task_callable = func():
 		var groups = _flood_fill_groups(positions_dict_snapshot)
 		# Keep the largest group as the anchored structure.
 		# Sort descending by size so groups[0] is always the biggest.
 		groups.sort_custom(func(a, b): return a.size() > b.size())
-		result[0] = groups
+		if groups == null or groups.is_empty():
+			return
+
+		# Group 0 is the anchored group (contains origin / largest connected mass).
+		# All other groups are detached and should fall.
+		var anchored_group: Array = groups[0]
+		var anchored_set := {}
+		for v in anchored_group:
+			anchored_set[v] = true
+
+		# Collect all voxels NOT in the anchored group
+		var detached_groups: Array = groups.slice(1)
+		if detached_groups.is_empty():
+			return  # Nothing disconnected — nothing to do
+		result["detached_groups"] = detached_groups
 	var task_id = WorkerThreadPool.add_task(task_callable, false, "Structural Flood-Fill")
 	_flood_fill_tasks[task_id] = result
 
 
-func _apply_flood_fill_results(result: Array) -> void:
-	var groups: Array = result[0]
-	if groups == null or groups.is_empty():
+func _apply_flood_fill_results(result: Dictionary) -> void:
+	var detached_groups = result.get("detached_groups")
+	if not detached_groups:
 		return
-
-	# Group 0 is the anchored group (contains origin / largest connected mass).
-	# All other groups are detached and should fall.
-	var anchored_group: Array = groups[0]
-	var anchored_set := {}
-	for v in anchored_group:
-		anchored_set[v] = true
-
-	# Collect all voxels NOT in the anchored group
-	var detached_groups: Array = groups.slice(1)
-	if detached_groups.is_empty():
-		return  # Nothing disconnected — nothing to do
 
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("chunks")
