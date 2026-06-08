@@ -19,7 +19,7 @@ Please check out the [roadmap](https://github.com/users/Terabase-Studios/project
 *   **Custom Project Settings** Change VoxelDestruction specific settings built into the ProjectSettings.
 
 ## Project State
-This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned.
+This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned. All issues and pull requests will be addressed promptly.
 
 ## Contribution
 I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance what so ever, please reach me at support@terabasestudios.com =)
