@@ -85,7 +85,7 @@ func _get_resource_type():
 	return "VoxelResource"
 
 
-func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
+func _import(source_file, save_path, options, r_platform_variants, r_gen_files) -> Error:
 	# Create vars for resource
 	var positions: PackedVector3Array
 	var colors: PackedColorArray
@@ -110,7 +110,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 	if magic != "VOX ":
 		push_error("Invalid .vox file format!: ", source_file)
 		file.close()
-		return []
+		return Error.ERR_FILE_CORRUPT
 	
 	var version = file.get_32()
 	
@@ -221,7 +221,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files):
 
 	if start_voxel["position"] == null or not (start_voxel["position"] is Vector3 or start_voxel["position"] is Vector3i): 
 		push_warning("Positions data missing or invalid; Import Failed: ", source_file)
-		return
+		return Error.ERR_FILE_CORRUPT
 	var index = 0
 	for voxel in voxels:
 		var color = voxel.get("color", Color.PURPLE)
