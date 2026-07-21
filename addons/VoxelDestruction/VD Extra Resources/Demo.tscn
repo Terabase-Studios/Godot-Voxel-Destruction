@@ -1,22 +1,27 @@
 [gd_scene format=3 uid="uid://cpy5nnkjqxlrb"]
 
 [ext_resource type="PackedScene" uid="uid://cdk6hwb4hi2wc" path="res://addons/VoxelDestruction/VD Extra Resources/Player/player.tscn" id="1_v0olj"]
-[ext_resource type="MultiMesh" uid="uid://ci84rqpnsenp7" path="res://addons/VoxelDestruction/Cache/LargeCube2262.tres" id="2_jdfcm"]
+[ext_resource type="MultiMesh" uid="uid://7rq1lw0kkr2g" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/LargeCube_8762.tres" id="2_iiuyx"]
 [ext_resource type="Resource" uid="uid://cd0stms3h2ojg" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/LargeCube.vox" id="4_706gn"]
 [ext_resource type="Resource" uid="uid://csju4yhbtyrb3" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/MediumCube.vox" id="5_1yaoi"]
-[ext_resource type="MultiMesh" uid="uid://b3yuu8402fgtb" path="res://addons/VoxelDestruction/Cache/MediumCube8329.tres" id="5_6fo1h"]
+[ext_resource type="Resource" uid="uid://dfvemsvbs1b3x" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/LargeCube_7376.tres" id="5_nmjiv"]
 [ext_resource type="Resource" uid="uid://5tq6g3picvhx" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/SmallCube.vox" id="6_7mc1g"]
 [ext_resource type="Script" uid="uid://y48ewqgyud4h" path="res://addons/VoxelDestruction/Nodes/voxel_object.gd" id="6_706gn"]
-[ext_resource type="MultiMesh" uid="uid://bfwkksiwsvljk" path="res://addons/VoxelDestruction/Cache/SmallCube8557.tres" id="7_6fo1h"]
+[ext_resource type="MultiMesh" uid="uid://bp11qea38n2j7" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/MediumCube_4929.tres" id="6_wtllw"]
 [ext_resource type="Resource" uid="uid://baarjudj4cr8a" path="res://addons/VoxelDestruction/VD Extra Resources/Voxel Objects/Loch's Stuff =)/Kitty.vox" id="8_7mc1g"]
-[ext_resource type="MultiMesh" uid="uid://bq46oeaa5hg23" path="res://addons/VoxelDestruction/Cache/LODCat6583.tres" id="11_y3yxx"]
+[ext_resource type="Resource" uid="uid://rg3pvxebeabv" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/MediumCube_2611.tres" id="8_klbof"]
+[ext_resource type="MultiMesh" uid="uid://dwtrvo5ttjpcu" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/SmallCube_9159.tres" id="9_45q0v"]
+[ext_resource type="Resource" uid="uid://d4bj5t8a8qjw1" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/SmallCube_3333.tres" id="11_5uij5"]
+[ext_resource type="MultiMesh" uid="uid://blhc4xgccb04r" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObjectLODCat_6567.tres" id="11_iiuyx"]
 [ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="11_ye2ff"]
 [ext_resource type="Script" uid="uid://c7pspj4sfiorb" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_setting.gd" id="12_5nd2i"]
+[ext_resource type="MultiMesh" uid="uid://clrka851ehl2e" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/Cat_9100.tres" id="12_kegbc"]
+[ext_resource type="Resource" uid="uid://d25byl056nphl" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObjectLODCat_4153.tres" id="12_nmjiv"]
 [ext_resource type="Script" uid="uid://banjh65d6cs5m" path="res://addons/VoxelDestruction/Resources/lod/voxel_lod_addon.gd" id="13_kc2ys"]
-[ext_resource type="MultiMesh" uid="uid://bq85lmgegny3i" path="res://addons/VoxelDestruction/Cache/LODCatLOD6523.tres" id="14_pt2a5"]
-[ext_resource type="MultiMesh" uid="uid://b7oundjm4gbd6" path="res://addons/VoxelDestruction/Cache/LODCatLOD8055.tres" id="15_5i50c"]
-[ext_resource type="MultiMesh" uid="uid://b1aikcfutvmft" path="res://addons/VoxelDestruction/Cache/LODCatLOD9660.tres" id="16_33auh"]
-[ext_resource type="MultiMesh" uid="uid://bdhqqy8mj4nkv" path="res://addons/VoxelDestruction/Cache/Cat1756.tres" id="16_45q0v"]
+[ext_resource type="Resource" uid="uid://lpqojgs5qlia" path="res://addons/VoxelDestruction/User/SavedResources/VoxelObject/Cat_4428.tres" id="14_1yl3c"]
+[ext_resource type="MultiMesh" uid="uid://damhow5key8ou" path="res://addons/VoxelDestruction/User/SavedResources/VoxelLODAddonLODCat_9440.tres" id="15_wtllw"]
+[ext_resource type="MultiMesh" uid="uid://dacvib2476f4s" path="res://addons/VoxelDestruction/User/SavedResources/VoxelLODAddonLODCat_1531.tres" id="16_klbof"]
+[ext_resource type="MultiMesh" uid="uid://d4na0act8gbdm" path="res://addons/VoxelDestruction/User/SavedResources/VoxelLODAddonLODCat_2870.tres" id="17_45q0v"]
 [ext_resource type="VoxelGIData" uid="uid://cjfimhacgna1v" path="res://addons/VoxelDestruction/VD Extra Resources/Demo.VoxelGI_data.res" id="18_6fo1h"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_706gn"]
@@ -138,15 +143,15 @@ metadata/_custom_type_script = "uid://c7pspj4sfiorb"
 
 [sub_resource type="Resource" id="Resource_klbof"]
 script = ExtResource("13_kc2ys")
-_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("11_y3yxx"),"script":ExtResource("6_706gn"),"_COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME":50,"_MULTIMESH_DEBRIS_BATCH_SIZE":100,"_RIGID_BODY_DEBRIS_BATCH_SIZE":10,"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"use_material":true,"physics":false,"density":1.0,"physics_material":null,"flood_fill":0,"lod_addon":SubResource("Resource_klbof"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_voxel_server":null,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_queue_attacks":false,"_positions_dict_snapshot":null,"_shoud_regenerate_positions_dict_snapshot":null,"_position_snapshot_locks":null,"_current_cache":"res://addons/VoxelDestruction/Cache/LODCat6583.tres","metadata/_custom_type_script":"uid://y48ewqgyud4h")
+_parent = Object(MultiMeshInstance3D,"unique_name_in_owner":false,"process_mode":0,"process_priority":0,"process_physics_priority":0,"process_thread_group":0,"physics_interpolation_mode":0,"auto_translate_mode":0,"editor_description":"","transform":Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889),"rotation_edit_mode":0,"rotation_order":2,"top_level":false,"visible":true,"visibility_parent":NodePath(""),"layers":1,"sorting_offset":0.0,"sorting_use_aabb_center":true,"material_override":null,"material_overlay":null,"transparency":0.0,"cast_shadow":1,"extra_cull_margin":0.0,"custom_aabb":AABB(0, 0, 0, 0, 0, 0),"lod_bias":1.0,"ignore_occlusion_culling":false,"gi_mode":1,"gi_lightmap_texel_scale":1.0,"visibility_range_begin":0.0,"visibility_range_begin_margin":0.0,"visibility_range_end":0.0,"visibility_range_end_margin":0.0,"visibility_range_fade_mode":0,"multimesh":ExtResource("11_iiuyx"),"script":ExtResource("6_706gn"),"_COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME":50,"_MULTIMESH_DEBRIS_BATCH_SIZE":100,"_RIGID_BODY_DEBRIS_BATCH_SIZE":10,"_BENCHMARK_READY":true,"populate":Callable(),"voxel_resource":ExtResource("8_7mc1g"),"invulnerable":true,"darkening":false,"end_of_life":1,"debris_type":0,"debris_weight":1,"debris_density":0.2,"debris_lifetime":5,"maximum_debris":300,"dark_dithering":0.0,"light_dithering":0.0,"dithering_bias":0.5,"dithering_seed":0,"use_material":true,"physics":false,"density":1.0,"physics_material":null,"flood_fill":0,"lod_addon":SubResource("Resource_klbof"),"last_damage_time":-1,"debris_ammount":0,"health":0,"_voxel_state":ExtResource("12_nmjiv"),"_voxel_server":null,"_collision_shapes":{},"_collision_body":null,"_disabled_locks":[],"_disabled":false,"_body_last_transform":Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0),"_attack_queue":Array[Dictionary]([]),"_is_processing":false,"_shapes_to_add":Dictionary[Vector3, Array]({}),"_shapes_to_remove":Array[Node3D]([]),"_damage_tasks":{},"_regen_tasks":{},"_rigid_body_debris_creation_queue":[],"_multimesh_debris_creation_queue":[],"_flood_fill_tasks":{},"_queue_attacks":false,"_positions_dict_snapshot":{},"_shoud_regenerate_positions_dict_snapshot":true,"_position_snapshot_locks":[],"metadata/_custom_type_script":"uid://y48ewqgyud4h")
 
-_voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("14_pt2a5"), ExtResource("15_5i50c"), ExtResource("16_33auh")])
-_default_voxel_mesh = ExtResource("11_y3yxx")
+_voxel_meshes = Array[ExtResource("11_ye2ff")]([ExtResource("15_wtllw"), ExtResource("16_klbof"), ExtResource("17_45q0v")])
+_default_voxel_mesh = ExtResource("11_iiuyx")
 lod_settings = Array[ExtResource("12_5nd2i")]([SubResource("Resource_iiuyx"), SubResource("Resource_nmjiv"), SubResource("Resource_wtllw")])
 _current_cache = Dictionary[ExtResource("12_5nd2i"), Variant]({
-SubResource("Resource_iiuyx"): "res://addons/VoxelDestruction/Cache/LODCatLOD6523.tres",
-SubResource("Resource_nmjiv"): "res://addons/VoxelDestruction/Cache/LODCatLOD8055.tres",
-SubResource("Resource_wtllw"): "res://addons/VoxelDestruction/Cache/LODCatLOD9660.tres"
+SubResource("Resource_iiuyx"): "res://addons/VoxelDestruction/Cache/LODCatLOD5717.tres",
+SubResource("Resource_nmjiv"): "res://addons/VoxelDestruction/Cache/LODCatLOD1394.tres",
+SubResource("Resource_wtllw"): "res://addons/VoxelDestruction/Cache/LODCatLOD9400.tres"
 })
 metadata/_custom_type_script = "uid://banjh65d6cs5m"
 
@@ -203,45 +208,45 @@ camera_sens = 2.0
 
 [node name="LargeCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1758150382]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.0529013, -4.838)
-multimesh = ExtResource("2_jdfcm")
+multimesh = ExtResource("2_iiuyx")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("4_706gn")
 debris_type = 2
 debris_density = 0.05
 dark_dithering = 0.1
-_current_cache = "res://addons/VoxelDestruction/Cache/LargeCube2262.tres"
+_voxel_state = ExtResource("5_nmjiv")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="MediumCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1056690526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.0529013, -3.5)
-multimesh = ExtResource("5_6fo1h")
+multimesh = ExtResource("6_wtllw")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("5_1yaoi")
-debris_type = 1
-debris_density = 0.05
-maximum_debris = 3000
+debris_type = 3
+debris_density = 0.025
+maximum_debris = 30000
 dark_dithering = 0.1
-_current_cache = "res://addons/VoxelDestruction/Cache/MediumCube8329.tres"
+_voxel_state = ExtResource("8_klbof")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="SmallCube" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=1391113918]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.5, 0.0529013, -2.5)
-multimesh = ExtResource("7_6fo1h")
+multimesh = ExtResource("9_45q0v")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("6_7mc1g")
 debris_type = 1
 dark_dithering = 0.1
 light_dithering = 0.01
-_current_cache = "res://addons/VoxelDestruction/Cache/SmallCube8557.tres"
+_voxel_state = ExtResource("11_5uij5")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="Cat" type="MultiMeshInstance3D" parent="Map/CubeRoom" unique_id=893280728]
 transform = Transform3D(-0.668235, 0, 0.74395, 0, 1, 0, -0.74395, 0, -0.668235, 8.5, 0.0529013, -5.5)
-multimesh = ExtResource("16_45q0v")
+multimesh = ExtResource("12_kegbc")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("8_7mc1g")
 debris_density = 0.2
-_current_cache = "res://addons/VoxelDestruction/Cache/Cat1756.tres"
+_voxel_state = ExtResource("14_1yl3c")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="CSGMesh3D" type="MeshInstance3D" parent="Map/CubeRoom" unique_id=1934361004]
@@ -432,14 +437,14 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14.895562, 0, 14.87455)
 
 [node name="LODCat" type="MultiMeshInstance3D" parent="Map/LODRoom" unique_id=273801921]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.455277, 0, 0.9166889)
-multimesh = ExtResource("11_y3yxx")
+multimesh = ExtResource("11_iiuyx")
 script = ExtResource("6_706gn")
 voxel_resource = ExtResource("8_7mc1g")
 invulnerable = true
 darkening = false
 debris_density = 0.2
 lod_addon = SubResource("Resource_klbof")
-_current_cache = "res://addons/VoxelDestruction/Cache/LODCat6583.tres"
+_voxel_state = ExtResource("12_nmjiv")
 metadata/_custom_type_script = "uid://y48ewqgyud4h"
 
 [node name="Label3D" type="Label3D" parent="Map/LODRoom" unique_id=273713702]

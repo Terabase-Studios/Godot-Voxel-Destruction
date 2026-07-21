@@ -1,2 +1,0 @@
-res://addons/VoxelDestruction/Cache/SmallCube8217.tres
-res://addons/VoxelDestruction/Cache/LODCat1434.tres

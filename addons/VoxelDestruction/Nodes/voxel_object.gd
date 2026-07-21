@@ -14,6 +14,7 @@ const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
 const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
+var _BENCHMARK_READY: bool = true
 
 #endregion
 #region Exported Variables
@@ -43,7 +44,7 @@ var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_dest
 ## Strength of gravity on debris
 @export var debris_weight = 1
 ## Chance of generating debris per destroyed voxel
-@export_range(0, 1, .05) var debris_density = .1
+@export_range(0, 1, .001) var debris_density = .1
 ## Time in seconds before debris are deleted
 @export var debris_lifetime = 5
 ## Maximum ammount of rigid body debris
@@ -95,6 +96,7 @@ var debris_ammount: int = 0
 var health: int = 0
 #endregion
 #region Private Variables
+@export_storage var _voxel_state: VoxelState
 @onready var _voxel_server = get_node("/root/VoxelServer") if not Engine.is_editor_hint() else null # VoxelServer reference
 var _collision_shapes = Dictionary() # Collision Shapes
 var _collision_body: PhysicsBody3D # Collision Body
@@ -114,8 +116,6 @@ var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/perfor
 var _positions_dict_snapshot: Dictionary = {} # Used by worker threads to perform thread safe operations
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
-
-@export_storage var _current_cache: String
 #endregion
 #region Signals
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
@@ -127,70 +127,94 @@ signal repopulated
 
 func _ready() -> void:
 	#region Backwards Compatability
-	# flood_fill might be stored as a bool instead of an int.
 	if not flood_fill:
 		flood_fill = 0
 	#endregion
 	if Engine.is_editor_hint():
-		if multimesh and multimesh.get_reference_count() > 6:
-			#voxel_resource = null
-			_populate_mesh(false)
+		return
+		#if multimesh and multimesh.get_reference_count() > 6:
+		#	_populate_mesh()
 	else:
+		var _t0 := Time.get_ticks_usec()
+		var _total_time := 0
+
 		if not _voxel_server:
 			push_error("VoxelServer Autoload not found! Please (re)enable the addon")
 			_voxel_server = voxel_server.new()
-			
 		if not voxel_resource:
 			push_warning("[VD Addon] Missing voxel_resource! ", name)
 			_disabled_locks.append("NO VOXEL RESOURCE")
 			return
-		if not multimesh:
+		if not _voxel_state:
 			push_warning("[VD Addon] VoxelObject is unpopulated! ", name)
-			_disabled_locks.append("NO VOXEL MULTIMESH")
+			_disabled_locks.append("NO VOXEL STATE")
 			return
-		#  This is to make sure that a single voxel resource is not used more than once
+		if not multimesh:
+			multimesh = _voxel_state.voxel_mesh
+			return
+
 		if multimesh.get_reference_count() > 8:
 			multimesh = multimesh.duplicate(true)
-
-		# Resolve defaults
 		if debris_type == 0:
 			debris_type = ProjectSettings.get_setting("voxel_destruction/debris/default_type", 2) + 1
 		if flood_fill == 0:
 			flood_fill = ProjectSettings.get_setting("voxel_destruction/other/flood_fill_default", 1) + 1
-
 		health = voxel_resource.vox_count * 100
+
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] setup+defaults: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		voxel_resource = voxel_resource.duplicate(true)
 
-		# Preload rigid body debris (limit to 1000)
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] voxel_resource.duplicate: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		if debris_type == 2:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
-		# Preload collision_nodes
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] pool_rigid_bodies: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.0) * voxel_resource.vox_count))
 
-		# Add to _voxel_server
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] pool_collision_nodes: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		_voxel_server.voxel_objects.append(self)
 		_voxel_server.total_active_voxels += voxel_resource.vox_count
 		_voxel_server.shape_count += voxel_resource.starting_shapes.size()
 
-		# Create collision body
 		if not physics:
 			_collision_body = StaticBody3D.new()
 		else:
 			_collision_body = RigidBody3D.new()
 			_collision_body.freeze = true
-			#_collision_body.top_level = true
-			#_collision_body.global_transform = global_transform
-			_collision_body.physics_material_override  = physics_material
+			_collision_body.physics_material_override = physics_material
 			var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
-			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
+			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z) / 3
 			_collision_body.center_of_mass_mode = RigidBody3D.CENTER_OF_MASS_MODE_CUSTOM
 			_update_physics()
-
 		add_child(_collision_body)
 
-		# Create starting shapes
-		var shapes_dict = {}  # Cache for _collision_shapes
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] collision body setup: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
+		var shapes_dict = {}
 		for shape_info in voxel_resource.starting_shapes:
 			var shape_node := CollisionShape3D.new()
 			var shape := BoxShape3D.new()
@@ -198,31 +222,44 @@ func _ready() -> void:
 			shape_node.shape = shape
 			shape_node.position = shape_info["position"]
 			_collision_body.add_child(shape_node)
-
 			var chunk = shape_info["chunk"]
 			shapes_dict[chunk] = shapes_dict.get(chunk, []) + [shape_node]
-
 		if physics:
 			_collision_body.freeze = false
-
 		_collision_shapes.merge(shapes_dict)
 		voxel_resource.starting_shapes.clear()
+
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] starting_shapes -> CollisionShape3D nodes (%d shapes): %d us" % [shapes_dict.size(), _t1 - _t0])
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		voxel_resource.buffer("visible_voxels")
 		voxel_resource.visible_voxels.clear()
 		voxel_resource.debuffer("visible_voxels")
 		voxel_resource.materials.clear()
 
-		# Update voxel colors for dithering
+		if _BENCHMARK_READY:
+			var _t1 := Time.get_ticks_usec()
+			print("[VD bench][", name, "] visible_voxels/materials clear: %d us" % (_t1 - _t0))
+			_total_time += _t1 - _t0
+			_t0 = _t1
+
 		if dark_dithering != 0 or light_dithering != 0:
 			voxel_resource.buffer("colors")
 			voxel_resource.buffer("color_index")
-			var instance_count := multimesh.instance_count
-			for i in instance_count:
-				var color = multimesh.get_instance_color(i)
-				if color not in voxel_resource.colors:
-					voxel_resource.colors.append(color)
-				voxel_resource.color_index[i] = voxel_resource.colors.find(color)
+			voxel_resource.colors = _voxel_state.colors
+			voxel_resource.color_index = _voxel_state.color_index
 
+			if _BENCHMARK_READY:
+				var _t1 := Time.get_ticks_usec()
+				print("[VD bench][", name, "] dithering color_index build (%d instances): %d us" % [multimesh.instance_count, _t1 - _t0])
+				_total_time += _t1 - _t0
+				_t0 = _t1
+
+		if _BENCHMARK_READY:
+			print("[VD bench][", name, "] === total: %d us ===" % [_total_time])
 	if lod_addon:
 		lod_addon._ready()
 
@@ -1174,8 +1211,8 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 #endregion
 
 
-# Ran on populate, run on voxel resource change. Regenerates multimesh
-func _populate_mesh(delete_old_cache: bool = true) -> void:
+# Ran on populate, run on voxel resource change. Regenerates VoxelState
+func _populate_mesh() -> void:
 	if voxel_resource:
 		# Buffers vars to prevent performence drop
 		# when finding vox color/position
@@ -1206,39 +1243,81 @@ func _populate_mesh(delete_old_cache: bool = true) -> void:
 		var random = RandomNumberGenerator.new()
 		random.set_seed(dithering_seed)
 
+		# Dark values
+		var dark_table: Array[float] = [
+			-dark_dithering,
+			-dark_dithering * 0.66,
+			-dark_dithering * 0.33
+		]
+
+		# Light values
+		var light_table: Array[float] = [
+			light_dithering * 0.33,
+			light_dithering * 0.66,
+			light_dithering
+		]
+
+		var new_color_pallet := PackedColorArray()
+		var new_colors := PackedByteArray()
+
 		# Dither voxels and populate multimesh
 		for i in _multimesh.instance_count:
-			var dark_variation = random.randf_range(0, dark_dithering)
-			var light_variation = random.randf_range(0, light_dithering)
-			var dithered_color = Color.WHITE
 			var vox_color: Color = _get_vox_color(i)
-			if dark_dithering == 0 or light_dithering == 0:
-				if dark_dithering == 0:
-					dithered_color = vox_color.lightened(light_variation)
-				elif light_dithering == 0:
-					dithered_color = vox_color.darkened(dark_variation)
+
+			# Pick one of the predefined brightness variations
+			var variation := 0.0
+
+			if dark_dithering == 0:
+				variation = light_table[random.randi() % light_table.size()]
+			elif light_dithering == 0:
+				variation = dark_table[random.randi() % dark_table.size()]
+			elif random.randf() > dithering_bias:
+				variation = dark_table[random.randi() % dark_table.size()]
 			else:
-				dithered_color = vox_color.darkened(dark_variation) if randf() > dithering_bias else vox_color.lightened(light_variation)
+				variation = light_table[random.randi() % light_table.size()]
+
+			var dithered_color: Color
+			if variation < 0:
+				dithered_color = vox_color.darkened(-variation)
+			else:
+				dithered_color = vox_color.lightened(variation)
+
 			var vox_pos = voxel_resource.positions[i]
+
 			if vox_pos in voxel_resource.visible_voxels:
 				_multimesh.set_instance_visibility(i, true)
-			_multimesh.voxel_set_instance_transform(i, Transform3D(Basis(), vox_pos * voxel_resource.vox_size))
-			if use_material:
-				_multimesh.voxel_set_instance_custom_data(i, voxel_resource.materials[vox_color])
-			_multimesh.voxel_set_instance_color(i, dithered_color.darkened(.1))
 
-		_multimesh = _cache_resource(_multimesh, delete_old_cache)
+			_multimesh.voxel_set_instance_transform(
+				i, Transform3D(Basis(), vox_pos * voxel_resource.vox_size)
+			)
+
+			if use_material:
+				_multimesh.voxel_set_instance_custom_data(
+					i, voxel_resource.materials[vox_color]
+				)
+
+			_multimesh.voxel_set_instance_color(i, dithered_color)
+			if dithered_color not in new_color_pallet:
+				new_color_pallet.append(dithered_color)
+			new_colors.append(new_color_pallet.find(dithered_color))
+
+		# Make Voxel State
+		var new_voxel_state = VoxelState.new()
+		new_voxel_state.colors = new_color_pallet
+		new_voxel_state.color_index = new_colors
+		new_voxel_state.voxel_mesh = _cache_resource(_multimesh)
+		_voxel_state = _cache_resource(new_voxel_state)
 
 		#var undo_redo = EditorInterface.get_editor_undo_redo()
 		#undo_redo.create_action("Populated Voxel Object")
 		#undo_redo.add_do_property(self, &"multimesh", _multimesh)
 		#undo_redo.add_undo_property(self, &"multimesh", multimesh)
 		#undo_redo.commit_action()
-		self.multimesh = _multimesh
+		self.multimesh = _voxel_state.voxel_mesh
 		repopulated.emit()
 		if lod_addon:
 			lod_addon._parent = self
-			lod_addon.repopulate(delete_old_cache)
+			lod_addon.repopulate()
 
 
 # Utility function that takes a voxid and returns a color
@@ -1266,28 +1345,26 @@ func _update_physics() -> void:
 		_collision_body.center_of_mass = center
 
 
-# Caches voxel_resource
-func _cache_resource(resource: Resource, delete_old_cache: bool = true) -> Resource:
-	var cache_dir := "res://addons/VoxelDestruction/Cache/"
-	var path := "%s%s%d.tres" % [cache_dir, name, randi_range(1111, 9999)]
-	var log_path := cache_dir + "old_cache.txt"
+# Caches resource
+func _cache_resource(resource: Resource) -> Resource:
+	var cache_dir := "res://addons/VoxelDestruction/User/SavedResources/VoxelObject/"
+	
+	# Ensure the directory exists on disk
+	if not DirAccess.dir_exists_absolute(cache_dir):
+		DirAccess.make_dir_recursive_absolute(cache_dir)
 
-	ResourceSaver.save(resource, path)
+	var unique_id := randi_range(1111, 9999)
+	var path := "%s%s_%d.tres" % [cache_dir, name, unique_id]
 
-	if _current_cache != "" and FileAccess.file_exists(_current_cache):
-		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
-		if file == null:
-			file = FileAccess.open(log_path, FileAccess.WRITE)
+	# Save resource to path
+	var err := ResourceSaver.save(resource, path)
+	if err != OK:
+		push_error("[VD ADDON] Failed to save voxel resource at: %s (Error: %d)" % [path, err])
+		return resource
 
-		if file and delete_old_cache:
-			file.seek_end()
-			file.store_line(_current_cache)
-			file.close()
-		else:
-			push_error("[VD ADDON] Failed to open old_cache.txt")
-
-	_current_cache = path
-	return ResourceLoader.load(path)
+	# Assign path to existing resource in memory instead of reloading from disk
+	resource.take_over_path(path)
+	return resource
 
 
 # Ran when all voxels are destroyed

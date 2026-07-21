@@ -147,14 +147,13 @@ func _disable_preview():
 ## (Re)populate [VoxelMultiMesh]s used for [VoxelLODSetting]s during previews and runtime [br]
 ## Called when parent [VoxelObject] is (re)populated
 func repopulate(delete_old_cache: bool = true):
-	_invalidate_cache()
 	_default_voxel_mesh = _parent.multimesh
 	_voxel_meshes = []
 	_parent.voxel_resource.buffer_all()
 	for setting in lod_settings:
 		var lod_resource = _from_voxel_resource(_parent.voxel_resource, setting.lod_factor)
 		setting.voxel_reduction = lod_resource.voxel_reduction * 100
-		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource), setting, delete_old_cache))
+		_voxel_meshes.append(_cache_resource(_populate_mesh(lod_resource)))
 	for setting in lod_settings:
 		setting.preview = false
 
@@ -268,44 +267,23 @@ func _populate_mesh(lod_resource: LODVoxelResource) -> VoxelMultiMesh:
 
 @export_storage var _current_cache: Dictionary[VoxelLODSetting, Variant] = {}
 
-func _invalidate_cache():
-	var cache_dir := "res://addons/VoxelDestruction/Cache/"
-	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
-	var log_path := cache_dir + "old_cache.txt"
-	for indexed_current_cache in _current_cache.values():
-		if indexed_current_cache and indexed_current_cache != "" and FileAccess.file_exists(indexed_current_cache):
-			var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
-			if file == null:
-				file = FileAccess.open(log_path, FileAccess.WRITE)
+# Caches resource
+func _cache_resource(resource: Resource) -> Resource:
+	var cache_dir := "res://addons/VoxelDestruction/User/SavedResources/VoxelLODAddon/"
+	
+	# Ensure the directory exists on disk
+	if not DirAccess.dir_exists_absolute(cache_dir):
+		DirAccess.make_dir_recursive_absolute(cache_dir)
 
-			if file:
-				file.seek_end()
-				file.store_line(indexed_current_cache)
-				file.close()
-			else:
-				push_error("[VD ADDON] Failed to open old_cache.txt")
+	var unique_id := randi_range(1111, 9999)
+	var path := "%s%s_%d.tres" % [cache_dir, _parent.name, unique_id]
 
-func _cache_resource(resource: Resource, setting: VoxelLODSetting, delete_old_cache: bool = true) -> Resource:
-	var cache_dir := "res://addons/VoxelDestruction/Cache/"
-	var path := "%s%s%s%d.tres" % [cache_dir, _parent.name, "LOD", randi_range(1111, 9999)]
-	var log_path := cache_dir + "old_cache.txt"
-	if not setting in _current_cache:
-		_current_cache[setting] = null
-	var indexed_current_cache = _current_cache[setting]
+	# Save resource to path
+	var err := ResourceSaver.save(resource, path)
+	if err != OK:
+		push_error("[VD ADDON] Failed to save voxel resource at: %s (Error: %d)" % [path, err])
+		return resource
 
-	ResourceSaver.save(resource, path)
-
-	if indexed_current_cache and indexed_current_cache != "" and FileAccess.file_exists(indexed_current_cache):
-		var file := FileAccess.open(log_path, FileAccess.READ_WRITE)
-		if file == null:
-			file = FileAccess.open(log_path, FileAccess.WRITE)
-
-		if file and delete_old_cache:
-			file.seek_end()
-			file.store_line(indexed_current_cache)
-			file.close()
-		else:
-			push_error("[VD ADDON] Failed to open old_cache.txt")
-
-	_current_cache[setting] = path
-	return ResourceLoader.load(path)
+	# Assign path to existing resource in memory instead of reloading from disk
+	resource.take_over_path(path)
+	return resource
