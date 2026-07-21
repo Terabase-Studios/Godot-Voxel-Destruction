@@ -1,8 +1,8 @@
 extends Resource
 class_name SnippitProfiler
 
-var _start_time = 0
-func start():
+var _start_time: float = 0
+func start() -> void:
 	_start_time = Time.get_ticks_usec()
 
 #func end():

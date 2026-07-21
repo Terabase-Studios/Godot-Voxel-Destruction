@@ -943,7 +943,7 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		local_center += Vector3(vox) + Vector3(0.5, 0.5, 0.5)
 	local_center /= group.size()
 
-	# Build a MultiMesh for this chunk
+	#region Build a MultiMesh for this chunk
 	var chunk_multimesh := VoxelMultiMesh.new()
 	chunk_multimesh.transform_format = MultiMesh.TRANSFORM_3D
 	chunk_multimesh.use_colors = true
@@ -956,8 +956,8 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 	# TODO: (CURRENT) Fix voxel mesh generation. Maybe redo.
 	for i in group_size:
 		var vox_pos: Vector3i = group[i]
-		var vox_local := (Vector3(vox_pos) * voxel_resource.vox_size) + Vector3(0.5, 0.5, 0.5)
-		var local_offset := vox_local - local_center
+		var vox_local := Vector3(vox_pos)
+		var local_offset := (vox_local - local_center) * voxel_resource.vox_size
 
 		var vox_id: int = voxel_resource.positions_dict.get(vox_pos, -1)
 
@@ -965,8 +965,9 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 
 		if vox_id >= 0:
 			chunk_multimesh.set_instance_color(i, multimesh.get_instance_color(multimesh.induces.get(vox_id, vox_id)))
+	#endregion
 
-	# Create VoxelResource by remaping from original resource (TODO: Multithread)
+	#region Create VoxelResource by remaping from original resource (TODO: Multithread)
 	var vr := VoxelResource.new()
 	vr.vox_count = group_size
 	vr.vox_size = voxel_resource.vox_size
@@ -993,8 +994,9 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		#vr.positions_dict[vox_position] = i
 
 		vr.vox_chunk_indices[i] = voxel_resource.vox_chunk_indices[vox_id]
-
-	# Create the VoxelObject with physics
+	#endregion
+	
+	#region Create the VoxelObject with physics
 	var vo := VoxelObject.new()
 	vo.top_level = true
 	vo.density = density
@@ -1014,8 +1016,9 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
 		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
+	#endregion
 
-	# Generate collision chunks and shapes
+	#region Generate collision chunks and shapes
 	var chunk_size := Vector3i(16, 16, 16) # Use default chunk size when creating debris. (May be differen from `self`)
 
 	# Sort axes
@@ -1030,7 +1033,7 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 			chunks[chunk] = PackedVector3Array()
 		chunks[chunk].append(voxel)
 
-	# Create collision TODO: MULTITHREADw
+	# Create collision TODO: MULTITHREAD
 	var starting_shapes = Array()
 	for chunk in chunks:
 		starting_shapes.append_array(VoxImporter.create_shapes(VoxImporter.create_boxes(chunks[chunk]), vr.vox_size, chunk))
@@ -1039,6 +1042,7 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 	vr.vox_chunk_indices = vox_chunk_indices
 	vr.chunks = chunks
 	vr.starting_shapes = starting_shapes
+	#endregion
 
 	# Add to scene and position at chunk center
 	get_tree().root.add_child(vo)
@@ -1070,7 +1074,7 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 	# Set instance transforms relative to the chunk center
 	for i in group.size():
 		var vox_pos3i: Vector3i = group[i]
-		var vox_global := vt * (Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5))
+		var vox_global := vt * (Vector3(vox_pos3i))
 		var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
 		var local_offset := vox_global - center
 		chunk_multimesh.set_instance_transform(i, Transform3D(Basis(), local_offset))

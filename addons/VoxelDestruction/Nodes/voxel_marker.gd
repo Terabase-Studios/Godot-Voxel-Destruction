@@ -90,6 +90,7 @@ func _physics_process(delta: float) -> void:
 func _snap(voxel_scale: Vector3 = _voxel_scale):
 	if _invalid:
 		return
+
 	var pos = position
 	position = Vector3(
 		round(pos.x / voxel_scale.x) * voxel_scale.x,
