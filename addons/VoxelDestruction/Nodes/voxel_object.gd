@@ -95,22 +95,25 @@ var debris_ammount: int = 0
 var health: int = 0
 #endregion
 #region Private Variables
-@onready var _voxel_server = get_node("/root/VoxelServer") if not Engine.is_editor_hint() else null
-var _collision_shapes = Dictionary()
-var _collision_body: PhysicsBody3D
-var _disabled_locks = []
-var _disabled: bool = false
-var _body_last_transform: Transform3D
-var _attack_queue: Array[Dictionary] = []
-var _is_processing: bool = false
-var _shapes_to_add: Dictionary[Vector3, Array] = {}
-var _shapes_to_remove: Array[Node3D] = []
-var _damage_tasks: Dictionary = {}
-var _regen_tasks: Dictionary = {}
-var _rigid_body_debris_creation_queue: Array = []
-var _multimesh_debris_creation_queue: Array = []
-var _flood_fill_tasks: Dictionary = {}
-var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
+@onready var _voxel_server = get_node("/root/VoxelServer") if not Engine.is_editor_hint() else null # VoxelServer reference
+var _collision_shapes = Dictionary() # Collision Shapes
+var _collision_body: PhysicsBody3D # Collision Body
+var _disabled_locks = [] # Add locks to disable this VoxelObject, all locks must be removed to renable
+var _disabled: bool = false # Disables any and all voxel operations at entry points only.
+var _body_last_transform: Transform3D # Used in physics to check if the rigid body should be moved
+var _attack_queue: Array[Dictionary] = [] # Queue of attacks to process
+var _is_processing: bool = false # Controls if a damage task should run if _queue_attacks is true and a task is already running
+var _shapes_to_add: Dictionary[Vector3, Array] = {} # Shapes to be added in physics process
+var _shapes_to_remove: Array[Node3D] = [] # Shapes to be removed in physics process
+var _damage_tasks: Dictionary = {} # Physics process queue for damaging tasks
+var _regen_tasks: Dictionary = {} # Physics process queue for regenerating collision
+var _rigid_body_debris_creation_queue: Array = [] # Physics process queue for debris generation
+var _multimesh_debris_creation_queue: Array = [] # Physics process queue for debris generation
+var _flood_fill_tasks: Dictionary = {} # Physics process queue for flood fill calculations
+var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false) # If attacks should be queued and staggered instead of ran immediately
+var _positions_dict_snapshot: Dictionary = {} # Used by worker threads to perform thread safe operations
+var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
+var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
 
 @export_storage var _current_cache: String
 #endregion
@@ -228,15 +231,26 @@ func _ready() -> void:
 func _physics_process(delta):
 	if Engine.is_editor_hint():
 		return
+
+	# Regen _positions_dict_snapshot:
+	if _shoud_regenerate_positions_dict_snapshot and _position_snapshot_locks.is_empty():
+		_positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
+		_shoud_regenerate_positions_dict_snapshot = false
+
+	# Flood fill tasks
 	for task in _flood_fill_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var flood_result: Dictionary = _flood_fill_tasks[task]
 			_apply_flood_fill_results(flood_result)
 			_flood_fill_tasks.erase(task)
+			# Release _position_snapshot_lock
+			_position_snapshot_locks.erase(task)
 
+	# Debris tasks
 	_process_multimesh_debris_creation_queue()
 	_process_rigid_body_debris_creation_queue()
 
+	# Collision regeneration tasks
 	for task in _regen_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var shape_datas: Array = _regen_tasks[task][0]
@@ -265,18 +279,25 @@ func _physics_process(delta):
 				_voxel_server.shape_count += _collision_shapes[chunk_index].size()
 			_regen_tasks.erase(task)
 
+	# Damage tasks
 	for task in _damage_tasks:
 		if WorkerThreadPool.is_group_task_completed(task):
 			var damage_results: Array = _damage_tasks[task][0]
 			var damager: VoxelDamager = _damage_tasks[task][1]
-			_apply_damage_results(damager, damage_results)
+			var hit_position: Vector3 = _damage_tasks[task][2]
+			_apply_damage_results(damager, damage_results, hit_position)
 			_damage_tasks.erase(task)
+			# Release _position_snapshot_lock
+			_position_snapshot_locks.erase(task)
 
+	# Apply shapes to add/remove
 	_update_collision_nodes()
 
+	# Update the addons
 	if lod_addon:
-		lod_addon._physics_proccess()
+		lod_addon._physics_process()
 
+	# Calculate _disabled based apon _disabled locks
 	if _disabled_locks.is_empty():
 		if _disabled:
 			_disabled = false
@@ -284,6 +305,7 @@ func _physics_process(delta):
 		if not _disabled:
 			_disabled = true
 
+	# Actual physics
 	if not physics or Engine.is_editor_hint(): return
 	if _body_last_transform != _collision_body.transform:
 		var new_pos := position
@@ -328,12 +350,14 @@ func _update_collision_nodes():
 
 
 #region Voxel Damaging
-func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array) -> void:
+# Voxel Damager entry point
+func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, hit_position: Vector3) -> void:
 	var attack_data := {
 		"damager": damager,
 		"voxel_count": voxel_count,
 		"voxel_positions": voxel_positions,
-		"global_voxel_positions": global_voxel_positions
+		"global_voxel_positions": global_voxel_positions,
+		"hit_position": hit_position
 	}
 	if _queue_attacks:
 		_attack_queue.append(attack_data)
@@ -354,13 +378,13 @@ func _process_attack_queue() -> void:
 
 	_is_processing = false
 
-
+# Manages _damage_voxel workers.
 func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	var damager: VoxelDamager = attack_data["damager"]
 	var voxel_count: int = attack_data["voxel_count"]
 	var voxel_positions: PackedVector3Array = attack_data["voxel_positions"]
 	var global_voxel_positions: PackedVector3Array = attack_data["global_voxel_positions"]
-	var damager_global_pos = damager.global_position
+	var damager_global_pos = attack_data["hit_position"]
 
 	last_damage_time = Time.get_ticks_msec()
 	voxel_resource.buffer("health")
@@ -372,17 +396,21 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	# resize to make modifing thread-safe
 	damage_results.resize(voxel_count)
 	var group_id = WorkerThreadPool.add_group_task(
-		_damage_voxel.bind(voxel_positions, global_voxel_positions, damager, damager_global_pos, damage_results),
+		_damage_voxel.bind(voxel_positions, global_voxel_positions, _positions_dict_snapshot, damager, damager_global_pos, damage_results),
 		voxel_count, 1, true, "Calculating Voxel Damage"
 	)
-	_damage_tasks[group_id] = [damage_results, damager]
+	_position_snapshot_locks.append(group_id)
+	_damage_tasks[group_id] = [damage_results, damager, damager_global_pos]
+	# Futher handling of the thread is passed to _physics_process
 
-# FIXME/TODO: ALL THREADED FUNCTIONS SHOULD BE STATIC. Dude. I've been tracking studdering issues with multithreaded functions forever. Static... I'm writing a blog later.
-func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void:
+
+# Calculates damage results.
+# WORKER THREAD FUNCTION
+func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, vox_positions: Dictionary, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void:
 	# Get positions and vox_ids to modify later and calculate damage
 	var vox_position: Vector3 = global_voxel_positions[voxel]
 	var vox_pos3i: Vector3i = voxel_positions[voxel]
-	var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
+	var vox_id: int = vox_positions.get(vox_pos3i, -1)
 
 	# Skip if voxel ID is invalid
 	if vox_id == -1:
@@ -416,11 +444,12 @@ func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel
 		"pos": vox_pos3i,
 		"chunk": chunk,
 		"chunk_pos": chunk_pos,
-		"power": power
+		"power": power,
 	}
 
 
-func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void:
+# Applies damage, called from physics process.
+func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_position: Vector3) -> void:
 	# Drop late-arriving damage tasks against a dead multimesh.
 	if multimesh == null or multimesh.instance_count == 0:
 		return
@@ -476,7 +505,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 			var local_voxel_centered = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
 			# Convert to global space using full transform
 			var voxel_global_pos = voxel_transform * local_voxel_centered
-			debris_queue.append({ "pos": voxel_global_pos, "origin": damager.global_pos, "power": result["power"] })
+			debris_queue.append({ "pos": voxel_global_pos, "origin": hit_position, "power": result["power"] })
 
 			# Show sorounding voxels if necissary
 			# Offsets for checking neighbors
@@ -509,7 +538,10 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array) -> void
 		return
 
 	if flood_fill != 1:
-		await _detach_disconnected_voxels(damager.global_position)
+		await _detach_disconnected_voxels(hit_position)
+
+	# Regen snapshot for worker threads
+	_shoud_regenerate_positions_dict_snapshot = true
 
 
 func _regen_collision(chunk_index: Vector3) -> void:
@@ -524,6 +556,7 @@ func _regen_collision(chunk_index: Vector3) -> void:
 	_regen_tasks[task_id] = [shape_datas, chunk_index]
 
 # This function is undocumented
+# WORKER THREAD FUNCTION
 func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
@@ -760,6 +793,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 # BFS from origin. Returns a Dictionary mapping voxel -> group_index,
 # and populates groups (Array of Arrays of Vector3i).
 # The group containing origin is group 0 (the "anchored" group that stays).
+# WORKER THREAD FUNCTION
 func _flood_fill_groups(positions_dict: Dictionary) -> Array:
 	var offsets = [
 		Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
@@ -832,9 +866,9 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	var result = {
 		"detached_voxels": null
 	}
-	var positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
+	# WORKER THREAD FUNC
 	var task_callable = func():
-		var groups = _flood_fill_groups(positions_dict_snapshot)
+		var groups = _flood_fill_groups(_positions_dict_snapshot)
 		# Keep the largest group as the anchored structure.
 		# Sort descending by size so groups[0] is always the biggest.
 		groups.sort_custom(func(a, b): return a.size() > b.size())
@@ -854,7 +888,9 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 			return  # Nothing disconnected — nothing to do
 		result["detached_groups"] = detached_groups
 	var task_id = WorkerThreadPool.add_task(task_callable, false, "Structural Flood-Fill")
+	_position_snapshot_locks.append(task_id)
 	_flood_fill_tasks[task_id] = result
+	# Futher handling of the thread is passed to _physics_process
 
 
 func _apply_flood_fill_results(result: Dictionary) -> void:
@@ -921,6 +957,10 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 
 	if physics:
 		_update_physics()
+
+	# Regen snapshot for worker threads
+	_shoud_regenerate_positions_dict_snapshot = true
+
 
 # TODO: Add material support for voxel chunks
 func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: PackedVector3Array) -> void:
@@ -1268,7 +1308,6 @@ func _end_of_life() -> void:
 				for shape in _collision_shapes[key]:
 					shape.disabled = true
 			await get_tree().create_timer(10).timeout
-			var proccess_mode = process_mode
 			process_mode = Node.PROCESS_MODE_DISABLED
 			for key in _collision_shapes:
 				for shape in _collision_shapes[key]:
@@ -1281,7 +1320,7 @@ func _end_of_life() -> void:
 							child.queue_free()
 							continue
 						if child.process_mode == Node.PROCESS_MODE_INHERIT:
-							child.process_mode = proccess_mode
+							child.process_mode = process_mode
 		2:
 			queue_free()
 

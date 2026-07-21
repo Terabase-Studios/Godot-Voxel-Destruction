@@ -61,7 +61,7 @@ func _ready():
 	_update_preview()
 
 
-func _physics_proccess():
+func _physics_process():
 	if Engine.is_editor_hint():
 		return
 	if disabled:

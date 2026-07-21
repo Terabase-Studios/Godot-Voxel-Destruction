@@ -24,7 +24,6 @@ class_name VoxelDamager
 @export var knock_back_debri = false
 var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
-@onready var global_pos = global_position
 @onready var _voxel_server = get_node("/root/VoxelServer")
 
 
@@ -54,13 +53,30 @@ func _ready() -> void:
 func hit():
 	if _killed:
 		return
+	# Maintain same postition and transform throughout damage calculation
+	var starting_global_position = global_position
+	# Ditto for VoxelObjects
+	var voxel_object_transform = {}
+	for body in get_overlapping_bodies():
+		if body is StaticBody3D or body is RigidBody3D:
+			var parent = body.get_parent()
+			if parent is VoxelObject:
+				voxel_object_transform[body] = {
+					"global_transform": parent.global_transform,
+					"parent": parent
+				}
+			else:
+				# No need for global_transform at the moment
+				voxel_object_transform[body] = {
+					"global_transform": null,
+					"parent": parent
+				}
 	var hit_objects = []
 	var VoxelObjectNode = null
-	global_pos = global_position
 	var aabb = Array()
 	aabb.resize(1)
 	var task_id = WorkerThreadPool.add_task(
-		_get_area_aabb.bind(aabb, get_child(0)),
+		_get_area_aabb.bind(aabb, get_child(0), starting_global_position),
 		false, "VoxelDamager AABB Calculation"
 	)
 	while not WorkerThreadPool.is_task_completed(task_id):
@@ -71,13 +87,17 @@ func hit():
 			continue
 		if "VoxelDebri" in body.name:
 			if knock_back_debri and body.is_inside_tree():
-				var decay = global_position.distance_to(body.global_position) / range
+				var global_pos = body.global_position
+				var decay = starting_global_position.distance_to(global_pos) / range
 				var power = float(base_power * power_curve.sample(decay))
-				var launch_vector = body.global_position - global_position
+				var launch_vector = global_pos - starting_global_position
 				var velocity = launch_vector.normalized() * power
 				body.apply_impulse(velocity*body.scale)
 		elif body is StaticBody3D or body is RigidBody3D:
-			var parent = body.get_parent()
+			var voxel_object_transform_body = voxel_object_transform.get(body, false)
+			if not voxel_object_transform_body:
+				continue
+			var parent = voxel_object_transform_body["parent"]
 			if parent is VoxelObject:
 				if parent.invulnerable or parent._disabled:
 					continue
@@ -89,25 +109,28 @@ func hit():
 						continue
 				var voxels = Array()
 				voxels.resize(3)
+				# Use the transform at the time hit was called
 				task_id = WorkerThreadPool.add_task(
-					_get_voxels_in_aabb.bind(aabb, parent, parent.global_transform, voxels),
+					_get_voxels_in_aabb.bind(aabb, parent, voxel_object_transform_body["global_transform"], voxels),
 					false, "Getting Voxels to Damage"
 				)
 				while not WorkerThreadPool.is_task_completed(task_id):
 					await get_tree().process_frame  # Allow UI to update
-				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2])
+				parent._damage_voxels(self, voxels[0], voxels[1], voxels[2], starting_global_position)
 				if parent not in hit_objects:
 					hit_objects.append(parent)
 	return hit_objects
 
 
-func _get_area_aabb(aabb, collision_shape: CollisionShape3D)-> void:
+# WORKER THREAD FUNC
+func _get_area_aabb(aabb, collision_shape: CollisionShape3D, hit_position: Vector3)-> void:
 	var box_shape = collision_shape.shape as BoxShape3D
 	var size = box_shape.size
-	var _position = global_pos - (size * 0.5)
+	var _position = hit_position - (size * 0.5)
 	aabb[0] = AABB(_position, size)
 
- 
+
+ # WORKER THREAD FUNC
 func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D, voxels: Array) -> void:
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
@@ -138,6 +161,7 @@ func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transfor
 	voxels[2] = global_voxel_positions
 
 
+# WORKER THREAD FUNC
 func _convert_curve_to_squared(curve: Curve) -> Curve:
 	if not curve:
 		push_error("No curve provided!")
@@ -160,5 +184,6 @@ func _convert_curve_to_squared(curve: Curve) -> Curve:
 	return new_curve
 
 
+# WORKER THREAD FUNC
 func _exit_tree() -> void:
 	_voxel_server.voxel_damagers.erase(self)
