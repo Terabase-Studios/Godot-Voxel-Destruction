@@ -16,3 +16,8 @@ data_*/
 mono_crash.*.json
 .godot/*
 /Screenshots/upscaled
+addons/VoxelDestruction/Cache/old_cache.txt
+addons/VoxelDestruction/Cache/LODCatLOD7920.tres
+addons/VoxelDestruction/Cache/LODCatLOD3828.tres
+addons/VoxelDestruction/Cache/LODCatLOD2418.tres
+addons/VoxelDestruction/Cache/old_cache.txt

@@ -70,7 +70,6 @@ var data_buffer = Dictionary()
 var buffer_life = Dictionary()
 
 
-
 ## Retrieves values from _data and returns them in the intended decompressed format [br]
 ## or returns data from data_buffer
 func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
@@ -83,7 +82,7 @@ func _get(property: StringName, ignore_buffer_error: bool = false) -> Variant:
 			# Prevents decompressing non existant data
 			if compressed_bytes != null and compressed_bytes.size() > 0:
 				if not ignore_buffer_error and not Engine.is_editor_hint():
-					push_warning("Accessing unbuffered variable \""+str(property)+"\"! This can severly reduce performance. Please Report with expanded error information.")
+					push_warning("Accessing unbuffered variable \""+str(property)+"\"! This can severly reduce performance. Please Report with expanded error information.\n If modifying this addon, please call buffer_all() or buffer(VAR_NAME: String) on the VoxelResource before reading this variable.")
 				var decompressed_bytes = compressed_bytes.decompress(_property_size[property], COMPRESSION_MODE)
 				result = bytes_to_var(decompressed_bytes)
 				# Properly type variable if bytes_to_var() returns incorrect type

@@ -7,6 +7,7 @@
 [ext_resource type="Resource" uid="uid://dtt56nvghrp2x" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/castle.vox" id="5_nghnw"]
 [ext_resource type="Script" uid="uid://b533raywjeqla" path="res://addons/VoxelDestruction/Nodes/voxel_damager.gd" id="6_4lswk"]
 [ext_resource type="Script" uid="uid://b8nwcw2tr2ff2" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/debug_collisionboxes.gd" id="7_mmqss"]
+[ext_resource type="VoxelGIData" uid="uid://bju3rryo6f6ly" path="res://addons/VoxelDestruction/VD Extra Resources/demo2_assets/Demo2.VoxelGI_data.res" id="8_giqsj"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
 size = Vector3(20, 0.5, 20)
@@ -88,3 +89,6 @@ debug_color = Color(0.023529412, 1, 0.2, 0.41960785)
 
 [node name="Debug" type="Node3D" parent="." unique_id=601745002]
 script = ExtResource("7_mmqss")
+
+[node name="VoxelGI" type="VoxelGI" parent="." unique_id=1462408287]
+data = ExtResource("8_giqsj")

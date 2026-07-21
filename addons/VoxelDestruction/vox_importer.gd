@@ -1,6 +1,7 @@
 # import_plugin.gd
 @tool
 extends EditorImportPlugin
+class_name VoxImporter
 
 const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 
@@ -245,7 +246,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	else:
 		chunk_size = Vector3(16, 16, 16)
 	
-	# Sort axes
+	# Define vars? (This used to be Sort axes, maybe old comment?)
 	var vox_chunk_indices: PackedVector3Array
 	var chunks: Dictionary[Vector3, PackedVector3Array]
 	
@@ -267,15 +268,15 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	voxel_resource.chunks = chunks
 	voxel_resource.starting_shapes = starting_shapes
 	
-	# Get visible voxels
-	# Store voxels in a dictionary with collision handling
+	# --- Get visible voxels ---
+	# a. Store voxels in a dictionary with collision handling
 	var voxel_map: Dictionary = {}
 	var visible_voxels = PackedVector3Array()
 	var offsets = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
 				   Vector3i(0, 1, 0), Vector3i(0, -1, 0),
 				   Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 
-	# Populate hash map
+	# b. Populate hash map
 	for vox: Vector3i in voxel_resource.positions:
 		var hash = hash_voxel(vox)
 		if hash in voxel_map:
@@ -283,7 +284,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 		else:
 			voxel_map[hash] = [vox]
 	
-	# Find visible voxels
+	# c. Find visible voxels
 	for vox: Vector3i in voxel_resource.positions:
 		for offset in offsets:
 			var neighbor_vox: Vector3i = vox + offset
@@ -297,7 +298,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	voxel_resource.buffer("visible_voxels")
 	voxel_resource.visible_voxels = visible_voxels
 	
-	# Set data size if compressed voxel obj:
+	# Set data size if result is compressed voxel obj:
 	if options.Resource_type == 1:
 		var initial_data_size: float = 0
 		var compressed_data_size: float = 0
@@ -316,11 +317,11 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	return err
 
 
-func hash_voxel(v: Vector3i) -> int:
+static func hash_voxel(v: Vector3i) -> int:
 	return ((v.x * 73856093) ^ (v.y * 19349663) ^ (v.z * 83492791)) % 1000003
 
 
-func create_boxes(chunk: PackedVector3Array) -> Array:
+static func create_boxes(chunk: PackedVector3Array) -> Array:
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
 
@@ -369,7 +370,7 @@ func create_boxes(chunk: PackedVector3Array) -> Array:
 	return boxes
 
 
-func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
+static func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
 	var shapes = []
 	for box in boxes:
 		var min_pos = box["min"]

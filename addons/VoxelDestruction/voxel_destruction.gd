@@ -163,6 +163,7 @@ Handle detached voxels [br]
 [b]Disabled[/b]: Do not handle detached voxels [br]
 [b]Destroy[/b]: Detached voxels are destroyed[br]
 [b]Rigid body[/b]: Detached voxels fall as rigid bodies[br]
+[b]Voxel Object[/b]: Detached voxels become their own VoxelObject[br]
 """
 	if not ProjectSettings.has_setting(property):
 		ProjectSettings.set_setting(property, value)
@@ -170,7 +171,7 @@ Handle detached voxels [br]
 		"name": property,
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_ENUM,
-		"hint_string": "Disabled,Destroy,Rigid Body"
+		"hint_string": "Disabled,Destroy,Rigid Body,Voxel Object"
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)

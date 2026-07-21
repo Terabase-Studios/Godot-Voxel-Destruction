@@ -74,7 +74,8 @@ var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_dest
 ## [b]Disabled[/b]: Do not handle detached voxels [br]
 ## [b]Multimesh[/b]: Detached voxels are destroyed[br]
 ## [b]Rigid Body[/b]: Detached voxels fall as a rigid body debris and despawns after [member VoxelObject.debris_lifetime][br]
-@export_enum("Default", "Disabled", "Destroy", "Rigid Body") var flood_fill = 0
+## [b]Voxel Object[/b]: Detached voxels become their own VoxelObject
+@export_enum("Default", "Disabled", "Destroy", "Rigid Body", "Voxel Object") var flood_fill = 0
 @export_subgroup("Addons")
 ## Used to reduce rendering costs at varying distances.
 @export var lod_addon: VoxelLODAddon:
@@ -144,6 +145,7 @@ func _ready() -> void:
 			push_warning("[VD Addon] VoxelObject is unpopulated! ", name)
 			_disabled_locks.append("NO VOXEL MULTIMESH")
 			return
+		#  This is to make sure that a single voxel resource is not used more than once
 		if multimesh.get_reference_count() > 8:
 			multimesh = multimesh.duplicate(true)
 
@@ -174,8 +176,8 @@ func _ready() -> void:
 		else:
 			_collision_body = RigidBody3D.new()
 			_collision_body.freeze = true
-			_collision_body.top_level = true
-			_collision_body.global_transform = global_transform
+			#_collision_body.top_level = true
+			#_collision_body.global_transform = global_transform
 			_collision_body.physics_material_override  = physics_material
 			var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
 			_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3
@@ -375,7 +377,7 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	)
 	_damage_tasks[group_id] = [damage_results, damager]
 
-
+# FIXME/TODO: ALL THREADED FUNCTIONS SHOULD BE STATIC. Dude. I've been tracking studdering issues with multithreaded functions forever. Static... I'm writing a blog later.
 func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void:
 	# Get positions and vox_ids to modify later and calculate damage
 	var vox_position: Vector3 = global_voxel_positions[voxel]
@@ -867,6 +869,13 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 	var chunks_to_regen := PackedVector3Array()
 	var scaled_basis := global_transform.basis.scaled(voxel_resource.vox_size)
 
+	if flood_fill == 4:
+		# Spawn each detached group as a falling RigidBody3D with its own MultiMesh
+		for group in detached_groups:
+			if group.is_empty():
+				continue
+			_spawn_voxel_object_chunk(group, scaled_basis, chunks_to_regen)
+
 	if flood_fill == 3:
 		# Spawn each detached group as a falling RigidBody3D with its own MultiMesh
 		for group in detached_groups:
@@ -874,7 +883,7 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 				continue
 			_spawn_falling_chunk(group, scaled_basis, chunks_to_regen)
 	else:
-		# Original behaviour: just delete detached voxels and spawn debris
+		# Original behaviour:  delete detached voxels and spawn debris
 		var debris_queue = []
 		for group in detached_groups:
 			for vox_pos3i in group:
@@ -912,6 +921,130 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 
 	if physics:
 		_update_physics()
+
+# TODO: Add material support for voxel chunks
+func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: PackedVector3Array) -> void:
+	if group.is_empty():
+		return
+
+	# Precompute some vars
+	var group_size = group.size()
+
+	# Calculate center of the chunk in global space for the RigidBody origin
+	var vt := Transform3D(scaled_basis, global_transform.origin)
+	var center := Vector3.ZERO
+	for vox_pos3i in group:
+		center += vt * (Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5))
+	center /= group.size()
+
+	# Calculate center in voxel space
+	var local_center := Vector3.ZERO
+	for vox in group:
+		local_center += Vector3(vox) + Vector3(0.5, 0.5, 0.5)
+	local_center /= group.size()
+
+	# Build a MultiMesh for this chunk
+	var chunk_multimesh := VoxelMultiMesh.new()
+	chunk_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	chunk_multimesh.use_colors = true
+	chunk_multimesh.instance_count = group_size
+
+	# Reuse the same mesh as the parent VoxelObject
+	chunk_multimesh.mesh = multimesh.mesh
+
+	# Set instance transforms relative to the chunk center
+	# TODO: (CURRENT) Fix voxel mesh generation. Maybe redo.
+	for i in group_size:
+		var vox_pos: Vector3i = group[i]
+		var vox_local := (Vector3(vox_pos) * voxel_resource.vox_size) + Vector3(0.5, 0.5, 0.5)
+		var local_offset := vox_local - local_center
+
+		var vox_id: int = voxel_resource.positions_dict.get(vox_pos, -1)
+
+		chunk_multimesh.set_instance_transform(i, Transform3D(Basis(), local_offset))
+
+		if vox_id >= 0:
+			chunk_multimesh.set_instance_color(i, multimesh.get_instance_color(multimesh.induces.get(vox_id, vox_id)))
+
+	# Create VoxelResource by remaping from original resource (TODO: Multithread)
+	var vr := VoxelResource.new()
+	vr.vox_count = group_size
+	vr.vox_size = voxel_resource.vox_size
+	vr.colors = voxel_resource.colors
+	vr.chunks = voxel_resource.chunks
+	# Resize arrays
+	vr.color_index.resize(group_size)
+	vr.health.resize(group_size)
+	vr.positions.resize(group_size)
+	vr.vox_chunk_indices.resize(group_size)
+	# TODO: Reintroduce visible voxel culling into new VoxelObject
+	vr.visible_voxels
+	for i in group_size:
+		voxel_resource.buffer_all()
+		var vox_id: int = voxel_resource.positions_dict[group[i]]
+		var vox_position: Vector3i = voxel_resource.positions[vox_id]
+		vr.color_index[i] = voxel_resource.color_index[vox_id]
+		vr.health[i] = voxel_resource.health[vox_id]
+
+		var local_pos := Vector3(vox_position) - local_center
+		vr.positions[i] = local_pos
+		vr.positions_dict[Vector3i(local_pos)] = i
+		#vr.positions[i] = Vector3(vox_position)
+		#vr.positions_dict[vox_position] = i
+
+		vr.vox_chunk_indices[i] = voxel_resource.vox_chunk_indices[vox_id]
+
+	# Create the VoxelObject with physics
+	var vo := VoxelObject.new()
+	vo.top_level = true
+	vo.density = density
+	vo.name = "VoxelObjectChunk"
+	vo.multimesh = chunk_multimesh
+	vo.voxel_resource = vr
+
+	# Remove these voxels from the parent VoxelObject
+	for vox_pos3i in group:
+		if not voxel_resource.positions_dict.has(vox_pos3i):
+			continue
+		var vox_id = voxel_resource.positions_dict[vox_pos3i]
+		multimesh.set_instance_visibility(vox_id, false)
+		voxel_resource.positions_dict.erase(vox_pos3i)
+		_voxel_server.total_active_voxels -= 1
+		health -= voxel_resource.health[vox_id]
+		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
+		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
+		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
+
+	# Generate collision chunks and shapes
+	var chunk_size := Vector3i(16, 16, 16) # Use default chunk size when creating debris. (May be differen from `self`)
+
+	# Sort axes
+	var vox_chunk_indices: PackedVector3Array
+	var chunks: Dictionary[Vector3, PackedVector3Array]
+
+	# Create voxel dictionary
+	for voxel: Vector3i in vr.positions:
+		var chunk = Vector3(int(voxel.x/chunk_size.x), int(voxel.y/chunk_size.y), int(voxel.z/chunk_size.z))
+		vox_chunk_indices.append(chunk)
+		if not chunks.has(chunk):
+			chunks[chunk] = PackedVector3Array()
+		chunks[chunk].append(voxel)
+
+	# Create collision TODO: MULTITHREADw
+	var starting_shapes = Array()
+	for chunk in chunks:
+		starting_shapes.append_array(VoxImporter.create_shapes(VoxImporter.create_boxes(chunks[chunk]), vr.vox_size, chunk))
+
+	# Set collision VoxelResource vars
+	vr.vox_chunk_indices = vox_chunk_indices
+	vr.chunks = chunks
+	vr.starting_shapes = starting_shapes
+
+	# Add to scene and position at chunk center
+	get_tree().root.add_child(vo)
+	vo.global_position = center
+
+
 
 
 func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: PackedVector3Array) -> void:
@@ -981,8 +1114,8 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
 		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
-		if chunk_idx not in chunks_to_regen:
-			chunks_to_regen.append(chunk_idx)
+		#if chunk_idx not in chunks_to_regen:
+		#	chunks_to_regen.append(chunk_idx)
 
 	# Add to scene and position at chunk center
 	get_tree().root.add_child(rb)
@@ -997,7 +1130,7 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 #endregion
 
 
-# Ran on populate, update voxel resource changes here.
+# Ran on populate, run on voxel resource change. Regenerates multimesh
 func _populate_mesh(delete_old_cache: bool = true) -> void:
 	if voxel_resource:
 		# Buffers vars to prevent performence drop

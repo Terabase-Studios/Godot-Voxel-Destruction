@@ -28,7 +28,6 @@ VoxelServer="*uid://7bbbgf6wsu0i"
 window/size/viewport_width=2560
 window/size/viewport_height=1440
 window/size/mode=4
-window/vsync/vsync_mode=0
 
 [dotnet]
 

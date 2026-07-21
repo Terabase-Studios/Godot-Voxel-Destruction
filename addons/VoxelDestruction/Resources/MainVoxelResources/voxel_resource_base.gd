@@ -5,7 +5,7 @@ class_name VoxelResourceBase
 ##
 ## @deprecated: Use [VoxelResource] instead.
 @export var vox_count: int ## Number of voxels stored in the resource
-@export var vox_size: Vector3 ## Scale of voxels, multiply voxel postion by this and add VoxelObject node global position for global voxel position
+@export var vox_size: Vector3 ## Scale of voxels, used to calculate voxel global position.
 @export var size: Vector3 ## Estimated size of voxel object as a whole
 @export var origin: Vector3i ## Center voxel, used for detecting detached voxel chunks
 @export var starting_shapes: Array ## Array of shapes used at VoxelObject start
