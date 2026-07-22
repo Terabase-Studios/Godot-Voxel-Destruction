@@ -36,6 +36,7 @@ unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0)
 top_level = true
 script = ExtResource("2_ehonj")
+tick_aligned = true
 base_damage = 120.0
 damage_curve = SubResource("Curve_sdui0")
 base_power = 2

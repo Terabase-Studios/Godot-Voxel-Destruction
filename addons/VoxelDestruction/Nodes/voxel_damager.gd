@@ -10,6 +10,9 @@ class_name VoxelDamager
 @export_enum("Ignore", "Blacklist", "Whitelist") var group_mode = 0
 ## Group to blacklist or whitelist
 @export var group: String
+## Delays a physics tick before starting hit to allow get_overlapping_bodies() to update.[br]
+## Can help when hits do not seem to register on [VoxelObject]s after position change.
+@export var tick_aligned: bool = false
 @export_subgroup("Damage")
 ## Damage at damager origin
 @export var base_damage: float = 30.0
@@ -26,8 +29,7 @@ var range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var _voxel_server = get_node("/root/VoxelServer")
 
-
-var _killed = false
+var _killed = false # Triggers if incorrectly configured and disables this node
 
 func _ready() -> void:
 	if not _voxel_server and not Engine.is_editor_hint():
@@ -53,6 +55,8 @@ func _ready() -> void:
 func hit():
 	if _killed:
 		return
+	if tick_aligned:
+		await get_tree().physics_frame
 	# Maintain same postition and transform throughout damage calculation
 	var starting_global_position = global_position
 	# Ditto for VoxelObjects
