@@ -277,35 +277,70 @@ func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_debris")
 
 
-func _clean_cache():
-	var cache_dir := "res://addons/VoxelDestruction/Cache/"
-	var log_path := cache_dir + "old_cache.txt"
+func _clean_cache() -> void:
+	var cache_dir := "res://addons/VoxelDestruction/User/"
+	_clean_cache_recursive(cache_dir)
 
-	if not FileAccess.file_exists(log_path):
+
+func _clean_cache_recursive(dir_path: String) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		push_error("[VD ADDON] Failed to open cache directory: %s" % dir_path)
 		return
 
-	var file := FileAccess.open(log_path, FileAccess.READ)
-	if file == null:
-		push_error("[VD ADDON] Failed to open old_cache.txt for reading")
-		return
+	dir.list_dir_begin()
 
-	var paths: Array[String] = []
+	while true:
+		var file_name := dir.get_next()
+		if file_name == "":
+			break
 
-	while not file.eof_reached():
-		var line := file.get_line().strip_edges()
-		if line != "":
-			paths.append(line)
+		if file_name == "." or file_name == "..":
+			continue
 
-	file.close()
+		var full_path := dir_path.path_join(file_name)
 
-	for path in paths:
-		if FileAccess.file_exists(path):
-			var err := DirAccess.remove_absolute(path)
-			if err != OK:
-				push_error("[VD ADDON] Failed to delete cache file: %s (err %d)"
-					% [path, err])
+		if dir.current_is_dir():
+			_clean_cache_recursive(full_path)
+		elif file_name.ends_with(".tres"):
+			if not is_file_referenced(full_path):
+				var err := DirAccess.remove_absolute(full_path)
+				if err != OK:
+					push_error("[VD ADDON] Failed to delete unused cache file: %s (err %d)" % [full_path, err])
+				else:
+					print("[VD ADDON] Deleted unused cache file: ", full_path)
 
-	# Clear the log once processed
-	file = FileAccess.open(log_path, FileAccess.WRITE)
+	dir.list_dir_end()
+
+
+func is_file_referenced(file_path: String) -> bool:
+	var root_dir := "res://"
+	return _search_directory(root_dir, file_path)
+
+func _search_directory(dir_path: String, search_target: String) -> bool:
+	var dir = DirAccess.open(dir_path)
+
+	if dir:
+		dir.list_dir_begin()
+		var file_name = dir.get_next()
+		while file_name != "":
+			if dir.current_is_dir():
+				if file_name != ".godot" and file_name != ".git" and file_name != "User": # Skip system folders
+					if _search_directory(dir_path.path_join(file_name), search_target):
+						return true
+			elif file_name.ends_with(".tscn") or file_name.ends_with(".tres"):
+				var full_path = dir_path.path_join(file_name)
+				if _file_contains_string(full_path, search_target):
+					print("Found in: ", full_path)
+					return true
+			file_name = dir.get_next()
+	return false
+
+func _file_contains_string(tscn_path: String, target: String) -> bool:
+	var file = FileAccess.open(tscn_path, FileAccess.READ)
 	if file:
-		file.close()
+		while file.get_position() < file.get_length():
+			var line = file.get_line()
+			if line.contains(target):
+				return true
+	return false
