@@ -2,17 +2,20 @@
 extends EditorPlugin
 class_name VoxelDestructionGodot
 
+const VOXEL_PROGRESS_WINDOW_SCENE := preload("res://addons/VoxelDestruction/Utilities/progress_window.tscn")
+
 var vox_importer
 
 func _enter_tree() -> void:
-	create_settings()
+	_create_settings()
 	add_autoload_singleton("VoxelServer", "voxel_server.gd")
-	vox_importer= preload("vox_importer.gd").new()
+	vox_importer = preload("vox_importer.gd").new()
 	add_import_plugin(vox_importer, true)
 	add_custom_type("VoxelObject", "Gridmap", preload("Nodes/voxel_object.gd"), preload("Nodes/voxel_object.svg"))
 	add_custom_type("VoxelDamager", "Area3D", preload("Nodes/voxel_damager.gd"), preload("Nodes/voxel_damager.svg"))
 	add_custom_type("VoxelMarker", "Marker3D", preload("Nodes/voxel_marker.gd"), preload("Nodes/voxel_marker.svg"))
-	_clean_cache()
+	add_tool_menu_item("Clean Voxel Destruction Resources", func(): _clean_cache.bind(get_tree()).call_deferred())
+
 
 
 func _exit_tree() -> void:
@@ -25,9 +28,20 @@ func _exit_tree() -> void:
 	vox_importer = null
 
 
-func create_settings():
-	var EditorSettingsDescription = preload("editor_settings_description.gd")
+## Creates and returns a controlable [VoxelProgressWindow]
+static func create_process(text: String, sub_text: String, progress: float = 0.0) -> VoxelProgressWindow:
+	var voxel_progress_window: VoxelProgressWindow = VOXEL_PROGRESS_WINDOW_SCENE.instantiate()
+	voxel_progress_window.text = text
+	voxel_progress_window.sub_text = sub_text
+	voxel_progress_window.progress = progress
+	EditorInterface.get_base_control().add_child(voxel_progress_window)
+	await voxel_progress_window.redraw()
+	return voxel_progress_window
 
+
+#region Settings
+func _create_settings():
+	var EditorSettingsDescription = preload("editor_settings_description.gd")
 # ==================================================================================================
 	var property = "voxel_destruction/performance/queue_attacks"
 	var value = false
@@ -254,6 +268,7 @@ Handle detached voxels [br]
 # ==================================================================================================
 
 	ProjectSettings.save()
+#endregion
 
 
 func _unregister_settings():
@@ -277,70 +292,81 @@ func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_debris")
 
 
-func _clean_cache() -> void:
+static func _clean_cache(tree: SceneTree) -> void:
+	var popup = await VoxelDestructionGodot.create_process("Cleaning Addon Resources", "Gathering References")
 	var cache_dir := "res://addons/VoxelDestruction/User/"
-	_clean_cache_recursive(cache_dir)
+	var cache_files: Array[String] = []
+	_gather_cache_files(cache_dir, cache_files)
+	if cache_files.is_empty():
+		popup.queue_free()
+		return
 
+	popup.text = "Scanning References"
+	popup.sub_text = "Indexing project files"
+	await popup.redraw()
+	var referenced_paths: Dictionary = {}
+	_build_reference_index("res://", referenced_paths)
 
-func _clean_cache_recursive(dir_path: String) -> void:
+	popup.text = "Checking References"
+	var deleted_files := 0
+	for i in range(cache_files.size()):
+		var uid_text := cache_files[i]
+		var full_path := ResourceUID.get_id_path(ResourceUID.text_to_id(uid_text))
+		popup.progress = float(i) / cache_files.size()
+		popup.sub_text = "%s (%d/%d)" % [full_path.get_file(), i + 1, cache_files.size()]
+		await popup.redraw()
+
+		if not referenced_paths.has(uid_text):
+			var err := DirAccess.remove_absolute(full_path)
+			if err != OK:
+				push_warning("[VD ADDON] Failed to delete unused cache file: %s (err %d)" % [full_path, err])
+			else:
+				deleted_files += 1
+
+	popup.progress = 1.0
+	popup.text = "Done!"
+	popup.sub_text = "Deleted %d unused cache files" % deleted_files
+	await popup.redraw()
+	if deleted_files != 0:
+		await tree.create_timer(1.0)
+		tree.create_timer(1.0).connect("timeout", popup.queue_free)
+	else:
+		popup.queue_free()
+
+static func _gather_cache_files(dir_path: String, out_files: Array[String]) -> void:
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		push_error("[VD ADDON] Failed to open cache directory: %s" % dir_path)
 		return
-
 	dir.list_dir_begin()
-
 	while true:
 		var file_name := dir.get_next()
 		if file_name == "":
 			break
-
 		if file_name == "." or file_name == "..":
 			continue
-
 		var full_path := dir_path.path_join(file_name)
-
 		if dir.current_is_dir():
-			_clean_cache_recursive(full_path)
+			_gather_cache_files(full_path, out_files)
 		elif file_name.ends_with(".tres"):
-			if not is_file_referenced(full_path):
-				var err := DirAccess.remove_absolute(full_path)
-				if err != OK:
-					push_error("[VD ADDON] Failed to delete unused cache file: %s (err %d)" % [full_path, err])
-				else:
-					print("[VD ADDON] Deleted unused cache file: ", full_path)
-
+			var uid_text := ResourceUID.id_to_text(ResourceLoader.get_resource_uid(full_path))
+			out_files.append(uid_text)
 	dir.list_dir_end()
 
-
-func is_file_referenced(file_path: String) -> bool:
-	var root_dir := "res://"
-	return _search_directory(root_dir, file_path)
-
-func _search_directory(dir_path: String, search_target: String) -> bool:
-	var dir = DirAccess.open(dir_path)
-
-	if dir:
-		dir.list_dir_begin()
-		var file_name = dir.get_next()
-		while file_name != "":
-			if dir.current_is_dir():
-				if file_name != ".godot" and file_name != ".git" and file_name != "User": # Skip system folders
-					if _search_directory(dir_path.path_join(file_name), search_target):
-						return true
-			elif file_name.ends_with(".tscn") or file_name.ends_with(".tres"):
-				var full_path = dir_path.path_join(file_name)
-				if _file_contains_string(full_path, search_target):
-					print("Found in: ", full_path)
-					return true
-			file_name = dir.get_next()
-	return false
-
-func _file_contains_string(tscn_path: String, target: String) -> bool:
-	var file = FileAccess.open(tscn_path, FileAccess.READ)
-	if file:
-		while file.get_position() < file.get_length():
-			var line = file.get_line()
-			if line.contains(target):
-				return true
-	return false
+static func _build_reference_index(dir_path: String, referenced_paths: Dictionary) -> void:
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return
+	dir.list_dir_begin()
+	var file_name := dir.get_next()
+	while file_name != "":
+		if dir.current_is_dir():
+			if file_name != ".godot" and file_name != ".git":
+				_build_reference_index(dir_path.path_join(file_name), referenced_paths)
+		elif file_name.ends_with(".tscn") or file_name.ends_with(".tres"):
+			var full_path := dir_path.path_join(file_name)
+			for dep in ResourceLoader.get_dependencies(full_path):
+				var dep_path: String = dep.split("::")[0]
+				referenced_paths[dep_path] = true
+		file_name = dir.get_next()
+	dir.list_dir_end()

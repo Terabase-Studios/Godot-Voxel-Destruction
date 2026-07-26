@@ -17,6 +17,8 @@ static var _project_setting_inspector:Control
 static var _scene_tree:SceneTree
 
 static func _static_init() -> void:
+	if not Engine.is_editor_hint():
+		return
 	## Editor settings
 	var editor_settings_window = EditorInterface.get_base_control().find_children("","EditorSettingsDialog",true,false)[-1]
 	var si = editor_settings_window.find_children("","SectionedInspector",true,false)[-1]

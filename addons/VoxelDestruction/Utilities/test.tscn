@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b385bwh3qh3ui"]
+
+[ext_resource type="Script" uid="uid://gri80ml7njoj" path="res://addons/VoxelDestruction/Utilities/test.gd" id="1_vqveq"]
+
+[node name="Test" type="Node2D" unique_id=1731477457]
+script = ExtResource("1_vqveq")

@@ -1,0 +1,68 @@
+[gd_scene format=3 uid="uid://4pxbntarq2t1"]
+
+[ext_resource type="Script" uid="uid://bgbffy30ldlns" path="res://addons/VoxelDestruction/Utilities/progress_window.gd" id="1_ux5ls"]
+[ext_resource type="Texture2D" uid="uid://k2gnw754dhek" path="res://addons/VoxelDestruction/icon.png" id="2_qnans"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ux5ls"]
+
+[node name="ProgressWindow" type="PopupPanel" unique_id=736424162]
+oversampling_override = 1.0
+initial_position = 1
+size = Vector2i(518, 100)
+visible = true
+sharp_corners = true
+theme_override_styles/panel = SubResource("StyleBoxEmpty_ux5ls")
+script = ExtResource("1_ux5ls")
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=962729459]
+custom_minimum_size = Vector2(510, 92)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"PanelContainerTabbarInner"
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel" unique_id=1826758153]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"MainToolBarMargin"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer" unique_id=1596249434]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer" unique_id=885605787]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Panel/MarginContainer/VBoxContainer/HBoxContainer" unique_id=927284462]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"HeaderMedium"
+text = "MainLabel"
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel/MarginContainer/VBoxContainer/HBoxContainer" unique_id=240664750]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="TextureRect" type="TextureRect" parent="Panel/MarginContainer/VBoxContainer/HBoxContainer/MarginContainer" unique_id=1603861229]
+layout_mode = 2
+texture = ExtResource("2_qnans")
+expand_mode = 2
+
+[node name="ProgressBar" type="ProgressBar" parent="Panel/MarginContainer/VBoxContainer" unique_id=1181201290]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"PopupProgressBar"
+max_value = 1.0
+step = 0.001
+
+[node name="SubLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer" unique_id=2108941205]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"TooltipLabel"
+text = "MainLabel"
