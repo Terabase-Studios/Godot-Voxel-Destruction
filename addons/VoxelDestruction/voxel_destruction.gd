@@ -22,7 +22,6 @@ func _enter_tree() -> void:
 	add_node_3d_gizmo_plugin(selectable_gizmo)
 
 
-
 func _exit_tree() -> void:
 	remove_custom_type("VoxelObject")
 	remove_custom_type("VoxelDamager")
@@ -282,6 +281,7 @@ Handle detached voxels [br]
 # ==================================================================================================
 
 	ProjectSettings.save()
+#endregion
 
 
 func _unregister_settings():
@@ -315,6 +315,7 @@ static func _clean_cache(tree: SceneTree, deamon: bool = false) -> void:
 			push_warning("Cache cleanup aborted: You have unsaved scenes.")
 			tree.create_timer(2.0).connect("timeout", popup.queue_free)
 		return 
+
 	var popup = await VoxelDestructionGodot.create_process("Cleaning Addon Resources", "Gathering References")
 	var cache_dir := "res://addons/VoxelDestruction/User/"
 	var cache_files: Array[String] = []

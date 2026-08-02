@@ -1360,16 +1360,13 @@ func _populate_mesh() -> void:
 		new_voxel_state.version = _VOXELSTATE_VERSION
 		new_voxel_state.colors = new_color_pallet
 		new_voxel_state.color_index = new_colors
-		#new_voxel_state.voxel_mesh = _cache_resource(_multimesh)
 		new_voxel_state.unique_voxel_resource = voxel_resource.duplicate(true)
-		new_voxel_state.unique_voxel_resource.resource_local_to_scene = false
 		_voxel_state = _cache_resource(new_voxel_state)
 		#var undo_redo = EditorInterface.get_editor_undo_redo()
 		#undo_redo.create_action("Populated Voxel Object")
 		#undo_redo.add_do_property(self, &"multimesh", _multimesh)
 		#undo_redo.add_undo_property(self, &"multimesh", multimesh)
 		#undo_redo.commit_action()
-		#self.multimesh = load(new_voxel_state.voxel_mesh.resource_path)
 		self.multimesh = _cache_resource(_multimesh)
 
 		popup.sub_text = "Giving Addons their turn!"
@@ -1383,11 +1380,6 @@ func _populate_mesh() -> void:
 
 		# Extra safeguard for save mid populate
 		EditorInterface.mark_scene_as_unsaved()
-
-		# Automatic Cleanup - Removed as cleaning up resources while a scene is unsaved is not allowed
-		#if randf() < .2:
-			#await get_tree().physics_frame
-			#await VoxelDestructionGodot._clean_cache(get_tree())
 
 
 # Utility function that takes a voxid and returns a color
