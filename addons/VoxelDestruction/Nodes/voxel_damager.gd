@@ -3,7 +3,7 @@ extends Area3D
 class_name VoxelDamager
 ## Call [method VoxelDamager.hit] to damage all voxels within the area. 
 ##
-## Add a BoxShape3D and to a collision node. Will set the range to the smallist axis. [br]
+## Add a BoxShape3D and to a collision node. Will set the _range to the smallist axis. [br]
 ## The damager inherits the [Area3D] node and suffers from the same limitations.
 
 ## Whether to not damage a specific node group or to only damage that node group
@@ -25,7 +25,7 @@ class_name VoxelDamager
 @export var power_curve: Curve = Curve.new()
 ## Knock back rigid body debris.
 @export var knock_back_debri = false
-var range: float
+var _range: float
 ## Stores global position since [member VoxelDamager.hit] was called.
 @onready var _voxel_server = get_node("/root/VoxelServer")
 
@@ -42,7 +42,7 @@ func _ready() -> void:
 		_killed = true
 		return
 	var size = collision_shape.size
-	range = float(min(size.x, min(size.y, size.z)))/2
+	_range = float(min(size.x, min(size.y, size.z)))/2
 	if not damage_curve:
 		push_warning("[VD ADDON] VoxelDamager has no DamageCurve, no damage will be applied!")
 		damage_curve = Curve.new()
@@ -92,7 +92,7 @@ func hit():
 		if "VoxelDebri" in body.name:
 			if knock_back_debri and body.is_inside_tree():
 				var global_pos = body.global_position
-				var decay = starting_global_position.distance_to(global_pos) / range
+				var decay = starting_global_position.distance_to(global_pos) / _range
 				var power = float(base_power * power_curve.sample(decay))
 				var launch_vector = global_pos - starting_global_position
 				var velocity = launch_vector.normalized() * power
