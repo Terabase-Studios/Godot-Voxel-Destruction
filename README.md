@@ -14,9 +14,11 @@ Please check out the [roadmap](https://github.com/users/Terabase-Studios/project
 *   **Debris Modes:** Offers multiple debris modes for varying levels of realism and performance.
 *   **Dithering:** Supports adjustable dithering effects for enhanced visual realism during destruction.
 *   **Easy Integration:** Designed for seamless integration into existing Godot projects.
-*   **VoxelObject Health and Damage tracking** Mark voxels and track health for enemies or indivisual voxels.
-*   **Custom Monitors** View VoxelDestruction specific statistics real time in Debugger/Monitors.
-*   **Custom Project Settings** Change VoxelDestruction specific settings built into the ProjectSettings.
+*   **VoxelObject Health and Damage tracking:** Mark voxels and track health for enemies or indivisual voxels.
+*   **Custom Monitors:** View VoxelDestruction specific statistics real time in Debugger/Monitors.
+*   **Custom Project Settings:** Change VoxelDestruction specific settings built into the ProjectSettings.
+*   **Heavy Multithreading:** Takes pressure of the main thread for smooth destruction.  
+
 
 ## Project State
 This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned. All issues and pull requests will be addressed promptly.
@@ -26,15 +28,31 @@ I want to make this the best addon it can be! Feel free to open an issue or pull
 
 ## Installation
 
-1.  **Godot Asset Library:**
-	*   Open the "AssetLib" tab in the Godot editor.
-	*   Search for "Voxel Destruction" and click on the addon.
-	*   Click "Download" and then "Install".
+You can install Voxel Destruction using any of the following methods:
 
-2.  **Enable the Plugin:**
-	*   Go to `Project` > `Project Settings` > `Plugins`.
-	*   Find "Voxel Destruction" in the list and check the "Enable" box.
+### 1. Within Godot (Recommended)
 
+1. Open the **AssetLib** tab in the Godot editor.
+2. Search for **"Voxel Destruction"**.
+3. Select the addon and click **Download**.
+4. Click **Install**.
+
+### 2. Download: [GitHub Releases](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/releases) / [Godot Marketplace](https://store.godotengine.org/asset/terabase-studios/voxel-destruction/) / [Asset Library](https://godotengine.org/asset-library/asset/3743)
+
+1. Visit one of the project's pages linked above.
+2. Download the latest release (`.zip`).
+3. Extract the archive into your project's `addons/` folder.
+4. Ensure the addon is located in: `addons/`
+
+### Enable the Plugin
+
+After installing through any method:
+
+1. Open **Project → Project Settings → Plugins**.
+2. Locate **Voxel Destruction**.
+3. Click **Enable**.
+
+The plugin is now ready to use.
 ## Getting Started
 
 1.  **Import a `.vox` file:**
