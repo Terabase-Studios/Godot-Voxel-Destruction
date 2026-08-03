@@ -12,7 +12,8 @@ enum Resource_type {
 enum Presets { 
 	SCALE,
 	CHUNK_SIZE,
-	RESOURCE_TYPE
+	RESOURCE_TYPE,
+	COLLISION_QUALITY,
 }
 
 
@@ -28,6 +29,8 @@ func _get_preset_name(preset_index):
 			return "Chunk Size"
 		Presets.RESOURCE_TYPE:
 			return "Resource"
+		Presets.COLLISION_QUALITY:
+			return "Collision Quality"
 		_:
 			return "Unknown"
 
@@ -46,7 +49,14 @@ func _get_import_options(path, preset_index):
 			   "default_value": Resource_type.DEFAULT,
 			   "property_hint": PROPERTY_HINT_ENUM,
 			   "hint_string": "Default,Compact"
-			}]
+			},
+			#{
+				#"name": "Collision_Quality",
+				#"default_value": 1,
+				#"property_hint": PROPERTY_HINT_ENUM,
+				#"hint_string": "High,Medium,Low"
+			#}
+			]
 
 
 func _get_option_visibility(path, option_name, options):
@@ -259,6 +269,13 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	
 	# Create collision
 	var starting_shapes = Array()
+	#var sample_size := 1
+	#if options.Collision_Quality == 1:
+		#sample_size = 1
+	#elif options.Collision_Quality == 2:
+		#sample_size = 2
+	#elif options.Collision_Quality == 3:
+		#sample_size = 4
 	for chunk in chunks:
 		starting_shapes.append_array(VoxelObjectUtilities.create_shapes(VoxelObjectUtilities.create_boxes(chunks[chunk]), scale, chunk))
 	

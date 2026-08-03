@@ -73,6 +73,25 @@ This has a chance to increase performace when multiple attacks damage the [Voxel
 # ==================================================================================================
 
 # ==================================================================================================
+	property = "voxel_destruction/performance/default_collision_quality"
+	value = 1
+	description = """Controls the precision of generated collision shapes.
+Higher values improve accuracy but may increase physics cost.
+Default uses the project setting voxel_destruction/performance/default_collision_quality"""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_ENUM,
+		"hint_string": "High,Medium,Low"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
 	property = "voxel_destruction/performance/collision_preload_percent"
 	value = 0.0
 	description = """@experimental: Changing this value may cause unintended behavior.
@@ -285,6 +304,7 @@ Handle detached voxels [br]
 
 func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/performance/queue_attacks")
+	ProjectSettings.clear("voxel_destruction/performance/default_collision_quality")
 	ProjectSettings.clear("voxel_destruction/performance/collision_preload_percent")
 	ProjectSettings.clear("voxel_destruction/performance/collision_nodes_updated_per_physics_frame")
 	ProjectSettings.clear("voxel_destruction/debris/default_type")

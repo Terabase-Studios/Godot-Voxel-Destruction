@@ -156,7 +156,6 @@ static func create_boxes(chunk: PackedVector3Array) -> Array:
 	for pos in chunk:
 		if visited.get(pos, false):
 			continue
-		# Refrence voxel_server class, not the VoxelServer instance
 		if pos == voxel_server._REMOVED_VOXEL_MARKER:
 			continue
 		

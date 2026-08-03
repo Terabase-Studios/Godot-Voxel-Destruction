@@ -11,8 +11,9 @@ class_name VoxelObject
 #region Constants
 var _VOXELSTATE_VERSION := 1.0
 var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
-const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
+const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.0 # Time to wait before unfreezing rigid bodies that break off to prevent them colliding with previous collision in the process of being removed
 const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true
+const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
 
@@ -35,11 +36,15 @@ var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/ben
 @export var invulnerable = false
 ## Darken damaged voxels based on voxel health.
 @export var darkening = true
+## Controls the precision of generated collision shapes.
+## Higher values improve accuracy but may increase physics cost.
+## Default uses the project setting voxel_destruction/performance/default_collision_quality
+@export_enum("Default", "High", "Medium", "Low") var collision_quality = 0
 ## What the voxel object should do when its health reaches 0. [br]
 ## [b]Nothing[/b]: Nothing will hapen [br]
 ## [b]Disable[/b]: Frees as much memory as possible. [br]
 ## [b]Queue_free()[/b]: Calls queue_free [br]
-@export_enum("nothing", "disable", "queue_free()") var end_of_life = 1
+@export_enum("Nothing", "Disable", "queue_free()") var end_of_life = 1
 @export_group("Debris")
 ## Type of debris generated [br]
 ## [b]Default[/b]: Default to ProjectSettings "voxel_destruction/performance/collision_preload_percent"[br]
@@ -139,48 +144,62 @@ func _ready() -> void:
 	#region Backwards Compatability
 	if not flood_fill:
 		flood_fill = 0
+	if not collision_quality:
+		collision_quality = 0
 	#endregion
 	if Engine.is_editor_hint():
 		# Check for update
 		if _voxel_state.version != _VOXELSTATE_VERSION:
 			print("[VD ADDON] Updating ", name, "'s VoxelState to new version.")
 			_populate_mesh()
+
 		return
 		#if multimesh and multimesh.get_reference_count() > 6:
 		#	_populate_mesh()
 	else:
+		if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+			multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
 		var _t0 := Time.get_ticks_usec()
 
 		if not _voxel_server:
 			push_error("VoxelServer Autoload not found! Please (re)enable the addon")
-			_voxel_server = voxel_server.new()
+			_disabled_locks.append("NO VOXEL SERVER")
+			print("hey")
+			if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+				multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
+			return
 		if not voxel_resource:
 			push_warning("[VD Addon] Missing voxel_resource! ", name)
 			_disabled_locks.append("NO VOXEL RESOURCE")
+			if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+				multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
 			return
 		if not _voxel_state:
 			push_warning("[VD Addon] VoxelObject is unpopulated! ", name)
 			_disabled_locks.append("NO VOXEL STATE")
+			if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+				multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
 			return
-		if not multimesh:
+		if not multimesh or not _voxel_state.unique_voxel_resource:
 			push_warning("[VD Addon] VoxelObject's VoxelState is invalid! ", name)
 			_disabled_locks.append("NO VOXEL MESH")
+			if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+				multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
 			return
 		if _voxel_state.version != _VOXELSTATE_VERSION:
 			push_warning("[VD Addon] VoxelObject's VoxelState is outdated!\nPlease open scene containing this VoxelObject in the editor.\nUnexpected behavior may occur. ", name)
 			_disabled_locks.append("OUTDATED VOXEL STATE")
+			if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+				multimesh.mesh.surface_get_material(0).set_shader_parameter("error", true)
 			return
 
-		#if not multimesh:
-			#multimesh = _voxel_state.voxel_mesh
-			#return
-
-		if multimesh.get_reference_count() > 8:
-			multimesh = multimesh.duplicate(true)
+		if collision_quality == 0:
+			collision_quality = ProjectSettings.get_setting("voxel_destruction/performance/default_collision_quality", 1) + 1
 		if debris_type == 0:
 			debris_type = ProjectSettings.get_setting("voxel_destruction/debris/default_type", 2) + 1
 		if flood_fill == 0:
 			flood_fill = ProjectSettings.get_setting("voxel_destruction/other/flood_fill_default", 1) + 1
+
 		health = voxel_resource.vox_count * 100
 
 		if _BENCHMARK_READY:
@@ -271,6 +290,9 @@ func _ready() -> void:
 				var _t1 := Time.get_ticks_usec()
 				print("[VD bench][Ready][", name, "] dithering color_index build (%d instances): %d us" % [multimesh.instance_count, _t1 - _t0])
 				_t0 = _t1
+
+		if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
+			multimesh.mesh.surface_get_material(0).set_shader_parameter("error", false)
 
 	if lod_addon:
 		lod_addon._ready()
@@ -615,9 +637,16 @@ func _regen_collision(chunk_index: Vector3) -> void:
 	_shapes_to_add[chunk_index] = []
 	var chunk: PackedVector3Array = voxel_resource.chunks[chunk_index]
 	var shape_datas = Array()
+	var sample_size := 1
+	if collision_quality == 1:
+		sample_size = 1
+	elif collision_quality == 2:
+		sample_size = 2
+	elif collision_quality == 3:
+		sample_size = 4
 	# Create shape nodes
 	var task_id = WorkerThreadPool.add_task(
-		_create_shapes.bind(chunk, shape_datas),
+		_create_shapes.bind(chunk, shape_datas, collision_quality),
 		false, "Calculating Collision Shapes"
 	)
 	_regen_tasks[task_id] = [shape_datas, chunk_index]
@@ -627,12 +656,39 @@ func _regen_collision(chunk_index: Vector3) -> void:
 
 # This function is undocumented
 # WORKER THREAD FUNCTION
-func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
+func _create_shapes(
+	chunk: PackedVector3Array,
+	shape_datas: Array,
+	collision_downsample: int = 1
+) -> void:
 	var _t0 := Time.get_ticks_usec()
 	var visited: Dictionary[Vector3, bool]
 	var boxes = []
+
+	var collision_chunk := PackedVector3Array()
 	var chunk_set := {}
-	for pos in chunk:
+
+	# Downsample collision grid
+	if collision_downsample == 1:
+		collision_chunk = chunk
+	else:
+		var downsample_set := {}
+
+		for pos in chunk:
+			if pos == voxel_server._REMOVED_VOXEL_MARKER:
+				continue
+
+			var collision_pos := Vector3(
+				floor(pos.x / collision_downsample),
+				floor(pos.y / collision_downsample),
+				floor(pos.z / collision_downsample)
+			)
+
+			if not downsample_set.has(collision_pos):
+				downsample_set[collision_pos] = true
+				collision_chunk.append(collision_pos)
+
+	for pos in collision_chunk:
 		chunk_set[pos] = true
 
 	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
@@ -651,7 +707,7 @@ func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
 						return false
 		return true
 
-	for pos in chunk:
+	for pos in collision_chunk:
 		if visited.get(pos, false):
 			continue
 		# Refrence voxel_server class, not the VoxelServer instance
@@ -676,8 +732,8 @@ func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
 				for z in range(int(box_min.z), int(box_max.z) + 1):
 					visited[Vector3(x, y, z)] = true
 
-		var min_pos = box_min
-		var max_pos = box_max
+		var min_pos = box_min * collision_downsample
+		var max_pos = (box_max + Vector3.ONE) * collision_downsample - Vector3.ONE
 		var center = (min_pos + max_pos) * 0.5 * voxel_resource.vox_size
 		var extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
 		boxes.append({"center": center, "extents": extents})
@@ -994,7 +1050,7 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 	var scaled_basis := global_transform.basis.scaled(voxel_resource.vox_size)
 
 	if flood_fill == 4:
-		# Spawn each detached group as a falling RigidBody3D with its own MultiMesh
+		# Spawn each detached group as a VoxelObject with its own VoxelResource
 		for group in detached_groups:
 			if group.is_empty():
 				continue
@@ -1156,6 +1212,8 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
 		# Refrence voxel_server class, not the VoxelServer instance
 		voxel_resource.chunks[chunk_idx][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
+		if chunk_idx not in chunks_to_regen:
+			chunks_to_regen.append(chunk_idx)
 	#endregion
 
 	#region Generate collision chunks and shapes
@@ -1187,8 +1245,6 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 	# Add to scene and position at chunk center
 	get_tree().root.add_child(vo, false, Node.INTERNAL_MODE_BACK)
 	vo.global_position = center
-
-
 
 
 func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: PackedVector3Array) -> void:
@@ -1244,6 +1300,7 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 	box.size = (max_v - min_v)
 	col.shape = box
 	col.position = (min_v + max_v) * 0.5
+	rb.freeze = true
 	rb.add_child(col, false, Node.INTERNAL_MODE_BACK)
 
 	# Remove these voxels from the parent VoxelObject
@@ -1259,8 +1316,8 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
 		# Refrence voxel_server class, not the VoxelServer instance
 		voxel_resource.chunks[chunk_idx][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
-		#if chunk_idx not in chunks_to_regen:
-		#	chunks_to_regen.append(chunk_idx)
+		if chunk_idx not in chunks_to_regen:
+			chunks_to_regen.append(chunk_idx)
 
 	# Add to scene and position at chunk center
 	get_tree().root.add_child(rb, false, Node.INTERNAL_MODE_BACK)
@@ -1272,6 +1329,9 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 		if is_instance_valid(rb):
 			rb.queue_free()
 	)
+
+	get_tree().create_timer(_INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME).timeout.connect(func(): rb.freeze = false )
+
 #endregion
 
 
