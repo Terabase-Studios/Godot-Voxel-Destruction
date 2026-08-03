@@ -12,7 +12,6 @@ class_name VoxelObject
 var _VOXELSTATE_VERSION := 1.0
 var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.05
-const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7) # Marks empty voxels
 const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
@@ -279,7 +278,7 @@ func _ready() -> void:
 
 #region Every Physics Frame
 func _physics_process(delta):
-	if Engine.is_editor_hint():
+	if Engine.is_editor_hint() and _voxel_state:
 		if _voxel_state.version != _VOXELSTATE_VERSION:
 			if _populating:
 				return
@@ -557,7 +556,8 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_pos
 			_voxel_server.total_active_voxels -= 1
 
 			var chunk = result["chunk"]
-			voxel_resource.chunks[chunk][result["chunk_pos"]] = _REMOVED_VOXEL_MARKER
+			# Refrence voxel_server class, not the VoxelServer instance
+			voxel_resource.chunks[chunk][result["chunk_pos"]] = voxel_server._REMOVED_VOXEL_MARKER
 
 			if chunk not in chunks_to_regen:
 				chunks_to_regen.append(chunk)
@@ -654,7 +654,8 @@ func _create_shapes(chunk: PackedVector3Array, shape_datas: Array) -> void:
 	for pos in chunk:
 		if visited.get(pos, false):
 			continue
-		if pos == _REMOVED_VOXEL_MARKER:
+		# Refrence voxel_server class, not the VoxelServer instance
+		if pos == voxel_server._REMOVED_VOXEL_MARKER:
 			continue
 
 		var box_min = pos
@@ -1024,7 +1025,8 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 				_voxel_server.total_active_voxels -= 1
 				var chunk = voxel_resource.vox_chunk_indices[vox_id]
 				var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
-				voxel_resource.chunks[chunk][chunk_pos] = _REMOVED_VOXEL_MARKER
+				# Refrence voxel_server class, not the VoxelServer instance
+				voxel_resource.chunks[chunk][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
 				if chunk not in chunks_to_regen:
 					chunks_to_regen.append(chunk)
 				health -= voxel_resource.health[vox_id]
@@ -1152,7 +1154,8 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		health -= voxel_resource.health[vox_id]
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
-		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
+		# Refrence voxel_server class, not the VoxelServer instance
+		voxel_resource.chunks[chunk_idx][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
 	#endregion
 
 	#region Generate collision chunks and shapes
@@ -1173,7 +1176,7 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 	# Create collision TODO: MULTITHREAD
 	var starting_shapes = Array()
 	for chunk in chunks:
-		starting_shapes.append_array(VoxImporter.create_shapes(VoxImporter.create_boxes(chunks[chunk]), vr.vox_size, chunk))
+		starting_shapes.append_array(VoxelObjectUtilities.create_shapes(VoxelObjectUtilities.create_boxes(chunks[chunk]), vr.vox_size, chunk))
 
 	# Set collision VoxelResource vars
 	vr.vox_chunk_indices = vox_chunk_indices
@@ -1254,7 +1257,8 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 		health -= voxel_resource.health[vox_id]
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
 		var chunk_pos = voxel_resource.chunks[chunk_idx].find(vox_pos3i)
-		voxel_resource.chunks[chunk_idx][chunk_pos] = _REMOVED_VOXEL_MARKER
+		# Refrence voxel_server class, not the VoxelServer instance
+		voxel_resource.chunks[chunk_idx][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
 		#if chunk_idx not in chunks_to_regen:
 		#	chunks_to_regen.append(chunk_idx)
 
@@ -1273,133 +1277,10 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 
 #region Other private funcs
 func _populate_mesh() -> void:
-	if _populating:
-		return
-	_populating = true
-	if voxel_resource:
-		EditorInterface.mark_scene_as_unsaved()
-
-		var popup = await VoxelDestructionGodot.create_process("Populating Voxel Mesh", "Preparing")
-
-		# Buffers vars to prevent performence drop
-		# when finding vox color/position
-		voxel_resource.buffer("positions")
-		voxel_resource.buffer("color_index")
-		voxel_resource.buffer("colors")
-		voxel_resource.buffer("visible_voxels")
-		multimesh = null
-		# Create multimesh
-		var _multimesh = VoxelMultiMesh.new()
-		_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-		_multimesh.use_colors = true
-		if use_material:
-			_multimesh.use_custom_data = true
-		_multimesh.instance_count = voxel_resource.vox_count
-		_multimesh.create_indexes()
-		_multimesh.visible_instance_count = 0
-		# Create mesh
-		var mesh = BoxMesh.new()
-		mesh.material = preload("res://addons/VoxelDestruction/Resources/voxel_material.tres")
-		mesh.size = voxel_resource.vox_size
-		_multimesh.mesh = mesh
-
-		var new_color_pallet := PackedColorArray()
-		var new_colors := PackedByteArray()
-
-		var dithering_enabled := dark_dithering != 0 or light_dithering != 0
-		var random: RandomNumberGenerator
-		var dark_table: Array[float] = []
-		var light_table: Array[float] = []
-		if dithering_enabled:
-			random = RandomNumberGenerator.new()
-			random.set_seed(dithering_seed)
-			dark_table = [
-				-dark_dithering,
-				-dark_dithering * 0.66,
-				-dark_dithering * 0.33
-			]
-			light_table = [
-				light_dithering * 0.33,
-				light_dithering * 0.66,
-				light_dithering
-			]
-
-		popup.text = "Creating Multimesh" if not dithering_enabled else "Creating Dithered Multimesh"
-		popup.sub_text = "Voxel 0/%d" % [_multimesh.instance_count]
-		await popup.redraw()
-		var update_step: int = max(1, _multimesh.instance_count / 5)
-
-		# Populate multimesh (with optional dithering) for every voxel
-		for i in _multimesh.instance_count:
-			if i % update_step == 0:
-				popup.progress = float(i) / _multimesh.instance_count
-				popup.sub_text = "Voxel %d/%d" % [i, _multimesh.instance_count]
-				await popup.redraw()
-
-			var vox_color: Color = _get_vox_color(i)
-			var final_color := vox_color
-
-			if dithering_enabled:
-				# Pick one of the predefined brightness variations
-				var variation := 0.0
-				if dark_dithering == 0:
-					variation = light_table[random.randi() % light_table.size()]
-				elif light_dithering == 0:
-					variation = dark_table[random.randi() % dark_table.size()]
-				elif random.randf() > dithering_bias:
-					variation = dark_table[random.randi() % dark_table.size()]
-				else:
-					variation = light_table[random.randi() % light_table.size()]
-				if variation < 0:
-					final_color = vox_color.darkened(-variation)
-				else:
-					final_color = vox_color.lightened(variation)
-
-			var vox_pos = voxel_resource.positions[i]
-			if vox_pos in voxel_resource.visible_voxels:
-				_multimesh.set_instance_visibility(i, true)
-			_multimesh.voxel_set_instance_transform(
-				i, Transform3D(Basis(), vox_pos * voxel_resource.vox_size)
-			)
-			if use_material and voxel_resource.materials.has(vox_color):
-				_multimesh.voxel_set_instance_custom_data(
-					i, voxel_resource.materials[vox_color]
-				)
-			_multimesh.voxel_set_instance_color(i, final_color)
-			if final_color not in new_color_pallet:
-				new_color_pallet.append(final_color)
-			new_colors.append(new_color_pallet.find(final_color))
-
-		popup.text = "Finishing things up"
-		popup.progress = 1.0
-		popup.sub_text = "Writing resources"
-		await popup.redraw()
-		# Make Voxel State
-		var new_voxel_state = VoxelState.new()
-		new_voxel_state.version = _VOXELSTATE_VERSION
-		new_voxel_state.colors = new_color_pallet
-		new_voxel_state.color_index = new_colors
-		new_voxel_state.unique_voxel_resource = voxel_resource.duplicate(true)
-		_voxel_state = _cache_resource(new_voxel_state)
-		#var undo_redo = EditorInterface.get_editor_undo_redo()
-		#undo_redo.create_action("Populated Voxel Object")
-		#undo_redo.add_do_property(self, &"multimesh", _multimesh)
-		#undo_redo.add_undo_property(self, &"multimesh", multimesh)
-		#undo_redo.commit_action()
-		self.multimesh = _cache_resource(_multimesh)
-
-		popup.sub_text = "Giving Addons their turn!"
-		await popup.redraw()
-		if lod_addon:
-			lod_addon._parent = self
-			lod_addon.repopulate()
-
-		repopulated.emit()
-		popup.queue_free()
-
-		# Extra safeguard for save mid populate
-		EditorInterface.mark_scene_as_unsaved()
-	_populating = false
+	# Using a class here so godot doesn't compile with editor only classes and errors.
+	# You would think you could just have it ignore the function, but no. =)
+	if Engine.is_editor_hint():
+		await VoxelObjectUtilities.populate(self)
 
 
 # Utility function that takes a voxid and returns a color

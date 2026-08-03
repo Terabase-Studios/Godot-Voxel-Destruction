@@ -281,7 +281,6 @@ Handle detached voxels [br]
 # ==================================================================================================
 
 	ProjectSettings.save()
-#endregion
 
 
 func _unregister_settings():

@@ -1,5 +1,8 @@
 extends Node
 class_name voxel_server
+
+const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7) # Marks empty voxels
+
 ## Keeps track of data used in monitors
 
 ## Array of [VoxelObject]s

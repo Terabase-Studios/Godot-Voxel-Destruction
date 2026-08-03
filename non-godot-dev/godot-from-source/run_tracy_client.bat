@@ -31,7 +31,6 @@ if not exist "%GODOT_EXE%" (
 echo Project: %PROJECT_PATH%
 echo Binary:  %GODOT_EXE%
 echo.
-pause
 
 "%GODOT_EXE%" --path "%PROJECT_PATH%"
 

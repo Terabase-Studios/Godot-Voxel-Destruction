@@ -3,7 +3,6 @@
 extends EditorImportPlugin
 class_name VoxImporter
 
-const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7)
 
 enum Resource_type {
 	DEFAULT = 0,
@@ -261,7 +260,7 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	# Create collision
 	var starting_shapes = Array()
 	for chunk in chunks:
-		starting_shapes.append_array(create_shapes(create_boxes(chunks[chunk]), scale, chunk))
+		starting_shapes.append_array(VoxelObjectUtilities.create_shapes(VoxelObjectUtilities.create_boxes(chunks[chunk]), scale, chunk))
 	
 	# Set collision VoxelResource vars
 	voxel_resource.vox_chunk_indices = vox_chunk_indices
@@ -317,70 +316,11 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	return err
 
 
-static func hash_voxel(v: Vector3i) -> int:
+func hash_voxel(v: Vector3i) -> int:
 	return ((v.x * 73856093) ^ (v.y * 19349663) ^ (v.z * 83492791)) % 1000003
 
 
-static func create_boxes(chunk: PackedVector3Array) -> Array:
-	var visited: Dictionary[Vector3, bool]
-	var boxes = []
 
-	var can_expand = func(box_min: Vector3, box_max: Vector3, axis: int, pos: int) -> bool:
-		var start
-		var end
-		match axis:
-			0: start = Vector3(pos, box_min.y, box_min.z); end = Vector3(pos, box_max.y, box_max.z)
-			1: start = Vector3(box_min.x, pos, box_min.z); end = Vector3(box_max.x, pos, box_max.z)
-			2: start = Vector3(box_min.x, box_min.y, pos); end = Vector3(box_max.x, box_max.y, pos)
-
-		for x in range(int(start.x), int(end.x) + 1):
-			for y in range(int(start.y), int(end.y) + 1):
-				for z in range(int(start.z), int(end.z) + 1):
-					var check_pos = Vector3(x, y, z)
-					if not chunk.has(check_pos) or visited.get(check_pos, false):
-						return false
-		return true
-	
-	for pos in chunk:
-		if visited.get(pos, false):
-			continue
-		if pos == _REMOVED_VOXEL_MARKER:
-			continue
-		
-		var box_min = pos
-		var box_max = pos
-		
-		# Expand along X, Y, Z greedily
-		for axis in range(3):
-			while true:
-				var next_pos = box_max[axis] + 1
-				if can_expand.call(box_min, box_max, axis, next_pos):
-					box_max[axis] = next_pos
-				else:
-					break
-
-		# Mark visited voxels
-		for x in range(int(box_min.x), int(box_max.x) + 1):
-			for y in range(int(box_min.y), int(box_max.y) + 1):
-				for z in range(int(box_min.z), int(box_max.z) + 1):
-					visited[Vector3(x, y, z)] = true
-
-		boxes.append({"min": box_min, "max": box_max})
-
-	return boxes
-
-
-static func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
-	var shapes = []
-	for box in boxes:
-		var min_pos = box["min"]
-		var max_pos = box["max"]
-		
-		var center = (min_pos + max_pos) * 0.5 * voxel_size
-		var size = ((max_pos - min_pos) + Vector3.ONE) * voxel_size
-		shapes.append({"extents": size * 0.5, "position": center, "chunk": chunk})
-	
-	return shapes
 
 
 
