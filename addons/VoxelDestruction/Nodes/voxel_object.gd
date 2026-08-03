@@ -126,6 +126,7 @@ var _positions_dict_snapshot: Dictionary = {} # Used by worker threads to perfor
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
 var _last_hit_pos: Vector3 # Used to run flood fill on last hit pos
+var _populating: bool = false # Used to prevent populating more than once at one time
 #endregion
 #region Signals
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
@@ -141,6 +142,10 @@ func _ready() -> void:
 		flood_fill = 0
 	#endregion
 	if Engine.is_editor_hint():
+		# Check for update
+		if _voxel_state.version != _VOXELSTATE_VERSION:
+			print("[VD ADDON] Updating ", name, "'s VoxelState to new version.")
+			_populate_mesh()
 		return
 		#if multimesh and multimesh.get_reference_count() > 6:
 		#	_populate_mesh()
@@ -160,8 +165,13 @@ func _ready() -> void:
 			return
 		if not multimesh:
 			push_warning("[VD Addon] VoxelObject's VoxelState is invalid! ", name)
-			_disabled_locks.append("NO VOXEL MEHSH")
+			_disabled_locks.append("NO VOXEL MESH")
 			return
+		if _voxel_state.version != _VOXELSTATE_VERSION:
+			push_warning("[VD Addon] VoxelObject's VoxelState is outdated!\nPlease open scene containing this VoxelObject in the editor.\nUnexpected behavior may occur. ", name)
+			_disabled_locks.append("OUTDATED VOXEL STATE")
+			return
+
 		#if not multimesh:
 			#multimesh = _voxel_state.voxel_mesh
 			#return
@@ -270,6 +280,11 @@ func _ready() -> void:
 #region Every Physics Frame
 func _physics_process(delta):
 	if Engine.is_editor_hint():
+		if _voxel_state.version != _VOXELSTATE_VERSION:
+			if _populating:
+				return
+			print("[VD ADDON] Updating ", name, "'s VoxelState to new version.")
+			_populate_mesh()
 		return
 
 	# Regen _positions_dict_snapshot:
@@ -1258,6 +1273,9 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 
 #region Other private funcs
 func _populate_mesh() -> void:
+	if _populating:
+		return
+	_populating = true
 	if voxel_resource:
 		EditorInterface.mark_scene_as_unsaved()
 
@@ -1381,6 +1399,7 @@ func _populate_mesh() -> void:
 
 		# Extra safeguard for save mid populate
 		EditorInterface.mark_scene_as_unsaved()
+	_populating = false
 
 
 # Utility function that takes a voxid and returns a color
