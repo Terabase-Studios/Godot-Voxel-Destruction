@@ -134,7 +134,7 @@ signal repopulated
 #endregion
 #endregion
 
-
+#region Private Functions
 func _ready() -> void:
 	#region Backwards Compatability
 	if not flood_fill:
@@ -1256,6 +1256,7 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 #endregion
 
 
+#region Other private funcs
 func _populate_mesh() -> void:
 	if voxel_resource:
 		EditorInterface.mark_scene_as_unsaved()
@@ -1475,3 +1476,13 @@ func _exit_tree():
 		# Free orphaned collision/debris pool nodes on the queue_free() path.
 		if voxel_resource != null and not voxel_resource._cleared:
 			voxel_resource._clear()
+#endregion
+#endregion
+
+#region Public Functions
+## Returns a [AABB] based on the [VoxelResource] in local space.
+func get_local_AABB() -> AABB:
+	var first_coords := voxel_resource.vox_size / -2
+	var second_coords := Vector3(voxel_resource.size) * voxel_resource.vox_size
+	return AABB(first_coords, second_coords)
+#endregion

@@ -21,7 +21,7 @@ func _redraw(gizmo: EditorNode3DGizmo):
 
 	var voxel_object := gizmo.get_node_3d() as VoxelObject
 	# TODO: Replace with voxel_resource.size to prevent recalculation
-	var aabb := voxel_object.multimesh.get_aabb()
+	var aabb := voxel_object.get_local_AABB()
 
 	gizmo.add_lines(
 		_aabb_to_lines(aabb),
