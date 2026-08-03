@@ -183,14 +183,23 @@ size = Vector3(6, 1, 15)
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_3f5ef"]
 data = PackedVector3Array(-3, 0.5, 7.5, 3, 0.5, 7.5, -3, -0.5, 7.5, 3, 0.5, 7.5, 3, -0.5, 7.5, -3, -0.5, 7.5, 3, 0.5, -7.5, -3, 0.5, -7.5, 3, -0.5, -7.5, -3, 0.5, -7.5, -3, -0.5, -7.5, 3, -0.5, -7.5, 3, 0.5, 7.5, 3, 0.5, -7.5, 3, -0.5, 7.5, 3, 0.5, -7.5, 3, -0.5, -7.5, 3, -0.5, 7.5, -3, 0.5, -7.5, -3, 0.5, 7.5, -3, -0.5, -7.5, -3, 0.5, 7.5, -3, -0.5, 7.5, -3, -0.5, -7.5, 3, 0.5, 7.5, -3, 0.5, 7.5, 3, 0.5, -7.5, -3, 0.5, 7.5, -3, 0.5, -7.5, 3, 0.5, -7.5, -3, -0.5, 7.5, 3, -0.5, 7.5, -3, -0.5, -7.5, 3, -0.5, 7.5, 3, -0.5, -7.5, -3, -0.5, -7.5)
 
-[sub_resource type="BoxMesh" id="BoxMesh_g57p8"]
-size = Vector3(1, 1, 15)
+[sub_resource type="TorusMesh" id="TorusMesh_wtllw"]
+inner_radius = 15.0
+outer_radius = 15.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_30wio"]
 albedo_color = Color(1, 0, 0, 1)
 
+[sub_resource type="TorusMesh" id="TorusMesh_nmjiv"]
+inner_radius = 10.0
+outer_radius = 10.1
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_nu0d5"]
 albedo_color = Color(1, 0.5254902, 0, 1)
+
+[sub_resource type="TorusMesh" id="TorusMesh_iiuyx"]
+inner_radius = 5.0
+outer_radius = 5.1
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_q8kok"]
 albedo_color = Color(0, 0.8, 0.03999996, 1)
@@ -516,20 +525,20 @@ transform = Transform3D(1.31134e-07, -1, 1.0331598e-07, 1, 1.31134e-07, 0, -5.73
 shape = SubResource("ConcavePolygonShape3D_3f5ef")
 
 [node name="red" type="MeshInstance3D" parent="Map/LODRoom" unique_id=1891988989]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.295843, -0.36417678, 0)
-mesh = SubResource("BoxMesh_g57p8")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.958667, 0, 0.46552753)
+mesh = SubResource("TorusMesh_wtllw")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_30wio")
 
 [node name="orange" type="MeshInstance3D" parent="Map/LODRoom" unique_id=657694939]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.15184116, -0.36417678, 0)
-mesh = SubResource("BoxMesh_g57p8")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.958667, 0, 0.46552753)
+mesh = SubResource("TorusMesh_nmjiv")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_nu0d5")
 
 [node name="green" type="MeshInstance3D" parent="Map/LODRoom" unique_id=233754984]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.915271, -0.36417678, 0)
-mesh = SubResource("BoxMesh_g57p8")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.958667, 0, 0.46552753)
+mesh = SubResource("TorusMesh_iiuyx")
 skeleton = NodePath("../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_q8kok")
 

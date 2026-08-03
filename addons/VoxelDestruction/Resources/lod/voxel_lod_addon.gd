@@ -89,7 +89,6 @@ func _physics_process():
 
 
 func _enable_lod(setting: VoxelLODSetting):
-	return
 	if not setting:
 		return
 	if disabled:

@@ -1343,7 +1343,7 @@ func _populate_mesh() -> void:
 			_multimesh.voxel_set_instance_transform(
 				i, Transform3D(Basis(), vox_pos * voxel_resource.vox_size)
 			)
-			if use_material:
+			if use_material and voxel_resource.materials.has(vox_color):
 				_multimesh.voxel_set_instance_custom_data(
 					i, voxel_resource.materials[vox_color]
 				)
