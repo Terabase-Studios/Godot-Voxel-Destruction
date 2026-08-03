@@ -17,3 +17,6 @@ mono_crash.*.json
 .godot/*
 /Screenshots/upscaled
 addons/VoxelDestructionUser/
+/non-godot-dev/godot-from-source/godot-source
+/non-godot-dev/godot-from-source/tracy
+/non-godot-dev/godot-from-source/tracy-client-windows-0.13.1
