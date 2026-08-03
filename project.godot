@@ -95,4 +95,3 @@ jolt_physics_3d/simulation/areas_detect_static_bodies=true
 [voxel_destruction]
 
 performance/queue_attacks=true
-debris/multimesh/batch_size=600
