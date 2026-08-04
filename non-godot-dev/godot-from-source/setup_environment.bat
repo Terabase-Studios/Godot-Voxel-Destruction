@@ -100,6 +100,7 @@ echo Installing Windows build dependencies (AccessKit, Direct3D 12 SDK)...
 pushd "%GODOT_DIR%"
 python misc\scripts\install_accesskit.py
 python misc\scripts\install_d3d12_sdk_windows.py
+python misc\scripts\install_angle.py
 popd
 
 echo.
