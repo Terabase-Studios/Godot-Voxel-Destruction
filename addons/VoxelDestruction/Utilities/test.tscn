@@ -4,3 +4,4 @@
 
 [node name="Test" type="Node2D" unique_id=1731477457]
 script = ExtResource("1_vqveq")
+test_type = 2

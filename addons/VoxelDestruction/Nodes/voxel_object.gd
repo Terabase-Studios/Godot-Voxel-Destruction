@@ -972,7 +972,7 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	}
 	# WORKER THREAD FUNC
 	var task_callable = func():
-		var groups = VoxelNativeGD._flood_fill_groups(_positions_dict_snapshot)
+		var groups = VoxelNative.flood_fill_groups(_positions_dict_snapshot)
 		# Keep the largest group as the anchored structure.
 		# Sort descending by size so groups[0] is always the biggest.
 		groups.sort_custom(func(a, b): return a.size() > b.size())

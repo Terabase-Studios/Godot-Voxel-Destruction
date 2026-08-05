@@ -2,10 +2,11 @@
 extends Node2D
 enum TEST_TYPE {
 	PROGRESS,
-	CACHE_CLEAN
+	CACHE_CLEAN,
+	GDEXT
 }
 
-@export_enum("Progress Popup", "Cache Cleanup") var test_type = 0
+@export_enum("Progress Popup", "Cache Cleanup", "GD Extention") var test_type = 0
 @export_tool_button("Run Test") var test_func = test
 
 func test():
@@ -18,5 +19,9 @@ func test():
 			popup.sub_text = str(i/100.0) + "%"
 			await popup.redraw()
 			
-			
 		popup.queue_free()
+	elif test_type == TEST_TYPE.GDEXT:
+		# Check if Godot registered the class in ClassDB
+		if not ClassDB.class_exists("VoxelNative"):
+			push_error("Its super broken")
+			return
