@@ -928,42 +928,6 @@ func _process_rigid_body_debris_creation_queue() -> void:
 
 
 #region Flood Fill
-
-# BFS from origin. Returns a Dictionary mapping voxel -> group_index,
-# and populates groups (Array of Arrays of Vector3i).
-# The group containing origin is group 0 (the "anchored" group that stays).
-# WORKER THREAD FUNCTION
-func _flood_fill_groups(positions_dict: Dictionary) -> Array:
-	var offsets = [
-		Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
-		Vector3i(0, 1, 0), Vector3i(0, -1, 0),
-		Vector3i(0, 0, 1), Vector3i(0, 0, -1)
-	]
-	var visited := {}
-	var groups := []  # Array of PackedVector3Array
-
-	for start_vox in positions_dict.keys():
-		if visited.has(start_vox):
-			continue
-		# BFS from this unvisited voxel
-		var group := []
-		var queue := [start_vox]
-		var qi := 0
-		visited[start_vox] = true
-		while qi < queue.size():
-			var cur: Vector3i = queue[qi]
-			qi += 1
-			group.append(cur)
-			for offset in offsets:
-				var nb: Vector3i = cur + offset
-				if not visited.has(nb) and positions_dict.has(nb):
-					visited[nb] = true
-					queue.append(nb)
-		groups.append(group)
-
-	return groups
-
-
 func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	var _t0 := Time.get_ticks_usec()
 	# Resolve the anchor origin — pick a neighbor of the hit point, or fall back to stored origin
@@ -1008,7 +972,7 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	}
 	# WORKER THREAD FUNC
 	var task_callable = func():
-		var groups = _flood_fill_groups(_positions_dict_snapshot)
+		var groups = VoxelNativeGD._flood_fill_groups(_positions_dict_snapshot)
 		# Keep the largest group as the anchored structure.
 		# Sort descending by size so groups[0] is always the biggest.
 		groups.sort_custom(func(a, b): return a.size() > b.size())
