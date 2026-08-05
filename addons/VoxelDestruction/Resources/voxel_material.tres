@@ -5,4 +5,4 @@
 [resource]
 render_priority = 0
 shader = ExtResource("1_ax3tw")
-shader_parameter/Error = false
+shader_parameter/error = false

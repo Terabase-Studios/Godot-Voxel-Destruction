@@ -115,7 +115,7 @@ func hit():
 				voxels.resize(3)
 				# Use the transform at the time hit was called
 				task_id = WorkerThreadPool.add_task(
-					VoxelNativeGD._get_voxels_in_aabb.bind(aabb, parent, voxel_object_transform_body["global_transform"], voxels),
+					VoxelGD.get_voxels_in_aabb.bind(aabb, parent, voxel_object_transform_body["global_transform"], voxels),
 					false, "Getting Voxels to Damage"
 				)
 				while not WorkerThreadPool.is_task_completed(task_id):

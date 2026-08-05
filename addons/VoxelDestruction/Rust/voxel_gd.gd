@@ -1,8 +1,8 @@
 extends RefCounted
-class_name VoxelNativeGD
+class_name VoxelGD
 
 
-static func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D, voxels: Array) -> void:
+static func get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_transform: Transform3D, voxels: Array) -> void:
 	var voxel_positions = PackedVector3Array()
 	var global_voxel_positions = PackedVector3Array()
 	var voxel_count: int = 0
@@ -35,7 +35,7 @@ static func _get_voxels_in_aabb(aabb: AABB, object: VoxelObject, object_global_t
 # BFS from origin. Returns a Dictionary mapping voxel -> group_index,
 # and populates groups (Array of Arrays of Vector3i).
 # The group containing origin is group 0 (the "anchored" group that stays).
-static func _flood_fill_groups(positions_dict: Dictionary) -> Array:
+static func flood_fill_groups(positions_dict: Dictionary) -> Array:
 	var offsets = [
 		Vector3i(1, 0, 0), Vector3i(-1, 0, 0),
 		Vector3i(0, 1, 0), Vector3i(0, -1, 0),
