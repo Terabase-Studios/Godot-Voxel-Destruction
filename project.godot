@@ -95,3 +95,4 @@ jolt_physics_3d/simulation/areas_detect_static_bodies=true
 [voxel_destruction]
 
 performance/queue_attacks=true
+performance/rust_gdextention=true

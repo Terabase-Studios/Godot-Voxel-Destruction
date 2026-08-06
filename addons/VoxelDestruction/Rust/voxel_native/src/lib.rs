@@ -17,6 +17,8 @@ struct VoxelNative {
 impl VoxelNative {
     #[func]
     fn get_voxels_in_aabb(aabb: Aabb, vox_size: Vector3, positions_dict: Dictionary<Vector3i, i64>, object_global_transform: Transform3D) -> Array<Variant> {
+        const HALF_VOXEL: Vector3 = Vector3::new(0.5, 0.5, 0.5);
+        
         let mut voxels: Array<Variant> = Array::new();
         let mut voxel_positions: Array<Vector3i> = Array::new();
         let mut global_voxel_positions: Array<Vector3> = Array::new();
@@ -26,34 +28,79 @@ impl VoxelNative {
         let scaled_basis = object_global_transform.basis.scaled(vox_size);
         let voxel_transform = Transform3D::new(scaled_basis, object_global_transform.origin);
 
-        let keys = positions_dict.keys_array();
-        for i in 0..keys.len() {
-            let voxel_pos_i = keys.get(i).unwrap();
-            let voxel_pos = Vector3::new(
-                voxel_pos_i.x as f32, 
-                voxel_pos_i.y as f32, 
-                voxel_pos_i.z as f32
-            );
-            // Center voxel in its grid cell
-            let local_voxel_centered = voxel_pos + Vector3::new(0.5, 0.5, 0.5);
+        // Convert AABB to a bounding box
+        let min = aabb.position;
+        let max = aabb.position + aabb.size;
+        let corners = [
+            Vector3::new(min.x, min.y, min.z),
+            Vector3::new(max.x, min.y, min.z),
+            Vector3::new(min.x, max.y, min.z),
+            Vector3::new(max.x, max.y, min.z),
 
-            // Convert to global space using full transform
-            let voxel_global_pos = voxel_transform * local_voxel_centered;
+            Vector3::new(min.x, min.y, max.z),
+            Vector3::new(max.x, min.y, max.z),
+            Vector3::new(min.x, max.y, max.z),
+            Vector3::new(max.x, max.y, max.z),
+        ];
+        // Transform bounding box to local space
+        let inv_voxel_transform = voxel_transform.affine_inverse();
+        let mut local_min = Vector3::new(
+            f32::INFINITY,
+            f32::INFINITY,
+            f32::INFINITY,
+        );
 
-            if aabb.contains_point(voxel_global_pos) {
-                let voxid = positions_dict.get(voxel_pos.cast_int());
-                if voxid.is_none() {
-                    continue;
+        let mut local_max = Vector3::new(
+            f32::NEG_INFINITY,
+            f32::NEG_INFINITY,
+            f32::NEG_INFINITY,
+        );
+        for corner in corners {
+            let local = inv_voxel_transform * corner;
+
+            local_min.x = local_min.x.min(local.x);
+            local_min.y = local_min.y.min(local.y);
+            local_min.z = local_min.z.min(local.z);
+
+            local_max.x = local_max.x.max(local.x);
+            local_max.y = local_max.y.max(local.y);
+            local_max.z = local_max.z.max(local.z);
+        }
+        let min_voxel = (local_min - HALF_VOXEL).floor().cast_int();
+        let max_voxel = (local_max - HALF_VOXEL).ceil().cast_int();
+
+
+        for x in min_voxel.x..=max_voxel.x {
+            for y in min_voxel.y..=max_voxel.y {
+                for z in min_voxel.z..=max_voxel.z {
+                    let voxel_pos_i = Vector3i::new(x, y, z);
+
+                    if !positions_dict.contains_key(voxel_pos_i) {
+                        continue;
+                    }
+
+                    let voxel_pos = voxel_pos_i.cast_float();
+                    // Center voxel in its grid cell
+                    let local_voxel_centered = voxel_pos + HALF_VOXEL;
+                    // Convert to global space using full transform
+                    let voxel_global_pos = voxel_transform * local_voxel_centered;
+
+                    // Double check original AABB
+                    if !aabb.contains_point(voxel_global_pos) {
+                        continue;
+                    }
+
+                    voxel_positions.push(voxel_pos_i);
+                    global_voxel_positions.push(voxel_global_pos);
+                    voxel_count += 1;
                 }
-                voxel_count += 1;
-                voxel_positions.push(voxel_pos_i);
-                global_voxel_positions.push(voxel_global_pos)
             }
         }
+
         voxels.push(&Variant::from(voxel_count));
         voxels.push(&Variant::from(voxel_positions));
         voxels.push(&Variant::from(global_voxel_positions));
-        return voxels
+        return voxels;
     }
 
     // BFS from origin. Returns a Dictionary mapping voxel -> group_index,

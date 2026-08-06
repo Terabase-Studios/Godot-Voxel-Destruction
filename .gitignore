@@ -42,3 +42,4 @@ rustc-ice-*.txt
 /non-godot-dev/godot-from-source/tracy-client-windows-0.13.1
 /non-godot-dev/tracy_files
 todo.txt
+non-godot-dev/godot-from-source/tracy-profiler.exe
