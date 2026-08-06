@@ -973,7 +973,7 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	# WORKER THREAD FUNC
 	var task_callable = func():
 		var groups := []
-		if voxel_server._USE_RUST:
+		if ProjectSettings.get_setting("voxel_destruction/performance/default_collision_quality", false):
 			groups = VoxelNative.flood_fill_groups(_positions_dict_snapshot)
 		else:
 			groups = VoxelGD.flood_fill_groups(_positions_dict_snapshot)
@@ -1324,7 +1324,7 @@ func _get_vox_color(voxid: int) -> Color:
 func _update_physics() -> void:
 	if physics:
 		var center := Vector3.ZERO
-		var positions = voxel_resource.positions_dict.keys()
+		var positions = voxel_resource.positions
 		var count: int = positions.size()
 		var mass_vector = voxel_resource.vox_count * voxel_resource.vox_size * density
 		_collision_body.mass = (mass_vector.x + mass_vector.y + mass_vector.z)/3

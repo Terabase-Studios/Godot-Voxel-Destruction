@@ -55,15 +55,32 @@ static func create_process(text: String, sub_text: String, progress: float = 0.0
 #region Settings
 func _create_settings():
 	var EditorSettingsDescription = preload("editor_settings_description.gd")
+
 # ==================================================================================================
-	var property = "voxel_destruction/performance/queue_attacks"
+	var property = "voxel_destruction/performance/rust_gdextention"
 	var value = false
-	var description = """@experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
+	var description = """@experimental: Stability and or ease of setup cannot be assured. [br]
+However, this drastically increases the speed at which certain functions run!"""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	var property_info = {
+		"name": property,
+		"type": TYPE_BOOL,
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
+	property = "voxel_destruction/performance/queue_attacks"
+	value = false
+	description = """@experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
 Queue attacks so one attack is being processed at a time with a small cooldown inbetween. [br]
 This has a chance to increase performace when multiple attacks damage the [VoxelObject] in a short period."""
 	if not ProjectSettings.has_setting(property):
 		ProjectSettings.set_setting(property, value)
-	var property_info = {
+	property_info = {
 		"name": property,
 		"type": TYPE_BOOL,
 	}
@@ -145,6 +162,7 @@ Increase this value to potentially reduce studdering but may use excessive memor
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
+	ProjectSettings.set_as_basic(property, true)
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
 
@@ -221,6 +239,7 @@ Handle detached voxels [br]
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
+	ProjectSettings.set_as_basic(property, true)
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
 
@@ -303,6 +322,7 @@ Handle detached voxels [br]
 
 
 func _unregister_settings():
+	ProjectSettings.clear("voxel_destruction/performance/rust_gdextention")
 	ProjectSettings.clear("voxel_destruction/performance/queue_attacks")
 	ProjectSettings.clear("voxel_destruction/performance/default_collision_quality")
 	ProjectSettings.clear("voxel_destruction/performance/collision_preload_percent")

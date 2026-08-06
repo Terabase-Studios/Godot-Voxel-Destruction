@@ -1,7 +1,7 @@
 extends Node
 class_name voxel_server
 
-const _USE_RUST := false
+const _USE_RUST := true
 const _REMOVED_VOXEL_MARKER := Vector3(-1, -7, -7) # Marks empty voxels
 
 ## Keeps track of data used in monitors
