@@ -360,8 +360,8 @@ func _physics_process(delta):
 
 	# Damage tasks
 	for task in _damage_tasks:
-		if WorkerThreadPool.is_group_task_completed(task):
-			var damage_results: Array = _damage_tasks[task][0]
+		if WorkerThreadPool.is_task_completed(task):
+			var damage_results: Array = _damage_tasks[task][0][0] # unwrap from results
 			var damager: VoxelDamager = _damage_tasks[task][1]
 			var hit_position: Vector3 = _damage_tasks[task][2]
 			_apply_damage_results(damager, damage_results, hit_position)
@@ -471,64 +471,28 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("vox_chunk_indices")
 	voxel_resource.buffer("chunks")
-	# record damage results and create task pool
-	var damage_results: Array
-	# resize to make modifing thread-safe
-	damage_results.resize(voxel_count)
-	var group_id = WorkerThreadPool.add_group_task(
-		_damage_voxel.bind(voxel_positions, global_voxel_positions, _positions_dict_snapshot, damager, damager_global_pos, damage_results),
-		voxel_count, 1, true, "Calculating Voxel Damage"
+
+	var result = [0]
+	var task_id = WorkerThreadPool.add_task(
+		func():
+			if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
+				result[0] = VoxelGD.calculate_voxels_damage(voxel_count, voxel_positions, 
+				voxel_resource.positions_dict, global_voxel_positions, voxel_resource.health, 
+				voxel_resource.vox_chunk_indices, voxel_resource.chunks, damager._range, damager.base_damage, 
+				damager.damage_curve, damager.base_power, damager.power_curve, damager_global_pos)
+			else:
+				result[0] = VoxelGD.calculate_voxels_damage(voxel_count, voxel_positions, 
+				voxel_resource.positions_dict, global_voxel_positions, voxel_resource.health, 
+				voxel_resource.vox_chunk_indices, voxel_resource.chunks, damager._range, damager.base_damage, 
+				damager.damage_curve, damager.base_power, damager.power_curve, damager_global_pos)
 	)
-	_position_snapshot_locks.append(group_id)
-	_damage_tasks[group_id] = [damage_results, damager, damager_global_pos]
+	
+	_position_snapshot_locks.append(task_id)
+	_damage_tasks[task_id] = [result, damager, damager_global_pos]
 	# Futher handling of the thread is passed to _physics_process
 
 	if _BENCHMARK_DAMAGE:
 		print("[VD bench][Damage][", name, "] _perform_damage_calculation dispatch (%d voxels): %d us" % [voxel_count, Time.get_ticks_usec() - _t0])
-
-
-# Calculates damage results.
-# WORKER THREAD FUNCTION
-func _damage_voxel(voxel: int, voxel_positions: PackedVector3Array, global_voxel_positions: PackedVector3Array, vox_positions: Dictionary, damager: VoxelDamager, damager_global_pos: Vector3, damage_results: Array) -> void:
-	# Get positions and vox_ids to modify later and calculate damage
-	var vox_position: Vector3 = global_voxel_positions[voxel]
-	var vox_pos3i: Vector3i = voxel_positions[voxel]
-	var vox_id: int = vox_positions.get(vox_pos3i, -1)
-
-	# Skip if voxel ID is invalid
-	if vox_id == -1:
-		return
-
-	var decay: float = damager_global_pos.distance_squared_to(vox_position) / (damager._range * damager._range)
-	var decay_sample: float = damager.damage_curve.sample(decay)
-
-	# Skip processing if damage is negligible
-	if decay_sample <= 0.01:
-		return
-
-	var power_sample: float = damager.power_curve.sample(decay)
-	var damage: float = damager.base_damage * decay_sample
-	var power: float = damager.base_power * power_sample
-
-	# Compute new voxel health
-	var new_health: float = clamp(voxel_resource.health[vox_id] - damage, 0, 100)
-
-	var chunk = Vector3.ZERO
-	var chunk_pos = 0
-	if new_health == 0:
-		chunk = voxel_resource.vox_chunk_indices[vox_id]
-		var chunk_data = voxel_resource.chunks.get(chunk, [])
-		chunk_pos = chunk_data.find(vox_pos3i) if chunk_data else -1
-
-	# Store the result in a thread-safe dictionary
-	damage_results[voxel] = {
-		"vox_id": vox_id,
-		"health": new_health,
-		"pos": vox_pos3i,
-		"chunk": chunk,
-		"chunk_pos": chunk_pos,
-		"power": power,
-	}
 
 
 # Applies damage, called from physics process.
@@ -973,7 +937,7 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	# WORKER THREAD FUNC
 	var task_callable = func():
 		var groups := []
-		if ProjectSettings.get_setting("voxel_destruction/performance/default_collision_quality", false):
+		if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
 			groups = VoxelNative.flood_fill_groups(_positions_dict_snapshot)
 		else:
 			groups = VoxelGD.flood_fill_groups(_positions_dict_snapshot)

@@ -1,4 +1,6 @@
 
+use std::collections::HashSet;
+
 use godot::{prelude::*};
 
 struct MyExtension;
@@ -20,9 +22,6 @@ impl VoxelNative {
         const HALF_VOXEL: Vector3 = Vector3::new(0.5, 0.5, 0.5);
         
         let mut voxels: Array<Variant> = Array::new();
-        let mut voxel_positions: Array<Vector3i> = Array::new();
-        let mut global_voxel_positions: Array<Vector3> = Array::new();
-        let mut voxel_count: u32 = 0;
         
         // Scale the transform to match the size of each voxel
         let scaled_basis = object_global_transform.basis.scaled(vox_size);
@@ -44,17 +43,8 @@ impl VoxelNative {
         ];
         // Transform bounding box to local space
         let inv_voxel_transform = voxel_transform.affine_inverse();
-        let mut local_min = Vector3::new(
-            f32::INFINITY,
-            f32::INFINITY,
-            f32::INFINITY,
-        );
-
-        let mut local_max = Vector3::new(
-            f32::NEG_INFINITY,
-            f32::NEG_INFINITY,
-            f32::NEG_INFINITY,
-        );
+        let mut local_min = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
+        let mut local_max = Vector3::new(f32::NEG_INFINITY, f32::NEG_INFINITY, f32::NEG_INFINITY);
         for corner in corners {
             let local = inv_voxel_transform * corner;
 
@@ -69,37 +59,50 @@ impl VoxelNative {
         let min_voxel = (local_min - HALF_VOXEL).floor().cast_int();
         let max_voxel = (local_max - HALF_VOXEL).ceil().cast_int();
 
+        // Convert to Rust typing
+        let voxel_set: HashSet<Vector3i> = positions_dict
+            .iter_shared()
+            .map(|(k, _v)| k)
+            .collect();
+
+        let box_volume = ((max_voxel.x - min_voxel.x + 1)
+            * (max_voxel.y - min_voxel.y + 1)
+            * (max_voxel.z - min_voxel.z + 1)).max(0) as usize;
+        
+        // Reserve space to prevent allocation
+        let reserve = box_volume.min(voxel_set.len());
+        let mut voxel_positions: Vec<Vector3i> = Vec::with_capacity(reserve);
+        let mut global_voxel_positions: Vec<Vector3> = Vec::with_capacity(reserve);
+
 
         for x in min_voxel.x..=max_voxel.x {
             for y in min_voxel.y..=max_voxel.y {
                 for z in min_voxel.z..=max_voxel.z {
                     let voxel_pos_i = Vector3i::new(x, y, z);
 
-                    if !positions_dict.contains_key(voxel_pos_i) {
+                    if !voxel_set.contains(&voxel_pos_i) {
                         continue;
                     }
 
                     let voxel_pos = voxel_pos_i.cast_float();
-                    // Center voxel in its grid cell
                     let local_voxel_centered = voxel_pos + HALF_VOXEL;
-                    // Convert to global space using full transform
                     let voxel_global_pos = voxel_transform * local_voxel_centered;
-
-                    // Double check original AABB
-                    if !aabb.contains_point(voxel_global_pos) {
-                        continue;
-                    }
 
                     voxel_positions.push(voxel_pos_i);
                     global_voxel_positions.push(voxel_global_pos);
-                    voxel_count += 1;
                 }
             }
         }
 
+        let voxel_count = voxel_positions.len() as u32;
+
+        // Back to godot types
+        let godot_voxel_positions: Array<Vector3i> = voxel_positions.into_iter().collect();
+        let godot_global_positions: PackedVector3Array = global_voxel_positions.into_iter().collect();
+
         voxels.push(&Variant::from(voxel_count));
-        voxels.push(&Variant::from(voxel_positions));
-        voxels.push(&Variant::from(global_voxel_positions));
+        voxels.push(&Variant::from(godot_voxel_positions));
+        voxels.push(&Variant::from(godot_global_positions));
         return voxels;
     }
 

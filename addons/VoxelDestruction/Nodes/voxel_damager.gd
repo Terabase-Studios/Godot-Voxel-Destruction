@@ -115,7 +115,7 @@ func hit():
 				# Use the transform at the time hit was called
 				parent.voxel_resource.buffer("positions_dict")
 				task_id = WorkerThreadPool.add_task(func():
-					if ProjectSettings.get_setting("voxel_destruction/performance/default_collision_quality", false):
+					if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
 						result[0] = VoxelNative.get_voxels_in_aabb(
 							aabb,
 							parent.voxel_resource.vox_size,
