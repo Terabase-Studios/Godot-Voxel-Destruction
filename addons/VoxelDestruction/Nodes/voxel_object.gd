@@ -9,11 +9,11 @@ class_name VoxelObject
 
 #region Declarations 
 #region Constants
-var _VOXELSTATE_VERSION := 1.0
+var _VOXELSTATE_VERSION := 1.0 # Version cross-refrenced with VoxelState to detirmine if auto-populate should happen
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.0 # Time to wait before unfreezing rigid bodies that break off to prevent them colliding with previous collision in the process of being removed
-const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true
-const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 2000 # The ammount of voxels to be proccessed before waiting a frame
-const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05
+const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true # Stagger based on _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB and between groups when applying flood-fill results
+const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 2000 # The amount of voxels to be proccessed before waiting a frame when applying flood-fill results
+const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05 # How long RigidBodies created by RigidBody flood-fill mode should be frozen to give time for staggered collision removal to clear the spot.
 
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
@@ -56,12 +56,12 @@ var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/ben
 ## [b]Rigid body[/b]: Debris are made up of rigid bodies, heavy performance reduction [br]
 @export_enum("Default", "None", "Multimesh", "Rigid Bodies") var debris_type = 0
 ## Strength of gravity on debris
-@export var debris_weight = 1
+@export var debris_weight = 1.0
 ## Chance of generating debris per destroyed voxel
 @export_range(0, 1, .001) var debris_density = .1
 ## Time in seconds before debris are deleted
-@export var debris_lifetime = 5
-## Maximum ammount of rigid body debris
+@export var debris_lifetime = 1.0
+## Maximum amount of rigid body debris
 @export var rigid_body_maximum_debris = 300
 @export var rigid_body_pool_debris = false
 @export_group("Dithering")
@@ -106,10 +106,8 @@ var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/ben
 @export var _voxel_state: VoxelState
 #endregion
 #region Public Variables
-## Used to debug the amount of time damaging takes. Measured in milliseconds
-var last_damage_time: int = -1
 ## The amount of debris deployed by the [VoxelObject]
-var debris_ammount: int = 0
+var debris_amount: int = 0
 ## The total health of all voxels
 var health: int = 0
 #endregion
@@ -130,8 +128,7 @@ var _rigid_body_debris_creation_queue: Array = [] # Physics process queue for de
 var _multimesh_debris_creation_queue: Array = [] # Physics process queue for debris generation
 var _flood_fill_tasks: Dictionary = {} # Physics process queue for flood fill calculations
 var _queue_attacks: bool:  # If attacks should be queued and staggered instead of ran immediately
-	get:
-		return ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
+	get: return ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
 var _positions_dict_snapshot: Dictionary[Vector3i, int] = {} # Used by worker threads to perform thread safe operations
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
@@ -139,6 +136,8 @@ var _position_snapshot_edits: PackedVector3Array # List of updates to _positions
 var _position_snapshot_generated := false # Used to decide if _positions_dict_snapshot has been generated and thus should be duplicated from voxel_resource.duplicate()
 var _last_hit_pos: Vector3 # Used to run flood fill on last hit pos
 var _populating: bool = false # Used to prevent populating more than once at one time
+var _last_damage_time: int = -1 # Used to debug the amount of time damaging takes. Measured in milliseconds
+
 #endregion
 #region Signals
 ## Sent when the [VoxelObject] repopulates its Mesh and Collision [br]
@@ -482,7 +481,7 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	var global_voxel_positions: PackedVector3Array = attack_data["global_voxel_positions"]
 	var damager_global_pos = attack_data["hit_position"]
 
-	last_damage_time = Time.get_ticks_msec()
+	_last_damage_time = Time.get_ticks_msec()
 	voxel_resource.buffer("health")
 	voxel_resource.buffer("positions_dict")
 	voxel_resource.buffer("vox_chunk_indices")
@@ -594,7 +593,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_pos
 				2:
 					_create_debri_multimesh(debris_queue)
 				3:
-					if rigid_body_maximum_debris == -1 or debris_ammount <= rigid_body_maximum_debris:
+					if rigid_body_maximum_debris == -1 or debris_amount <= rigid_body_maximum_debris:
 						_create_debri_rigid_bodies(debris_queue)
 
 	if health <= 0:
@@ -825,7 +824,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 			continue
 
 		# Respect maximum debris
-		if rigid_body_maximum_debris != -1 and debris_ammount >= rigid_body_maximum_debris:
+		if rigid_body_maximum_debris != -1 and debris_amount >= rigid_body_maximum_debris:
 			_rigid_body_debris_creation_queue.clear() # No more debris allowed
 			break
 
@@ -858,7 +857,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 
 		# Track active debris
 		debris_objects.append(debri)
-		debris_ammount += 1
+		debris_amount += 1
 		created_count += 1
 
 	if debris_objects.is_empty():
@@ -898,7 +897,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 		debri.get_child(1).scale = Vector3.ONE
 
 		voxel_resource.return_debri(debri)
-		debris_ammount -= 1
+		debris_amount -= 1
 #endregion
 
 
@@ -1049,7 +1048,7 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 					2:
 						_create_debri_multimesh(debris_queue)
 					3:
-						if rigid_body_maximum_debris == -1 or debris_ammount <= rigid_body_maximum_debris:
+						if rigid_body_maximum_debris == -1 or debris_amount <= rigid_body_maximum_debris:
 							_create_debri_rigid_bodies(debris_queue)
 
 	if health <= 0:
