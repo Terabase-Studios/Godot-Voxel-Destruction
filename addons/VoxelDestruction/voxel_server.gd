@@ -1,3 +1,4 @@
+@tool
 extends Node
 class_name voxel_server
 
@@ -15,13 +16,16 @@ var total_active_voxels: int
 ## Ammount of shapes used in [VoxelObject]s
 var shape_count: int
 
+var _use_gd_ext := false  # Set and used in [VoxelUtilities] to activate GdExtension support
+
+
 func _ready():
 	Performance.add_custom_monitor("Voxel Destruction/Voxel Objects", get_voxel_object_count)
 	Performance.add_custom_monitor("Voxel Destruction/Active Voxels", get_voxel_count)
 	Performance.add_custom_monitor("Voxel Destruction/Visible Voxels", get_visible_voxel_count)
 	Performance.add_custom_monitor("Voxel Destruction/Shape Count", get_shape_count)
 	Performance.add_custom_monitor("Voxel Destruction/LOD Hidden Voxels", get_lod_hidden_voxels)
-
+	VoxelUtilities._init_called_from_server()
 
 
 ## Returns [member voxel_server.voxel_objects] size

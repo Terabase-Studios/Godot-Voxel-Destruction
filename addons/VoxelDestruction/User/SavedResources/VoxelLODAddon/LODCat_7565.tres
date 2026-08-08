@@ -1,7 +1,7 @@
 [gd_resource type="MultiMesh" script_class="VoxelMultiMesh" format=3 uid="uid://cjhceova4gteo"]
 
 [ext_resource type="Material" uid="uid://bqifsbjmettt2" path="res://addons/VoxelDestruction/Resources/voxel_material.tres" id="1_pfgsx"]
-[ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="2_dyxa8"]
+[ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Resources/Other/voxel_multi_mesh.gd" id="2_dyxa8"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_h14lb"]
 material = ExtResource("1_pfgsx")

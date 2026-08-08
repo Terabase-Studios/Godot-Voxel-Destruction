@@ -115,20 +115,12 @@ func hit():
 				# Use the transform at the time hit was called
 				parent.voxel_resource.buffer("positions_dict")
 				task_id = WorkerThreadPool.add_task(func():
-					if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
-						result[0] = VoxelNative.get_voxels_in_aabb(
-							aabb,
-							parent.voxel_resource.vox_size,
-							parent.voxel_resource.positions_dict,
-							voxel_object_transform_body["global_transform"]
-						)
-					else:
-						result[0] = VoxelGD.get_voxels_in_aabb(
-							aabb,
-							parent.voxel_resource.vox_size,
-							parent.voxel_resource.positions_dict,
-							voxel_object_transform_body["global_transform"]
-						)
+					result[0] = VoxelUtilities.get_voxels_in_aabb(
+						aabb,
+						parent.voxel_resource.vox_size,
+						parent.voxel_resource.positions_dict,
+						voxel_object_transform_body["global_transform"]
+					)
 				)
 				while not WorkerThreadPool.is_task_completed(task_id):
 					await get_tree().process_frame  # Allow UI to update

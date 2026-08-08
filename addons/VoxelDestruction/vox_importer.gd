@@ -38,7 +38,7 @@ func _get_preset_name(preset_index):
 func _get_import_options(path, preset_index):
 	return [{
 			   "name": "Scale",
-			   "default_value": Vector3(.1, .1, .1),
+			   "default_value": .1,
 			},
 			{
 			   "name": "Chunk_Size",
@@ -105,7 +105,11 @@ func _import(source_file, save_path, options, r_platform_variants, r_gen_files) 
 	# Load settings
 	var scale
 	if options.Scale:
-		scale = options.Scale
+		if options.Scale is Vector3 or options.Scale == 0.0:
+			options.Scale = .1
+			push_warning("[VD ADDON] Voxel Importer options.Scale is invalid. Defaulting to (.1)")
+			
+		scale = Vector3(options.Scale, options.Scale, options.Scale)
 	else:
 		scale = Vector3(.1, .1, .1)
 	

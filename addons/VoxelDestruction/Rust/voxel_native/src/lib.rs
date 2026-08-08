@@ -110,7 +110,7 @@ impl VoxelNative {
     // and populates groups (Array of Arrays of Vector3i).
     // The group containing origin is group 0 (the "anchored" group that stays).
     #[func]
-    fn flood_fill_groups(positions_dict: Dictionary<Vector3i, bool>) -> Array<Variant> {
+    fn flood_fill_groups(positions_dict: Dictionary<Vector3i, i32>) -> Array<Variant> {
         const OFFSETS: [Vector3i; 6] = [
             Vector3i::new(1, 0, 0),
             Vector3i::new(-1, 0, 0),

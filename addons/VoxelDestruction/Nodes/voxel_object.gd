@@ -125,8 +125,10 @@ var _regen_tasks: Dictionary = {} # Physics process queue for regenerating colli
 var _rigid_body_debris_creation_queue: Array = [] # Physics process queue for debris generation
 var _multimesh_debris_creation_queue: Array = [] # Physics process queue for debris generation
 var _flood_fill_tasks: Dictionary = {} # Physics process queue for flood fill calculations
-var _queue_attacks: bool = ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false) # If attacks should be queued and staggered instead of ran immediately
-var _positions_dict_snapshot: Dictionary = {} # Used by worker threads to perform thread safe operations
+var _queue_attacks: bool:  # If attacks should be queued and staggered instead of ran immediately
+	get:
+		return ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
+var _positions_dict_snapshot: Dictionary[Vector3i, int] = {} # Used by worker threads to perform thread safe operations
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
 var _last_hit_pos: Vector3 # Used to run flood fill on last hit pos
@@ -475,16 +477,10 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	var result = [0]
 	var task_id = WorkerThreadPool.add_task(
 		func():
-			if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
-				result[0] = VoxelGD.calculate_voxels_damage(voxel_count, voxel_positions, 
-				voxel_resource.positions_dict, global_voxel_positions, voxel_resource.health, 
-				voxel_resource.vox_chunk_indices, voxel_resource.chunks, damager._range, damager.base_damage, 
-				damager.damage_curve, damager.base_power, damager.power_curve, damager_global_pos)
-			else:
-				result[0] = VoxelGD.calculate_voxels_damage(voxel_count, voxel_positions, 
-				voxel_resource.positions_dict, global_voxel_positions, voxel_resource.health, 
-				voxel_resource.vox_chunk_indices, voxel_resource.chunks, damager._range, damager.base_damage, 
-				damager.damage_curve, damager.base_power, damager.power_curve, damager_global_pos)
+			result[0] = VoxelUtilities.calculate_voxels_damage(voxel_count, voxel_positions, 
+			voxel_resource.positions_dict, global_voxel_positions, voxel_resource.health, 
+			voxel_resource.vox_chunk_indices, voxel_resource.chunks, damager._range, damager.base_damage, 
+			damager.damage_curve, damager.base_power, damager.power_curve, damager_global_pos)
 	)
 	
 	_position_snapshot_locks.append(task_id)
@@ -937,10 +933,8 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	# WORKER THREAD FUNC
 	var task_callable = func():
 		var groups := []
-		if ProjectSettings.get_setting("voxel_destruction/performance/rust_gdextention", false):
-			groups = VoxelNative.flood_fill_groups(_positions_dict_snapshot)
-		else:
-			groups = VoxelGD.flood_fill_groups(_positions_dict_snapshot)
+		groups = VoxelUtilities.flood_fill_groups(_positions_dict_snapshot)
+
 		# Keep the largest group as the anchored structure.
 		# Sort descending by size so groups[0] is always the biggest.
 		groups.sort_custom(func(a, b): return a.size() > b.size())

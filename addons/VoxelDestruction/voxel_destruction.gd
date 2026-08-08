@@ -69,6 +69,7 @@ However, this drastically increases the speed at which certain functions run!"""
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
+	ProjectSettings.set_restart_if_changed(property, true)
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
 

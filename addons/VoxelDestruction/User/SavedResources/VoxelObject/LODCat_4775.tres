@@ -1,6 +1,6 @@
 [gd_resource type="MultiMesh" script_class="VoxelMultiMesh" format=3 uid="uid://c7xmm18n8a5to"]
 
-[ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Nodes/voxel_multi_mesh.gd" id="1_bpk6j"]
+[ext_resource type="Script" uid="uid://bbs0037ubm6im" path="res://addons/VoxelDestruction/Resources/Other/voxel_multi_mesh.gd" id="1_bpk6j"]
 
 [sub_resource type="VisualShaderNodeColorConstant" id="VisualShaderNodeColorConstant_x5avy"]
 constant = Color(1, 0, 1, 1)

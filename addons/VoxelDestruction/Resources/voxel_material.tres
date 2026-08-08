@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" format=3 uid="uid://bqifsbjmettt2"]
 
-[ext_resource type="Shader" uid="uid://bo5guc84feb58" path="res://addons/VoxelDestruction/Resources/voxel_materia_shader.tres" id="1_ax3tw"]
+[ext_resource type="Shader" uid="uid://bo5guc84feb58" path="res://addons/VoxelDestruction/Resources/voxel_material_shader.tres" id="1_ax3tw"]
 
 [resource]
 render_priority = 0
