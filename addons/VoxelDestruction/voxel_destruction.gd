@@ -148,7 +148,7 @@ Increase this value to potentially reduce studdering but may use excessive memor
 
 # ==================================================================================================
 	property = "voxel_destruction/debris/default_type"
-	value = 2
+	value = 0
 	description = """Type of debris generated [br]
 [b]None[/b]: No debris will be generated [br]
 [b]Multimesh[/b]: Debri has limited physics and no collision [br]
@@ -169,7 +169,7 @@ Increase this value to potentially reduce studdering but may use excessive memor
 
 # ==================================================================================================
 	property = "voxel_destruction/debris/multimesh/batch_size"
-	value = 100
+	value = 200
 	description = """Maximum amount of multimesh debris to spawn each physics frame."""
 	if not ProjectSettings.has_setting(property):
 		ProjectSettings.set_setting(property, value)

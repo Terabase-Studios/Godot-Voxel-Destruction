@@ -13,6 +13,7 @@ var _VOXELSTATE_VERSION := 1.0
 var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.0 # Time to wait before unfreezing rigid bodies that break off to prevent them colliding with previous collision in the process of being removed
 const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true
+const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 2000 # The ammount of voxels to be proccessed before waiting a frame
 const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
@@ -31,7 +32,8 @@ var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/ben
 @export var voxel_resource: VoxelResourceBase:
 	set(value):
 		voxel_resource = value
-		update_configuration_warnings()
+		if Engine.is_editor_hint():
+			update_configuration_warnings()
 ## Prevents damage to self.
 @export var invulnerable = false
 ## Darken damaged voxels based on voxel health.
@@ -59,7 +61,8 @@ var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/ben
 ## Time in seconds before debris are deleted
 @export var debris_lifetime = 5
 ## Maximum ammount of rigid body debris
-@export var maximum_debris = 300
+@export var rigid_body_maximum_debris = 300
+@export var rigid_body_pool_debris = false
 @export_group("Dithering")
 ## Maximum amount of random darkening.
 @export_range(0, .20, .01) var dark_dithering = 0.0
@@ -131,6 +134,8 @@ var _queue_attacks: bool:  # If attacks should be queued and staggered instead o
 var _positions_dict_snapshot: Dictionary[Vector3i, int] = {} # Used by worker threads to perform thread safe operations
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
+var _position_snapshot_edits: PackedVector3Array # List of updates to _positions_dict_snapshot
+var _position_snapshot_generated := false # Used to decide if _positions_dict_snapshot has been generated and thus should be duplicated from voxel_resource.duplicate()
 var _last_hit_pos: Vector3 # Used to run flood fill on last hit pos
 var _populating: bool = false # Used to prevent populating more than once at one time
 #endregion
@@ -216,7 +221,7 @@ func _ready() -> void:
 			print("[VD bench][Ready][", name, "] _voxel_state.unique_voxel_resource: %d us" % (_t1 - _t0))
 			_t0 = _t1
 
-		if debris_type == 2:
+		if debris_type == 2 and rigid_body_pool_debris:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
 		if _BENCHMARK_READY:
@@ -312,10 +317,18 @@ func _physics_process(delta):
 
 	# Regen _positions_dict_snapshot:
 	if _shoud_regenerate_positions_dict_snapshot and _position_snapshot_locks.is_empty():
+		var _position_snapshot_was_just_generated = not _position_snapshot_generated
 		_shoud_regenerate_positions_dict_snapshot = false
-		_positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
-		# When copy updates we know to now run floodfill
-		if flood_fill != -1:
+		if not _position_snapshot_generated:
+			_positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
+			_position_snapshot_generated = true
+		else:
+			for edit in _position_snapshot_edits:
+				_positions_dict_snapshot.erase(Vector3i(edit))
+		_position_snapshot_edits.clear() # Edits applied either way
+		# When copy updates we know to now run floodfill 
+		# unless _positions_dict_snapshot is generated for the first time
+		if flood_fill != -1 and not _position_snapshot_was_just_generated:
 			await _detach_disconnected_voxels(_last_hit_pos)
 
 	# Flood fill tasks
@@ -535,6 +548,7 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_pos
 			# Remove voxel from valid positions, chunks, and multimesh
 			multimesh.set_instance_visibility(vox_id, false)
 			voxel_resource.positions_dict.erase(vox_pos3i)
+			_position_snapshot_edits.append(vox_pos3i)
 			_voxel_server.total_active_voxels -= 1
 
 			var chunk = result["chunk"]
@@ -574,12 +588,12 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_pos
 		_update_physics()
 
 	if (debris_type != 0 or debris_type != 1) and not debris_queue.is_empty() and debris_density > 0:
-		if debris_lifetime > 0 and maximum_debris > 0:
+		if debris_lifetime > 0:
 			match debris_type:
 				2:
 					_create_debri_multimesh(debris_queue)
 				3:
-					if maximum_debris == -1 or debris_ammount <= maximum_debris:
+					if rigid_body_maximum_debris == -1 or debris_ammount <= rigid_body_maximum_debris:
 						_create_debri_rigid_bodies(debris_queue)
 
 	if health <= 0:
@@ -713,7 +727,7 @@ func _process_multimesh_debris_creation_queue():
 	if _multimesh_debris_creation_queue.is_empty():
 		return
 
-	var batch_size = _MULTIMESH_DEBRIS_BATCH_SIZE # Create 100 debris per frame
+	var batch_size = _MULTIMESH_DEBRIS_BATCH_SIZE # Create xxx debris per frame
 	var current_batch = []
 	while len(current_batch) < batch_size and not _multimesh_debris_creation_queue.is_empty():
 		current_batch.append(_multimesh_debris_creation_queue.pop_front())
@@ -810,7 +824,7 @@ func _process_rigid_body_debris_creation_queue() -> void:
 			continue
 
 		# Respect maximum debris
-		if maximum_debris != -1 and debris_ammount >= maximum_debris:
+		if rigid_body_maximum_debris != -1 and debris_ammount >= rigid_body_maximum_debris:
 			_rigid_body_debris_creation_queue.clear() # No more debris allowed
 			break
 
@@ -995,15 +1009,23 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
 				await get_tree().physics_frame
 	else:
-		# Original behaviour:  delete detached voxels and spawn debris
+		# Delete detached voxels and spawn debris
 		var debris_queue = []
 		for group in detached_groups:
+			var iterations := 0
 			for vox_pos3i in group:
+				if iterations > _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB:
+					if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
+						await get_tree().physics_frame
+					iterations = 0
+				else:
+					iterations += 1
 				if not voxel_resource.positions_dict.has(vox_pos3i):
 					continue
 				var vox_id = voxel_resource.positions_dict[vox_pos3i]
 				multimesh.set_instance_visibility(vox_id, false)
 				voxel_resource.positions_dict.erase(vox_pos3i)
+				_position_snapshot_edits.append(vox_pos3i)
 				_voxel_server.total_active_voxels -= 1
 				var chunk = voxel_resource.vox_chunk_indices[vox_id]
 				var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
@@ -1021,12 +1043,12 @@ func _apply_flood_fill_results(result: Dictionary) -> void:
 
 
 		if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
-			if debris_lifetime > 0 and maximum_debris > 0:
+			if debris_lifetime > 0:
 				match debris_type:
 					2:
 						_create_debri_multimesh(debris_queue)
 					3:
-						if maximum_debris == -1 or debris_ammount <= maximum_debris:
+						if rigid_body_maximum_debris == -1 or debris_ammount <= rigid_body_maximum_debris:
 							_create_debri_rigid_bodies(debris_queue)
 
 	if health <= 0:
@@ -1132,6 +1154,7 @@ func _spawn_voxel_object_chunk(group: Array, scaled_basis: Basis, chunks_to_rege
 		var vox_id = voxel_resource.positions_dict[vox_pos3i]
 		multimesh.set_instance_visibility(vox_id, false)
 		voxel_resource.positions_dict.erase(vox_pos3i)
+		_position_snapshot_edits.append(vox_pos3i)
 		_voxel_server.total_active_voxels -= 1
 		health -= voxel_resource.health[vox_id]
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
@@ -1194,7 +1217,14 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 	chunk_multimesh.mesh = multimesh.mesh
 
 	# Set instance transforms relative to the chunk center
+	var iterations := 0
 	for i in group.size():
+		if iterations > _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB * 2: # Times two because we do twice the voxel iterations
+			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
+				await get_tree().physics_frame
+			iterations = 0
+		else:
+			iterations += 1
 		var vox_pos3i: Vector3i = group[i]
 		var vox_global := vt * (Vector3(vox_pos3i))
 		var vox_id: int = voxel_resource.positions_dict.get(vox_pos3i, -1)
@@ -1231,11 +1261,18 @@ func _spawn_falling_chunk(group: Array, scaled_basis: Basis, chunks_to_regen: Pa
 
 	# Remove these voxels from the parent VoxelObject
 	for vox_pos3i in group:
+		if iterations > _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB * 2:
+			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
+				await get_tree().physics_frame
+			iterations = 0
+		else:
+			iterations += 1
 		if not voxel_resource.positions_dict.has(vox_pos3i):
 			continue
 		var vox_id = voxel_resource.positions_dict[vox_pos3i]
 		multimesh.set_instance_visibility(vox_id, false)
 		voxel_resource.positions_dict.erase(vox_pos3i)
+		_position_snapshot_edits.append(vox_pos3i)
 		_voxel_server.total_active_voxels -= 1
 		health -= voxel_resource.health[vox_id]
 		var chunk_idx = voxel_resource.vox_chunk_indices[vox_id]
