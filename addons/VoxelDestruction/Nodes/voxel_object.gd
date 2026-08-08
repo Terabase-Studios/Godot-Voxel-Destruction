@@ -10,13 +10,14 @@ class_name VoxelObject
 #region Declarations 
 #region Constants
 var _VOXELSTATE_VERSION := 1.0
-var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.0 # Time to wait before unfreezing rigid bodies that break off to prevent them colliding with previous collision in the process of being removed
 const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true
 const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 2000 # The ammount of voxels to be proccessed before waiting a frame
 const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05
+
 var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
 var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
+var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
 
 var _BENCHMARK_READY: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_ready", false)
 var _BENCHMARK_DAMAGE: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_damage", false)
