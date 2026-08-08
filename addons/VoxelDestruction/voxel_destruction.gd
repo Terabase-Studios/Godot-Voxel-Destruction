@@ -74,23 +74,6 @@ However, this drastically increases the speed at which certain functions run!"""
 # ==================================================================================================
 
 # ==================================================================================================
-	property = "voxel_destruction/performance/queue_attacks"
-	value = false
-	description = """@experimental: This has not been tested for performance gains and may potentially [b]Decrease performance[/b]. [br]
-Queue attacks so one attack is being processed at a time with a small cooldown inbetween. [br]
-This has a chance to increase performace when multiple attacks damage the [VoxelObject] in a short period."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
 	property = "voxel_destruction/performance/default_collision_quality"
 	value = 1
 	description = """Controls the precision of generated collision shapes.
@@ -129,24 +112,6 @@ Increase this value to potentially reduce studdering but may use excessive memor
 # ==================================================================================================
 
 # ==================================================================================================
-	property = "voxel_destruction/performance/collision_nodes_updated_per_physics_frame"
-	value = 50
-	description = """The max amount of collision shapes to add/remove per VoxelObject per Physics Frame.[br]
-	Increase this value to make hits more responsive or decrease this value to potentially reduce any studder."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_INT,
-		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "1,50,1,hide_control,or_greater"
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
 	property = "voxel_destruction/debris/default_type"
 	value = 0
 	description = """Type of debris generated [br]
@@ -164,40 +129,6 @@ Increase this value to potentially reduce studdering but may use excessive memor
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
 	ProjectSettings.set_as_basic(property, true)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/debris/multimesh/batch_size"
-	value = 200
-	description = """Maximum amount of multimesh debris to spawn each physics frame."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_INT,
-		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,60,1,hide_control,or_greater"
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/debris/rigid_body/batch_size"
-	value = 10
-	description = """Maximum amount of Rigid Body debris to spawn each physics frame."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_INT,
-		"hint": PROPERTY_HINT_RANGE,
-		"hint_string": "0,60,1,hide_control,or_greater"
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
 
@@ -324,17 +255,13 @@ Handle detached voxels [br]
 
 func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/performance/rust_gdextention")
-	ProjectSettings.clear("voxel_destruction/performance/queue_attacks")
 	ProjectSettings.clear("voxel_destruction/performance/default_collision_quality")
 	ProjectSettings.clear("voxel_destruction/performance/collision_preload_percent")
-	ProjectSettings.clear("voxel_destruction/performance/collision_nodes_updated_per_physics_frame")
 	ProjectSettings.clear("voxel_destruction/debris/default_type")
 	ProjectSettings.clear("voxel_destruction/debris/default_weight")
 	ProjectSettings.clear("voxel_destruction/debris/default_density")
 	ProjectSettings.clear("voxel_destruction/debris/default_lifetime")
 	ProjectSettings.clear("voxel_destruction/debris/maximum_debris")
-	ProjectSettings.clear("voxel_destruction/debris/multimesh/batch_size")
-	ProjectSettings.clear("voxel_destruction/debris/rigid_body/batch_size")
 	ProjectSettings.clear("voxel_destruction/physics/default_density")
 	ProjectSettings.clear("voxel_destruction/resources/compact/buffer_lifetime")
 	ProjectSettings.clear("voxel_destruction/other/flood_fill_default")

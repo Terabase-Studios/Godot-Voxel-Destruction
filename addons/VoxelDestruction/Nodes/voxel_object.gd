@@ -11,13 +11,11 @@ class_name VoxelObject
 #region Constants
 var _VOXELSTATE_VERSION := 1.0 # Version cross-refrenced with VoxelState to detirmine if auto-populate should happen
 const _TIME_BETWEEN_PROCESSING_ATTACKS: float = 0.0 # Time to wait before unfreezing rigid bodies that break off to prevent them colliding with previous collision in the process of being removed
-const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true # Stagger based on _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB and between groups when applying flood-fill results
-const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 2000 # The amount of voxels to be proccessed before waiting a frame when applying flood-fill results
+const _STAGGER_APPLY_FLOOD_FILL_RESULTS: = true # Stagger while applying results from flood-fill when flood-fill mode is not disabled or set to destroy
+const _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB = 100 # The amount of voxels to be proccessed before checking functions_budget
 const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05 # How long RigidBodies created by RigidBody flood-fill mode should be frozen to give time for staggered collision removal to clear the spot.
 
-var _MULTIMESH_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/multimesh/batch_size", 100)
-var _RIGID_BODY_DEBRIS_BATCH_SIZE: int = ProjectSettings.get_setting("voxel_destruction/debris/rigid_body/batch_size", 10)
-var _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME: int = ProjectSettings.get_setting("voxel_destruction/performance/collision_nodes_updated_per_physics_frame", 50)
+var _MULTIMESH_DEBRIS_MINIMUM_BATCH_SIZE: int = 10
 
 var _BENCHMARK_READY: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_ready", false)
 var _BENCHMARK_DAMAGE: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_damage", false)
@@ -118,17 +116,14 @@ var _collision_body: PhysicsBody3D # Collision Body
 var _disabled_locks = [] # Add locks to disable this VoxelObject, all locks must be removed to renable
 var _disabled: bool = false # Disables any and all voxel operations at entry points only.
 var _body_last_transform: Transform3D # Used in physics to check if the rigid body should be moved
-var _attack_queue: Array[Dictionary] = [] # Queue of attacks to process
-var _is_processing: bool = false # Controls if a damage task should run if _queue_attacks is true and a task is already running
 var _shapes_to_add: Dictionary[Vector3, Array] = {} # Shapes to be added in physics process
 var _shapes_to_remove: Array[Node3D] = [] # Shapes to be removed in physics process
-var _damage_tasks: Dictionary = {} # Physics process queue for damaging tasks
-var _regen_tasks: Dictionary = {} # Physics process queue for regenerating collision
-var _rigid_body_debris_creation_queue: Array = [] # Physics process queue for debris generation
-var _multimesh_debris_creation_queue: Array = [] # Physics process queue for debris generation
-var _flood_fill_tasks: Dictionary = {} # Physics process queue for flood fill calculations
-var _queue_attacks: bool:  # If attacks should be queued and staggered instead of ran immediately
-	get: return ProjectSettings.get_setting("voxel_destruction/performance/queue_attacks", false)
+var _damage_tasks: Dictionary = {} # Queue for damaging tasks
+var _regen_tasks: Dictionary = {} # Queue for regenerating collision
+var _rigid_body_debris_creation_queue: Array = [] # Queue for debris generation
+var _multimesh_debris_creation_queue: Array = [] # Queue for debris generation
+var _flood_fill_tasks: Dictionary = {} # Queue for flood fill calculations
+var _flood_apply_tasks: Array[VoxelFloodApplyTask] = [] # Queue for applying flood-fill
 var _positions_dict_snapshot: Dictionary[Vector3i, int] = {} # Used by worker threads to perform thread safe operations
 var _shoud_regenerate_positions_dict_snapshot: bool = true # Controls if _physics_process should regenerate _positions_dict_snapshot, set to true after any modification to voxel_resource.positions_dict
 var _position_snapshot_locks: Array = [] # Used by worker threads to prevent _positions_dict_snapshot regeneration while performing operations. In main thread: Add unique id to this array and remove it after thread completion.
@@ -145,6 +140,20 @@ var _last_damage_time: int = -1 # Used to debug the amount of time damaging take
 signal repopulated
 #endregion
 #endregion
+
+
+#region Embedded Classes
+# A pending flood-fill result, mid-drain across however many frames it takes.
+class VoxelFloodApplyTask extends RefCounted:
+	var groups: Array # Reference to detached_groups
+	var mode: int # Flood Fill mode
+	var scaled_basis: Basis
+	var group_idx: int = 0
+	var item_idx: int = 0 # Used in deleting voxels in destroy flood-fill mode to kleep track of voxels already deleted
+	var chunks_to_regen := PackedVector3Array()
+	var debris_queue: Array = []
+#endregion
+
 
 #region Private Functions
 func _ready() -> void:
@@ -307,6 +316,15 @@ func _ready() -> void:
 
 #region Every Physics Frame
 func _physics_process(delta):
+	#_process_collision_dict_snapshot()
+	#_process_flood_fill_results()
+	#_process_damage_tasks_results()
+	#_process_collison_tasks_to_queue()
+	#_process_collision_nodes()
+	#_process_multimesh_debris_creation_queue()
+	#_process_rigid_body_debris_creation_queue()
+	
+	
 	if Engine.is_editor_hint() and _voxel_state:
 		if _voxel_state.version != _VOXELSTATE_VERSION:
 			if _populating:
@@ -314,82 +332,6 @@ func _physics_process(delta):
 			print("[VD ADDON] Updating ", name, "'s VoxelState to new version.")
 			_populate_mesh()
 		return
-
-	# Regen _positions_dict_snapshot:
-	if _shoud_regenerate_positions_dict_snapshot and _position_snapshot_locks.is_empty():
-		var _position_snapshot_was_just_generated = not _position_snapshot_generated
-		_shoud_regenerate_positions_dict_snapshot = false
-		if not _position_snapshot_generated:
-			_positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
-			_position_snapshot_generated = true
-		else:
-			for edit in _position_snapshot_edits:
-				_positions_dict_snapshot.erase(Vector3i(edit))
-		_position_snapshot_edits.clear() # Edits applied either way
-		# When copy updates we know to now run floodfill 
-		# unless _positions_dict_snapshot is generated for the first time
-		if flood_fill != -1 and not _position_snapshot_was_just_generated:
-			await _detach_disconnected_voxels(_last_hit_pos)
-
-	# Flood fill tasks
-	for task in _flood_fill_tasks:
-		if WorkerThreadPool.is_task_completed(task):
-			var flood_result: Dictionary = _flood_fill_tasks[task]
-			_apply_flood_fill_results(flood_result)
-			_flood_fill_tasks.erase(task)
-			# Release _position_snapshot_lock
-			_position_snapshot_locks.erase(task)
-
-	# Debris tasks
-	_process_multimesh_debris_creation_queue()
-	_process_rigid_body_debris_creation_queue()
-
-	# Collision regeneration tasks
-	for task in _regen_tasks:
-		if WorkerThreadPool.is_task_completed(task):
-			var shape_datas: Array = _regen_tasks[task][0]
-			var chunk_index: Vector3 = _regen_tasks[task][1]
-			# Remove old shapes
-			if _collision_shapes.has(chunk_index):
-				var old_shapes = _collision_shapes[chunk_index]
-				_voxel_server.shape_count -= old_shapes.size()
-				for shape in old_shapes:
-					_shapes_to_remove.append(shape)
-				_collision_shapes[chunk_index].clear()
-
-
-			# Add shapes and record
-			_shapes_to_add[chunk_index] = []
-			for shape_data in shape_datas:
-				var shape_node = voxel_resource.get_collision_node()
-				shape_node.position = shape_data["center"]
-				shape_node.shape.extents = shape_data["extents"]
-				_shapes_to_add[chunk_index].append(shape_node)
-				if chunk_index not in _collision_shapes:
-					_collision_shapes[chunk_index] = Array()
-				_collision_shapes[chunk_index].append(shape_node)
-
-			if _collision_shapes.has(chunk_index):
-				_voxel_server.shape_count += _collision_shapes[chunk_index].size()
-			_regen_tasks.erase(task)
-
-	# Damage tasks
-	for task in _damage_tasks:
-		if WorkerThreadPool.is_task_completed(task):
-			var damage_results: Array = _damage_tasks[task][0][0] # unwrap from results
-			var damager: VoxelDamager = _damage_tasks[task][1]
-			var hit_position: Vector3 = _damage_tasks[task][2]
-			_apply_damage_results(damager, damage_results, hit_position)
-			_damage_tasks.erase(task)
-			# Release _position_snapshot_lock
-			_position_snapshot_locks.erase(task)
-
-	# Apply shapes to add/remove
-	_update_collision_nodes()
-
-	# Update the addons
-	if lod_addon:
-		lod_addon._physics_process()
 
 	# Calculate _disabled based apon _disabled locks
 	if _disabled_locks.is_empty():
@@ -411,35 +353,269 @@ func _physics_process(delta):
 		_body_last_transform = _collision_body.transform
 
 
-func _update_collision_nodes():
-	# Separate budgets
-	var add_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
-	var remove_budget := _COLLISION_NODES_UPDATED_PER_PHYSICS_FRAME
 
-	# Process adds first
-	for chunk_index in _shapes_to_add:
-		if add_budget <= 0:
+#endregion
+
+
+#region Queue Processing
+# Anything budgeted returns true if there is more stuff to process
+
+# Regen _positions_dict_snapshot:
+# Unbudgeted
+func _process_collision_dict_snapshot():
+	if _shoud_regenerate_positions_dict_snapshot and _position_snapshot_locks.is_empty():
+		var _position_snapshot_was_just_generated = not _position_snapshot_generated
+		_shoud_regenerate_positions_dict_snapshot = false
+		if not _position_snapshot_generated:
+			_positions_dict_snapshot = voxel_resource.positions_dict.duplicate()
+			_position_snapshot_generated = true
+		else:
+			for edit in _position_snapshot_edits:
+				_positions_dict_snapshot.erase(Vector3i(edit))
+		_position_snapshot_edits.clear() # Edits applied either way
+		# When copy updates we know to now run floodfill 
+		# unless _positions_dict_snapshot is generated for the first time
+		if flood_fill != -1 and not _position_snapshot_was_just_generated:
+			call_deferred("_detach_disconnected_voxels", _last_hit_pos)
+	return false
+
+
+func _process_flood_fill_results(budget_usec: float) -> bool:
+	var start := Time.get_ticks_usec()
+	for task in _flood_fill_tasks.keys():
+		if WorkerThreadPool.is_task_completed(task):
+			var flood_result: Dictionary = _flood_fill_tasks[task]
+			var elapsed := Time.get_ticks_usec() - start
+			var remaining_budget := budget_usec - elapsed
+			if remaining_budget <= 0.0:
+				return true
+			#region Queue flood fill task
+			var detached_groups = flood_result.get("detached_groups")
+			if detached_groups:
+				voxel_resource.buffer("positions_dict")
+				voxel_resource.buffer("chunks")
+				voxel_resource.buffer("vox_chunk_indices")
+				var apply_task := VoxelFloodApplyTask.new()
+				apply_task.groups = detached_groups
+				apply_task.mode = flood_fill
+				apply_task.scaled_basis = global_transform.basis.scaled(voxel_resource.vox_size)
+				_flood_apply_tasks.append(apply_task)
+			#endregion
+			_flood_fill_tasks.erase(task)
+			_position_snapshot_locks.erase(task)
+		if Time.get_ticks_usec() - start >= budget_usec:
+			return not _flood_fill_tasks.is_empty()
+	return not _flood_fill_tasks.is_empty()
+
+
+func _process_flood_fill_apply(budget_usec: float) -> bool:
+	var start := Time.get_ticks_usec()
+	while not _flood_apply_tasks.is_empty():
+		var task: VoxelFloodApplyTask = _flood_apply_tasks[0]
+		var finished := _flood_apply_task(task, start, budget_usec)
+		if finished:
+			_flood_apply_tasks.pop_front()
+			_finalize_flood_apply_task(task, task.mode != 2)
+		if Time.get_ticks_usec() - start >= budget_usec:
+			break
+	return not _flood_apply_tasks.is_empty()
+
+
+func _process_damage_task_results(budget_usec: float) -> bool:
+	var start := Time.get_ticks_usec()
+	for task in _damage_tasks.keys():  # snapshot -- safe to erase from dict below
+		if WorkerThreadPool.is_task_completed(task):
+			var damage_results: Array = _damage_tasks[task][0][0]  # unwrap from results
+			var damager: VoxelDamager = _damage_tasks[task][1]
+			var hit_position: Vector3 = _damage_tasks[task][2]
+			_apply_damage_results(damager, damage_results, hit_position)
+			_damage_tasks.erase(task)
+			# Release _position_snapshot_lock
+			_position_snapshot_locks.erase(task)
+		if Time.get_ticks_usec() - start >= budget_usec:
+			return not _damage_tasks.is_empty()
+	return not _damage_tasks.is_empty()
+
+
+# Finished _regen_tasks are processed and added to _shapes_to_add & _shapes_to_remove
+func _process_collision_task_results(budget_usec: float) -> bool:
+	var start := Time.get_ticks_usec()
+	for task in _regen_tasks.keys():
+		if WorkerThreadPool.is_task_completed(task):
+			var shape_datas: Array = _regen_tasks[task][0]
+			var chunk_index: Vector3 = _regen_tasks[task][1]
+
+			# Remove old shapes
+			if _collision_shapes.has(chunk_index):
+				var old_shapes = _collision_shapes[chunk_index]
+				_voxel_server.shape_count -= old_shapes.size()
+				for shape in old_shapes:
+					_shapes_to_remove.append(shape)
+				_collision_shapes[chunk_index].clear()
+
+			# Add shapes and record
+			_shapes_to_add[chunk_index] = []
+			for shape_data in shape_datas:
+				var shape_node = voxel_resource.get_collision_node()
+				shape_node.position = shape_data["center"]
+				shape_node.shape.extents = shape_data["extents"]
+				_shapes_to_add[chunk_index].append(shape_node)
+				if chunk_index not in _collision_shapes:
+					_collision_shapes[chunk_index] = Array()
+				_collision_shapes[chunk_index].append(shape_node)
+
+			if _collision_shapes.has(chunk_index):
+				_voxel_server.shape_count += _collision_shapes[chunk_index].size()
+
+			_regen_tasks.erase(task)
+		if Time.get_ticks_usec() - start >= budget_usec:
+			return not _regen_tasks.is_empty()
+	return not _regen_tasks.is_empty()
+
+
+# Apply shapes to add/remove
+func _process_collision_nodes_add(budget_ms: float) -> bool:
+	var start := Time.get_ticks_usec()
+	var deadline := start + int(budget_ms * 1000.0)
+
+	for chunk_index in _shapes_to_add.keys():  # snapshot -- safe to erase from dict below
+		if Time.get_ticks_usec() >= deadline:
 			break
 
 		var shapes_array: Array = _shapes_to_add[chunk_index]
-		while add_budget > 0 and not shapes_array.is_empty():
+		while not shapes_array.is_empty() and Time.get_ticks_usec() < deadline:
 			var shape = shapes_array.pop_back()
 			if is_instance_valid(shape):
 				_collision_body.call_deferred("add_child", shape, false, Node.INTERNAL_MODE_BACK)
-				add_budget -= 1
 
 		if shapes_array.is_empty():
 			_shapes_to_add.erase(chunk_index)
 
-	# Process removes next
-	while remove_budget > 0 and not _shapes_to_remove.is_empty():
+	return not _shapes_to_add.is_empty()
+
+
+func _process_collision_nodes_remove(budget_ms: float) -> bool:
+	var start := Time.get_ticks_usec()
+	var deadline := start + int(budget_ms * 1000.0)
+
+	while not _shapes_to_remove.is_empty() and Time.get_ticks_usec() < deadline:
 		var shape = _shapes_to_remove.pop_back()
 		if is_instance_valid(shape):
 			var shape_parent = shape.get_parent()
 			if shape_parent:
 				shape_parent.call_deferred("remove_child", shape)
 			voxel_resource.call_deferred("return_collision_node", shape)
-			remove_budget -= 1
+
+	return not _shapes_to_remove.is_empty()
+
+
+# Debris task
+func _process_multimesh_debris_creation_queue(budget_usec: float) -> bool:
+	if _multimesh_debris_creation_queue.is_empty():
+		return false
+
+	var start := Time.get_ticks_usec()
+	var min_batch := _MULTIMESH_DEBRIS_MINIMUM_BATCH_SIZE
+
+	# We have to have an inital size so I guess the whole queue works
+	var max_possible: int = _multimesh_debris_creation_queue.size()
+
+	var gravity_magnitude: float = ProjectSettings.get_setting("physics/3d/default_gravity")
+	var debri_states := []
+	var multi_mesh_instance := MultiMeshInstance3D.new()
+	var multi_mesh := MultiMesh.new()
+	multi_mesh_instance.top_level = true
+	multi_mesh_instance.multimesh = multi_mesh
+	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
+	multi_mesh.mesh.size = voxel_resource.vox_size
+	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
+	multi_mesh.instance_count = max_possible  # sized once, never resized below
+	add_child(multi_mesh_instance, false, Node.INTERNAL_MODE_BACK)
+
+	var idx := 0
+	var consumed := 0
+	var _t0 := start
+	while (consumed < min_batch or Time.get_ticks_usec() - start < budget_usec) \
+			and not _multimesh_debris_creation_queue.is_empty():
+		var debris_data = _multimesh_debris_creation_queue.pop_front()
+		consumed += 1
+		if randf() <= debris_density:  # Control debris density
+			var debris_pos = debris_data.pos
+			var velocity = (debris_pos - debris_data.origin).normalized() * debris_data.power * -1
+			debri_states.append([debris_pos, velocity])
+			multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
+			idx += 1
+
+	if idx < max_possible:
+		multi_mesh.visible_instance_count = idx
+
+	if _BENCHMARK_DEBRIS:
+		print("[VD bench][Debris][", name, "] spawned %d/%d (queue had %d): %d us" % [idx, consumed, max_possible, Time.get_ticks_usec() - _t0])
+
+	call_deferred("_run_multimesh_debris_lifecycle", multi_mesh, multi_mesh_instance, debri_states, gravity_magnitude)
+
+	return not _multimesh_debris_creation_queue.is_empty()
+
+
+# Debris task
+func _process_rigid_body_debris_creation_queue(budget_usec: float) -> bool:
+	if _rigid_body_debris_creation_queue.is_empty():
+		return false
+	if not voxel_resource:
+		_rigid_body_debris_creation_queue.clear()
+		return false
+
+	var start := Time.get_ticks_usec()
+	var size = voxel_resource.vox_size
+	var debris_objects: Array = []
+
+	while Time.get_ticks_usec() - start < budget_usec and not _rigid_body_debris_creation_queue.is_empty():
+		var debris_data = _rigid_body_debris_creation_queue.pop_front()
+
+		if randf() > debris_density:
+			continue
+
+		# Respect maximum debris
+		if rigid_body_maximum_debris != -1 and debris_amount >= rigid_body_maximum_debris:
+			_rigid_body_debris_creation_queue.clear()  # No more debris allowed
+			break
+
+		# Get debris from pool or create new
+		var debri: RigidBody3D
+		if voxel_resource.debris_pool.is_empty():
+			debri = voxel_resource.get_debri()
+		else:
+			debri = voxel_resource.debris_pool.pop_back()
+
+		debri.name = "VoxelDebri"
+		debri.top_level = true
+		debri.show()
+
+		var shape = debri.get_child(0)
+		var mesh = debri.get_child(1)
+
+		add_child(debri, true, Node.INTERNAL_MODE_BACK)
+		debri.global_position = debris_data.pos
+		shape.shape.size = size
+		mesh.mesh.size = size
+
+		var velocity = (debris_data.pos - debris_data.origin).normalized() * debris_data.power
+		debri.freeze = false
+		debri.gravity_scale = debris_weight
+		debri.apply_impulse(velocity)
+
+		debris_objects.append(debri)
+		debris_amount += 1
+
+	if debris_objects.is_empty():
+		return not _rigid_body_debris_creation_queue.is_empty()
+
+	if _BENCHMARK_DEBRIS:
+		print("[VD bench][Debris][", name, "] _process_rigid_body_debris_creation_queue batch (%d debris): %d us" % [debris_objects.size(), Time.get_ticks_usec() - start])
+
+	call_deferred("_run_rigid_body_debris_lifecycle", debris_objects)
+
+	return not _rigid_body_debris_creation_queue.is_empty()
 #endregion
 
 
@@ -453,24 +629,8 @@ func _damage_voxels(damager: VoxelDamager, voxel_count: int, voxel_positions: Pa
 		"global_voxel_positions": global_voxel_positions,
 		"hit_position": hit_position
 	}
-	if _queue_attacks:
-		_attack_queue.append(attack_data)
-		_process_attack_queue()
-	else:
-		_perform_damage_calculation(attack_data)
+	_perform_damage_calculation(attack_data)
 
-
-func _process_attack_queue() -> void:
-	if _is_processing or _attack_queue.is_empty():
-		return
-
-	_is_processing = true
-	while not _attack_queue.is_empty():
-		var attack_data = _attack_queue.pop_front()
-		_perform_damage_calculation(attack_data)
-		await get_tree().physics_frame
-
-	_is_processing = false
 
 # Manages _damage_voxel workers.
 func _perform_damage_calculation(attack_data: Dictionary) -> void:
@@ -723,154 +883,31 @@ func _create_debri_multimesh(debris_queue: Array) -> void:
 	_multimesh_debris_creation_queue.append_array(debris_queue)
 
 
-func _process_multimesh_debris_creation_queue():
-	if _multimesh_debris_creation_queue.is_empty():
-		return
-
-	var batch_size = _MULTIMESH_DEBRIS_BATCH_SIZE # Create xxx debris per frame
-	var current_batch = []
-	while len(current_batch) < batch_size and not _multimesh_debris_creation_queue.is_empty():
-		current_batch.append(_multimesh_debris_creation_queue.pop_front())
-
-	if current_batch.is_empty():
-		return
-
-	var _t0 := Time.get_ticks_usec()
-	# Create MultiMesh
-	var gravity_magnitude : float = ProjectSettings.get_setting("physics/3d/default_gravity")
-	var debri_states = []
-	var multi_mesh_instance = MultiMeshInstance3D.new()
-	var multi_mesh = MultiMesh.new()
-
-	multi_mesh_instance.top_level = true
-	multi_mesh_instance.multimesh = multi_mesh
-	multi_mesh.mesh = preload("res://addons/VoxelDestruction/Resources/debri.tres").duplicate()
-	multi_mesh.mesh.size = voxel_resource.vox_size
-	multi_mesh.transform_format = MultiMesh.TRANSFORM_3D
-	multi_mesh.instance_count = current_batch.size()
-	add_child(multi_mesh_instance, false, Node.INTERNAL_MODE_BACK)
-
-	# Initialize debris and store physics states
-	var idx = 0
-	for debris_data in current_batch:
-		if randf() > debris_density: continue  # Control debris density
-
-		var debris_pos = debris_data.pos
-		var velocity = (debris_pos - debris_data.origin).normalized() * debris_data.power * -1
-
-		# Store debris state (position and velocity)
-		debri_states.append([debris_pos, velocity])
-
-		# Set the initial position in the MultiMesh
-		multi_mesh.set_instance_transform(idx, Transform3D(Basis(), debris_pos))
-		idx += 1
-
-	if _BENCHMARK_DEBRIS:
-		print("[VD bench][Debris][", name, "] _process_multimesh_debris_creation_queue batch (%d debris): %d us" % [current_batch.size(), Time.get_ticks_usec() - _t0])
-
-	# Control debris for the lifetime duration
-	var current_lifetime = debris_lifetime
-	while current_lifetime > 0:
-
-		var delta = get_physics_process_delta_time()
-		current_lifetime -= delta
-
-		# Update physics and position of each debris
-		for i in range(debri_states.size()):
-			var data = debri_states[i]
-			var velocity = data[1]
-
-			# Apply gravity (affecting the y-axis)
-			velocity.y -= gravity_magnitude * debris_weight * min(delta, .999) * 2
-
-			# Update position based on velocity
-			data[0] += velocity * delta
-
-			# Update instance transform in MultiMesh
-			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data[0]))
-
-			# Update velocity for next frame
-			data[1] = velocity
-
-		# Yield control to the engine to avoid blocking
-		await get_tree().physics_frame
-
-	# Free the MultiMeshInstance after lifetime expires
-	multi_mesh_instance.queue_free()
-
-
 func _create_debri_rigid_bodies(debris_queue: Array) -> void:
 	_rigid_body_debris_creation_queue.append_array(debris_queue)
 
 
-func _process_rigid_body_debris_creation_queue() -> void:
-	if _rigid_body_debris_creation_queue.is_empty():
-		return
+func _run_multimesh_debris_lifecycle(multi_mesh: MultiMesh, multi_mesh_instance: MultiMeshInstance3D,
+		debri_states: Array, gravity_magnitude: float) -> void:
+	var current_lifetime = debris_lifetime
+	while current_lifetime > 0:
+		var delta = get_physics_process_delta_time()
+		current_lifetime -= delta
+		for i in range(debri_states.size()):
+			var data = debri_states[i]
+			var velocity: Vector3 = data[1]
+			velocity.y -= gravity_magnitude * debris_weight * min(delta, .999) * 2
+			data[0] += velocity * delta
+			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data[0]))
+			data[1] = velocity
+		await get_tree().physics_frame
+	multi_mesh_instance.queue_free()
 
-	if not voxel_resource:
-		_rigid_body_debris_creation_queue.clear()
-		return
 
-	var _t0 := Time.get_ticks_usec()
-	var size = voxel_resource.vox_size
-	var debris_objects: Array = []
-	var created_count = 0
-	var batch_size = _RIGID_BODY_DEBRIS_BATCH_SIZE  # Create 10 debris per frame
-
-	while created_count < batch_size and not _rigid_body_debris_creation_queue.is_empty():
-		var debris_data = _rigid_body_debris_creation_queue.pop_front()
-
-		if randf() > debris_density:
-			continue
-
-		# Respect maximum debris
-		if rigid_body_maximum_debris != -1 and debris_amount >= rigid_body_maximum_debris:
-			_rigid_body_debris_creation_queue.clear() # No more debris allowed
-			break
-
-		# Get debris from pool or create new
-		var debri: RigidBody3D
-		if voxel_resource.debris_pool.is_empty():
-			debri = voxel_resource.get_debri()
-		else:
-			debri = voxel_resource.debris_pool.pop_back()
-
-		debri.name = "VoxelDebri"
-		debri.top_level = true
-		debri.show()
-
-		# Get children once
-		var shape = debri.get_child(0)
-		var mesh = debri.get_child(1)
-
-		# Set position and size
-		add_child(debri, true, Node.INTERNAL_MODE_BACK)
-		debri.global_position = debris_data.pos
-		shape.shape.size = size
-		mesh.mesh.size = size
-
-		# Launch debris
-		var velocity = (debris_data.pos - debris_data.origin).normalized() * debris_data.power
-		debri.freeze = false
-		debri.gravity_scale = debris_weight
-		debri.apply_impulse(velocity)
-
-		# Track active debris
-		debris_objects.append(debri)
-		debris_amount += 1
-		created_count += 1
-
-	if debris_objects.is_empty():
-		return
-
-	if _BENCHMARK_DEBRIS:
-		print("[VD bench][Debris][", name, "] _process_rigid_body_debris_creation_queue batch (%d debris): %d us" % [debris_objects.size(), Time.get_ticks_usec() - _t0])
-
-	# Wait for debris lifetime
+func _run_rigid_body_debris_lifecycle(debris_objects: Array) -> void:
 	var timer = get_tree().create_timer(debris_lifetime)
 	await timer.timeout
 
-	# Tween debris scale down in parallel
 	if not debris_objects.is_empty():
 		var debris_tween = get_tree().create_tween()
 		for debri in debris_objects:
@@ -880,22 +917,17 @@ func _process_rigid_body_debris_creation_queue() -> void:
 			var mesh = debri.get_child(1)
 			debris_tween.parallel().tween_property(shape, "scale", Vector3(0.01, 0.01, 0.01), 1)
 			debris_tween.parallel().tween_property(mesh, "scale", Vector3(0.01, 0.01, 0.01), 1)
-
 		await debris_tween.finished
 
-	# Recycle debris back into pool
 	for debri in debris_objects:
 		if not is_instance_valid(debri):
 			continue
-
 		var debri_parent = debri.get_parent()
 		if debri_parent:
 			debri_parent.remove_child(debri)
-		# Reset scale
 		debri.scale = Vector3.ONE
 		debri.get_child(0).scale = Vector3.ONE
 		debri.get_child(1).scale = Vector3.ONE
-
 		voxel_resource.return_debri(debri)
 		debris_amount -= 1
 #endregion
@@ -976,93 +1008,88 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 		print("[VD bench][Flood Fill][", name, "] _detach_disconnected_voxels dispatch: %d us" % (Time.get_ticks_usec() - _t0))
 
 
-func _apply_flood_fill_results(result: Dictionary) -> void:
-	var detached_groups = result.get("detached_groups")
-	if not detached_groups:
-		return
-
-	var _t0 := Time.get_ticks_usec()
-	voxel_resource.buffer("positions_dict")
-	voxel_resource.buffer("chunks")
-	voxel_resource.buffer("vox_chunk_indices")
-
-	var chunks_to_regen := PackedVector3Array()
-	var scaled_basis := global_transform.basis.scaled(voxel_resource.vox_size)
-
-	if flood_fill == 4:
-		# Spawn each detached group as a VoxelObject with its own VoxelResource
-		for group in detached_groups:
-			if group.is_empty():
-				continue
-			_spawn_voxel_object_chunk(group, scaled_basis, chunks_to_regen)
-			# Stagger
-			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
-				await get_tree().physics_frame
-
-	if flood_fill == 3:
-		# Spawn each detached group as a falling RigidBody3D with its own MultiMesh
-		for group in detached_groups:
-			if group.is_empty():
-				continue
-			_spawn_falling_chunk(group, scaled_basis, chunks_to_regen)
-			# Stagger
-			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
-				await get_tree().physics_frame
-	else:
-		# Delete detached voxels and spawn debris
-		var debris_queue = []
-		for group in detached_groups:
+func _flood_apply_task(task: VoxelFloodApplyTask, start: int, budget_usec: float) -> bool:
+	match task.mode:
+		4:
+			while task.group_idx < task.groups.size():
+				var group = task.groups[task.group_idx]
+				task.group_idx += 1
+				if not group.is_empty():
+					_spawn_voxel_object_chunk(group, task.scaled_basis, task.chunks_to_regen)
+					if Time.get_ticks_usec() - start >= budget_usec:
+						return task.group_idx >= task.groups.size()
+			return true
+		3: 
+			while task.group_idx < task.groups.size():
+				var group = task.groups[task.group_idx]
+				task.group_idx += 1
+				if not group.is_empty():
+					_spawn_falling_chunk(group, task.scaled_basis, task.chunks_to_regen)
+					if Time.get_ticks_usec() - start >= budget_usec:
+						return task.group_idx >= task.groups.size()
+			return true
+		_:
 			var iterations := 0
-			for vox_pos3i in group:
-				if iterations > _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB:
-					if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
-						await get_tree().physics_frame
-					iterations = 0
-				else:
+			while task.group_idx < task.groups.size():
+				var group = task.groups[task.group_idx]
+				while task.item_idx < group.size():
+					var vox_pos3i = group[task.item_idx]
+					task.item_idx += 1
 					iterations += 1
-				if not voxel_resource.positions_dict.has(vox_pos3i):
-					continue
-				var vox_id = voxel_resource.positions_dict[vox_pos3i]
-				multimesh.set_instance_visibility(vox_id, false)
-				voxel_resource.positions_dict.erase(vox_pos3i)
-				_position_snapshot_edits.append(vox_pos3i)
-				_voxel_server.total_active_voxels -= 1
-				var chunk = voxel_resource.vox_chunk_indices[vox_id]
-				var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
-				# Refrence voxel_server class, not the VoxelServer instance
-				voxel_resource.chunks[chunk][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
-				if chunk not in chunks_to_regen:
-					chunks_to_regen.append(chunk)
-				health -= voxel_resource.health[vox_id]
-				var vt := Transform3D(scaled_basis, global_transform.origin)
-				var lvc = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
-				debris_queue.append({ "pos": vt * lvc, "origin": Vector3.ZERO, "power": 0 })
-			# Stagger
-			if _STAGGER_APPLY_FLOOD_FILL_RESULTS:
-				await get_tree().physics_frame
+
+					if voxel_resource.positions_dict.has(vox_pos3i):
+						var vox_id = voxel_resource.positions_dict[vox_pos3i]
+						multimesh.set_instance_visibility(vox_id, false)
+						voxel_resource.positions_dict.erase(vox_pos3i)
+						_position_snapshot_edits.append(vox_pos3i)
+						_voxel_server.total_active_voxels -= 1
+						var chunk = voxel_resource.vox_chunk_indices[vox_id]
+						var chunk_pos = voxel_resource.chunks[chunk].find(vox_pos3i)
+						voxel_resource.chunks[chunk][chunk_pos] = voxel_server._REMOVED_VOXEL_MARKER
+						if chunk not in task.chunks_to_regen:
+							task.chunks_to_regen.append(chunk)
+						health -= voxel_resource.health[vox_id]
+						var vt := Transform3D(task.scaled_basis, global_transform.origin)
+						var lvc = Vector3(vox_pos3i) + Vector3(0.5, 0.5, 0.5)
+						task.debris_queue.append({ "pos": vt * lvc, "origin": Vector3.ZERO, "power": 0 })
+
+					if iterations >= _STAGGER_APPLY_FLOOD_FILL_RESULTS_SUB:
+						iterations = 0
+						if Time.get_ticks_usec() - start >= budget_usec:
+							if debris_type != 0 and not task.debris_queue.is_empty() and debris_density > 0:
+								if debris_lifetime > 0:
+									match debris_type:
+										2:
+											_create_debri_multimesh(task.debris_queue)
+										3:
+											if rigid_body_maximum_debris == -1 or debris_amount <= rigid_body_maximum_debris:
+												_create_debri_rigid_bodies(task.debris_queue)
+							task.debris_queue.clear()
+							return false
+
+				task.item_idx = 0
+				task.group_idx += 1
+			if debris_type != 0 and not task.debris_queue.is_empty() and debris_density > 0:
+				if debris_lifetime > 0:
+					match debris_type:
+						2:
+							_create_debri_multimesh(task.debris_queue)
+						3:
+							if rigid_body_maximum_debris == -1 or debris_amount <= rigid_body_maximum_debris:
+								_create_debri_rigid_bodies(task.debris_queue)
+			task.debris_queue.clear()
+			return true
 
 
-		if debris_type != 0 and not debris_queue.is_empty() and debris_density > 0:
-			if debris_lifetime > 0:
-				match debris_type:
-					2:
-						_create_debri_multimesh(debris_queue)
-					3:
-						if rigid_body_maximum_debris == -1 or debris_amount <= rigid_body_maximum_debris:
-							_create_debri_rigid_bodies(debris_queue)
-
+func _finalize_flood_apply_task(task: VoxelFloodApplyTask, handle_debris := true) -> void:
 	if health <= 0:
 		_end_of_life()
 		return
 
-	for chunk in chunks_to_regen:
+	for chunk in task.chunks_to_regen:
 		_regen_collision(chunk)
-
 	if physics:
 		_update_physics()
-
-	if _BENCHMARK_FLOOD_FILL:
-		print("[VD bench][Flood Fill][", name, "] _apply_flood_fill_results processing (%d groups): %d us" % [detached_groups.size(), Time.get_ticks_usec() - _t0])
 
 
 # TODO: Add material support for voxel chunks

@@ -17,7 +17,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="voxel-destruction-addon"
 run/main_scene="res://addons/VoxelDestruction/VD Extra Resources/Demo.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-run/max_fps=60
+run/max_fps=120
 config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
 
 [autoload]
@@ -89,6 +89,7 @@ exit={
 [physics]
 
 3d/run_on_separate_thread=true
+common/physics_ticks_per_second=120
 3d/physics_engine="Jolt Physics"
 jolt_physics_3d/simulation/areas_detect_static_bodies=true
 
