@@ -109,6 +109,10 @@ func _process_queues():
 	var total_cpu_render_time = viewport_cpu_time + frame_setup_time
 	elapsed += total_cpu_render_time
 
+	# Fallback if no max_fps is set
+	if _target_hz == 0:
+		_target_usec = int(get_process_delta_time() * 1_000_000.0)
+
 	var budget: int = int(_target_usec * _frame_budget_pct) - elapsed - _safety_margin_usec
 	if budget <= 0:
 		return

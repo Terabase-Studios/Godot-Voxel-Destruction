@@ -17,7 +17,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 config/name="voxel-destruction-addon"
 run/main_scene="res://addons/VoxelDestruction/VD Extra Resources/Demo.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-run/max_fps=120
+run/max_fps=165
 config/icon="res://addons/VoxelDestruction/Nodes/voxel_object.svg"
 
 [autoload]
