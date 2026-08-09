@@ -36,10 +36,18 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: addons/VoxelDestruction/Rust/voxel_native
+          cache-on-failure: true
+
+      - name: Install mold (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y mold
 
       - name: Build Dynamic Library
         run: cargo build --release --target ${{ matrix.target }} --manifest-path addons/VoxelDestruction/Rust/voxel_native/Cargo.toml
-  
+        env:
+          RUSTFLAGS: ${{ runner.os == 'Linux' && '-C link-arg=-fuse-ld=mold' || '' }}
+          CARGO_INCREMENTAL: 0
+
       - name: Rename Output
         shell: bash
         run: |
