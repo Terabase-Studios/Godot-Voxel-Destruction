@@ -15,13 +15,13 @@ jobs:
         include:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            asset_name: voxel_native_windows_x86_64.dll
+            asset_name: voxel_native.dll
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            asset_name: libvoxel_native_linux_x86_64.so
+            asset_name: libvoxel_native.so
           - target: x86_64-apple-darwin
             os: macos-latest
-            asset_name: libvoxel_native_macos_x86_64.dylib
+            asset_name: libvoxel_native.dylib
 
     steps:
       - name: Checkout Code
@@ -32,10 +32,14 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: Cache Rust Dependencies
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: addons/VoxelDestruction/Rust/voxel_native
+
       - name: Build Dynamic Library
         run: cargo build --release --target ${{ matrix.target }} --manifest-path addons/VoxelDestruction/Rust/voxel_native/Cargo.toml
-
-      # Prepare target binary
+  
       - name: Rename Output
         shell: bash
         run: |
