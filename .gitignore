@@ -47,3 +47,5 @@ non-godot-dev/test.pck
 non-godot-dev/test.console.exe
 non-godot-dev/test.exe
 non-godot-dev/voxel_native.dll
+addons/VoxelDestruction/Rust/voxel_native.gdextension
+addons/VoxelDestruction/Rust/voxel_native.gdextension.uid
