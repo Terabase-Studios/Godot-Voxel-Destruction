@@ -29,7 +29,7 @@ func _ready():
 	_setup_budget()
 
 
-func _physics_process(_delta: float) -> void:
+func _process(_delta: float) -> void:
 	_process_queues()
 
 
@@ -63,22 +63,25 @@ func get_lod_hidden_voxels():
 # |--------------------------------------------------|
 # |     This is the section for queue budgeting.     |
 # | For organizational purposes, all class variables |
-# |   and functions yelated to budgeting live here.  |
+# |   and functions related to budgeting live here.  |
 # |       Thank you for your understanding. =)       |
 # |--------------------------------------------------|
 
-var _target_hz: float = Engine.physics_ticks_per_second
-var _frame_budget_pct: float = 0.9 # Use up to 90% of the frame
+var _target_hz: float = Engine.max_fps
+var _frame_budget_pct: float = 0.8 # Use up to 80% of the frame
 var _safety_margin_usec: int = 300 # Leave headroom for engine overhead
 var _frame_clock: FrameClock # Used to figure out how much time non-VD stuff took
 var _budget_ready := false # Wait to process_queues until everything is set
 var _target_usec := int((1.0 / _target_hz) * 1_000_000) # Target usec for budgeting
-var _last_frame: int # Prevent running two budgets in one frame
+var viewport_rid: RID # Get rendering costs
+#var _last_frame: int # Prevent running two budgets in one frame
 
 func _setup_budget():
 	if Engine.is_editor_hint():
 		return
-	process_physics_priority = 9999 # Run last to use remaining budget
+	viewport_rid = get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(viewport_rid, true) # Track rendering time
+	process_priority = 9999 # Run last to use remaining budget
 	_frame_clock = FrameClock.new()
 	_frame_clock.name = "FrameClock"
 	add_child(_frame_clock)
@@ -89,11 +92,23 @@ func _setup_budget():
 func _process_queues():
 	if not _budget_ready:
 		return
-	var current_frame = Engine.get_process_frames()
-	if current_frame == _last_frame:
-		return
-	_last_frame = current_frame
-	var elapsed: int = Time.get_ticks_usec() - _frame_clock.frame_start_usec
+	#var current_frame = Engine.get_process_frames()
+	#if current_frame == _last_frame:
+		#return
+	#_last_frame = current_frame
+
+	# Get time elapsed in _process so far
+	var elapsed: int = Time.get_ticks_usec() - _frame_clock.process_frame_start_usec
+
+	# Get CPU time for rendering last frame
+	# a. Retrieve the raw viewport draw CPU time (in milliseconds)
+	var viewport_cpu_time = RenderingServer.viewport_get_measured_render_time_cpu(viewport_rid)
+	# b. Fetch the engine's broad rendering setup time (in milliseconds)
+	var frame_setup_time = RenderingServer.get_frame_setup_time_cpu()
+	# c. Get total frame rendering time on the CPU
+	var total_cpu_render_time = viewport_cpu_time + frame_setup_time
+	elapsed += total_cpu_render_time
+
 	var budget: int = int(_target_usec * _frame_budget_pct) - elapsed - _safety_margin_usec
 	if budget <= 0:
 		return

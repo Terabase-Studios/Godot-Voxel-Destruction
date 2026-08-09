@@ -17,12 +17,6 @@ const _INITIAL_FLOOD_FILL_RIGID_BODY_FREEZE_TIME = 0.05 # How long RigidBodies c
 
 var _MULTIMESH_DEBRIS_MINIMUM_BATCH_SIZE: int = 10
 
-var _BENCHMARK_READY: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_ready", false)
-var _BENCHMARK_DAMAGE: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_damage", false)
-var _BENCHMARK_FLOOD_FILL: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_flood_fill", false)
-var _BENCHMARK_COLLISION: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_collision", false)
-var _BENCHMARK_DEBRIS: bool = ProjectSettings.get_setting("voxel_destruction/benchmarks/VoxelObject/benchmark_debris", false)
-
 #endregion
 #region Exported Variables
 ## (Re)populate this object and attatched addons with new voxel data.
@@ -218,32 +212,12 @@ func _ready() -> void:
 
 		health = voxel_resource.vox_count * 100
 
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] setup+defaults: %d us" % (_t1 - _t0))
-			_t0 = _t1
-
 		voxel_resource = _voxel_state.unique_voxel_resource
-
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] _voxel_state.unique_voxel_resource: %d us" % (_t1 - _t0))
-			_t0 = _t1
 
 		if debris_type == 2 and rigid_body_pool_debris:
 			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] pool_rigid_bodies: %d us" % (_t1 - _t0))
-			_t0 = _t1
-
 		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.0) * voxel_resource.vox_count))
-
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] pool_collision_nodes: %d us" % (_t1 - _t0))
-			_t0 = _t1
 
 		_voxel_server.voxel_objects.append(self)
 		_voxel_server.total_active_voxels += voxel_resource.vox_count
@@ -261,11 +235,6 @@ func _ready() -> void:
 			_update_physics()
 		add_child(_collision_body, false, Node.INTERNAL_MODE_BACK)
 
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] collision body setup: %d us" % (_t1 - _t0))
-			_t0 = _t1
-
 		var shapes_dict = {}
 		for shape_info in voxel_resource.starting_shapes:
 			var shape_node := CollisionShape3D.new()
@@ -281,31 +250,16 @@ func _ready() -> void:
 		_collision_shapes.merge(shapes_dict)
 		voxel_resource.starting_shapes.clear()
 
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] starting_shapes -> CollisionShape3D nodes (%d shapes): %d us" % [shapes_dict.size(), _t1 - _t0])
-			_t0 = _t1
-
 		voxel_resource.buffer("visible_voxels")
 		voxel_resource.visible_voxels.clear()
 		voxel_resource.debuffer("visible_voxels")
 		voxel_resource.materials.clear()
-
-		if _BENCHMARK_READY:
-			var _t1 := Time.get_ticks_usec()
-			print("[VD bench][Ready][", name, "] visible_voxels/materials clear: %d us" % (_t1 - _t0))
-			_t0 = _t1
 
 		if dark_dithering != 0 or light_dithering != 0:
 			voxel_resource.buffer("colors")
 			voxel_resource.buffer("color_index")
 			voxel_resource.colors = _voxel_state.colors
 			voxel_resource.color_index = _voxel_state.color_index
-
-			if _BENCHMARK_READY:
-				var _t1 := Time.get_ticks_usec()
-				print("[VD bench][Ready][", name, "] dithering color_index build (%d instances): %d us" % [multimesh.instance_count, _t1 - _t0])
-				_t0 = _t1
 
 		if multimesh and multimesh.mesh and multimesh.mesh.surface_get_material(0):
 			multimesh.mesh.surface_get_material(0).set_shader_parameter("error", false)
@@ -549,9 +503,6 @@ func _process_multimesh_debris_creation_queue(budget_usec: float) -> bool:
 	if idx < max_possible:
 		multi_mesh.visible_instance_count = idx
 
-	if _BENCHMARK_DEBRIS:
-		print("[VD bench][Debris][", name, "] spawned %d/%d (queue had %d): %d us" % [idx, consumed, max_possible, Time.get_ticks_usec() - _t0])
-
 	call_deferred("_run_multimesh_debris_lifecycle", multi_mesh, multi_mesh_instance, debri_states, gravity_magnitude)
 
 	return not _multimesh_debris_creation_queue.is_empty()
@@ -610,9 +561,6 @@ func _process_rigid_body_debris_creation_queue(budget_usec: float) -> bool:
 	if debris_objects.is_empty():
 		return not _rigid_body_debris_creation_queue.is_empty()
 
-	if _BENCHMARK_DEBRIS:
-		print("[VD bench][Debris][", name, "] _process_rigid_body_debris_creation_queue batch (%d debris): %d us" % [debris_objects.size(), Time.get_ticks_usec() - start])
-
 	call_deferred("_run_rigid_body_debris_lifecycle", debris_objects)
 
 	return not _rigid_body_debris_creation_queue.is_empty()
@@ -659,10 +607,6 @@ func _perform_damage_calculation(attack_data: Dictionary) -> void:
 	_position_snapshot_locks.append(task_id)
 	_damage_tasks[task_id] = [result, damager, damager_global_pos]
 	# Futher handling of the thread is passed to _physics_process
-
-	if _BENCHMARK_DAMAGE:
-		print("[VD bench][Damage][", name, "] _perform_damage_calculation dispatch (%d voxels): %d us" % [voxel_count, Time.get_ticks_usec() - _t0])
-
 
 # Applies damage, called from physics process.
 func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_position: Vector3) -> void:
@@ -738,9 +682,6 @@ func _apply_damage_results(damager: VoxelDamager, damage_results: Array, hit_pos
 				if neighbor and neighbor not in destroyed_voxels:
 					multimesh.set_instance_visibility(neighbor, true)
 
-	if _BENCHMARK_DAMAGE:
-		print("[VD bench][Damage][", name, "] _apply_damage_results processing (%d results): %d us" % [damage_results.size(), Time.get_ticks_usec() - _t0])
-
 	for chunk in chunks_to_regen:
 		_regen_collision(chunk)
 
@@ -784,9 +725,6 @@ func _regen_collision(chunk_index: Vector3) -> void:
 		false, "Calculating Collision Shapes"
 	)
 	_regen_tasks[task_id] = [shape_datas, chunk_index]
-
-	if _BENCHMARK_COLLISION:
-		print("[VD bench][Collision][", name, "] _regen_collision dispatch (%d voxels): %d us" % [chunk.size(), Time.get_ticks_usec() - _t0])
 
 # This function is undocumented
 # WORKER THREAD FUNCTION
@@ -872,9 +810,6 @@ func _create_shapes(
 		var extents = ((max_pos - min_pos) + Vector3.ONE) * voxel_resource.vox_size * .5
 		boxes.append({"center": center, "extents": extents})
 	shape_datas.assign(boxes)
-
-	if _BENCHMARK_COLLISION:
-		print("[VD bench][Collision][", name, "] _create_shapes (%d voxels -> %d boxes): %d us" % [chunk.size(), boxes.size(), Time.get_ticks_usec() - _t0])
 #endregion
 
 
@@ -1003,10 +938,6 @@ func _detach_disconnected_voxels(start_pos: Vector3 = Vector3.INF) -> void:
 	_position_snapshot_locks.append(task_id)
 	_flood_fill_tasks[task_id] = result
 	# Futher handling of the thread is passed to _physics_process
-
-	if _BENCHMARK_FLOOD_FILL:
-		print("[VD bench][Flood Fill][", name, "] _detach_disconnected_voxels dispatch: %d us" % (Time.get_ticks_usec() - _t0))
-
 
 func _flood_apply_task(task: VoxelFloodApplyTask, start: int, budget_usec: float) -> bool:
 	match task.mode:

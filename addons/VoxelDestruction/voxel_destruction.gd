@@ -175,81 +175,6 @@ Handle detached voxels [br]
 	EditorSettingsDescription.set_project_setting_desc(property, description)
 # ==================================================================================================
 
-# ==================================================================================================
-	property = "voxel_destruction/benchmarks/VoxelObject/benchmark_ready"
-	value = false
-	description = """Print benchmark timings for VoxelObject._ready() setup steps to the console."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/benchmarks/VoxelObject/benchmark_damage"
-	value = false
-	description = """Print benchmark timings for voxel damage calculation and application to the console."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/benchmarks/VoxelObject/benchmark_flood_fill"
-	value = false
-	description = """Print benchmark timings for structural flood-fill detachment to the console."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/benchmarks/VoxelObject/benchmark_collision"
-	value = false
-	description = """Print benchmark timings for collision shape regeneration to the console."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
-# ==================================================================================================
-	property = "voxel_destruction/benchmarks/VoxelObject/benchmark_debris"
-	value = false
-	description = """Print benchmark timings for debris batch creation to the console."""
-	if not ProjectSettings.has_setting(property):
-		ProjectSettings.set_setting(property, value)
-	property_info = {
-		"name": property,
-		"type": TYPE_BOOL,
-	}
-	ProjectSettings.add_property_info(property_info)
-	ProjectSettings.set_initial_value(property, value)
-	EditorSettingsDescription.set_project_setting_desc(property, description)
-# ==================================================================================================
-
 	ProjectSettings.save()
 
 
@@ -265,11 +190,6 @@ func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/physics/default_density")
 	ProjectSettings.clear("voxel_destruction/resources/compact/buffer_lifetime")
 	ProjectSettings.clear("voxel_destruction/other/flood_fill_default")
-	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_ready")
-	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_damage")
-	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_flood_fill")
-	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_collision")
-	ProjectSettings.clear("voxel_destruction/benchmarks/VoxelObject/benchmark_debris")
 #endregion
 
 
