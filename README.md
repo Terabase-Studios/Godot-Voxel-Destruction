@@ -91,7 +91,7 @@ Contributions are welcome! If you find a bug or have an idea for a new feature, 
 ## License
 
 This addon is licensed under the MIT License. See the `LICENSE` file for more details.
-
+![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Demo.png)
 ![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Monitors.png) 
 ![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Settings.png)
 ![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/Lochs_Cat.png)
