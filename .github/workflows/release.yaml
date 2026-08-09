@@ -15,13 +15,13 @@ jobs:
         include:
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            asset_name: my_addon_windows_x86_64.dll
+            asset_name: voxel_native_windows_x86_64.dll
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            asset_name: libmy_addon_linux_x86_64.so
+            asset_name: libvoxel_native_linux_x86_64.so
           - target: x86_64-apple-darwin
             os: macos-latest
-            asset_name: libmy_addon_macos_x86_64.dylib
+            asset_name: libvoxel_native_macos_x86_64.dylib
 
     steps:
       - name: Checkout Code
@@ -33,28 +33,31 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Build Dynamic Library
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release --target ${{ matrix.target }} --manifest-path addons/VoxelDestruction/Rust/voxel_native/Cargo.toml
 
       # Prepare target binary
       - name: Rename Output
         shell: bash
         run: |
+          # Variable pointing to subfolder target directory
+          BUILD_DIR="addons/VoxelDestruction/Rust/voxel_native/target/${{ matrix.target }}/release"
+
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp "target/${{ matrix.target }}/release/my_addon.dll" "${{ matrix.asset_name }}"
+            cp "$BUILD_DIR/voxel_native.dll" "${{ matrix.asset_name }}"
           elif [ "${{ runner.os }}" = "macOS" ]; then
-            cp "target/${{ matrix.target }}/release/libmy_addon.dylib" "${{ matrix.asset_name }}"
+            cp "$BUILD_DIR/libvoxel_native.dylib" "${{ matrix.asset_name }}"
           else
-            cp "target/${{ matrix.target }}/release/libmy_addon.so" "${{ matrix.asset_name }}"
+            cp "$BUILD_DIR/libvoxel_native.so" "${{ matrix.asset_name }}"
           fi
 
-      # Upload binary as a Artifact
+      # Upload binary as an Artifact (For manual testing in Actions tab)
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.asset_name }}
           path: ${{ matrix.asset_name }}
 
-      # Attach to GitHub Release on release
+      # Attach to GitHub Release when a tag is published
       - name: Attach to Release
         if: github.event_name == 'release'
         env:
