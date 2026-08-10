@@ -34,6 +34,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
+          components: rust-std
+
+      - name: Add macOS ARM64 Target
+        if: runner.os == 'macOS'
+        run: rustup target add aarch64-apple-darwin
 
       - name: Cache Rust Dependencies
         uses: swatinem/rust-cache@v2
@@ -46,23 +51,37 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y mold
 
       - name: Build Dynamic Library
-        run: cargo build --release --target ${{ matrix.target }} --manifest-path addons/VoxelDestruction/Rust/voxel_native/Cargo.toml
-        env:
-          RUSTFLAGS: ${{ runner.os == 'Linux' && '-C link-arg=-fuse-ld=mold' || '' }}
-          CARGO_INCREMENTAL: 0
-
-      - name: Rename Output
         shell: bash
+        env:
+          MACOSX_DEPLOYMENT_TARGET: "10.13"
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: >-
+            ${{ runner.os == 'Linux' && '-C link-arg=-fuse-ld=mold' || '' }}
+            ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
         run: |
-          # Variable pointing to subfolder target directory
-          BUILD_DIR="addons/VoxelDestruction/Rust/voxel_native/target/${{ matrix.target }}/release"
+          MANIFEST="addons/VoxelDestruction/Rust/voxel_native/Cargo.toml"
 
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            cp "$BUILD_DIR/voxel_native.dll" "${{ matrix.asset_name }}"
-          elif [ "${{ runner.os }}" = "macOS" ]; then
-            cp "$BUILD_DIR/libvoxel_native.dylib" "${{ matrix.asset_name }}"
+          if [ "${{ runner.os }}" = "macOS" ]; then
+            # Build for both Intel and Apple Silicon
+            cargo build --release --target x86_64-apple-darwin --manifest-path "$MANIFEST"
+            cargo build --release --target aarch64-apple-darwin --manifest-path "$MANIFEST"
+
+            # Combine both into a universal dynamic library
+            lipo -create \
+              "addons/VoxelDestruction/Rust/voxel_native/target/x86_64-apple-darwin/release/libvoxel_native.dylib" \
+              "addons/VoxelDestruction/Rust/voxel_native/target/aarch64-apple-darwin/release/libvoxel_native.dylib" \
+              -output "${{ matrix.asset_name }}"
+
+            # Ad-hoc sign the library (Required for ARM64 Macs)
+            codesign --force --deep --sign - "${{ matrix.asset_name }}"
+
+          elif [ "${{ runner.os }}" = "Windows" ]; then
+            cargo build --release --target ${{ matrix.target }} --manifest-path "$MANIFEST"
+            cp "addons/VoxelDestruction/Rust/voxel_native/target/${{ matrix.target }}/release/voxel_native.dll" "${{ matrix.asset_name }}"
+
           else
-            cp "$BUILD_DIR/libvoxel_native.so" "${{ matrix.asset_name }}"
+            cargo build --release --target ${{ matrix.target }} --manifest-path "$MANIFEST"
+            cp "addons/VoxelDestruction/Rust/voxel_native/target/${{ matrix.target }}/release/libvoxel_native.so" "${{ matrix.asset_name }}"
           fi
 
       # Upload binary as an Artifact (For manual testing in Actions tab)
