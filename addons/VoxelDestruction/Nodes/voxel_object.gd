@@ -126,6 +126,9 @@ var _position_snapshot_generated := false # Used to decide if _positions_dict_sn
 var _last_hit_pos: Vector3 # Used to run flood fill on last hit pos
 var _populating: bool = false # Used to prevent populating more than once at one time
 var _last_damage_time: int = -1 # Used to debug the amount of time damaging takes. Measured in milliseconds
+var _tweeners := [] # To properly kill all tweeners at cleanup
+var _cleaned := false # To tell exit_tree if cleanup was called
+var _cleaning := false # Don't want cleanup to run multiple times
 
 #endregion
 #region Signals
@@ -215,9 +218,9 @@ func _ready() -> void:
 		voxel_resource = _voxel_state.unique_voxel_resource
 
 		if debris_type == 2 and rigid_body_pool_debris:
-			voxel_resource.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
+			VoxelServer.pool_rigid_bodies(min(voxel_resource.vox_count, 1000))
 
-		voxel_resource.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.0) * voxel_resource.vox_count))
+		VoxelServer.pool_collision_nodes(floor(ProjectSettings.get_setting("voxel_destruction/performance/collision_preload_percent", 0.0) * voxel_resource.vox_count))
 
 		_voxel_server.voxel_objects.append(self)
 		_voxel_server.total_active_voxels += voxel_resource.vox_count
@@ -336,7 +339,7 @@ func _process_collision_dict_snapshot():
 
 func _process_flood_fill_results(budget_usec: float) -> bool:
 	var start := Time.get_ticks_usec()
-	for task in _flood_fill_tasks.keys():
+	for task in _flood_fill_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var flood_result: Dictionary = _flood_fill_tasks[task]
 			var elapsed := Time.get_ticks_usec() - start
@@ -377,7 +380,7 @@ func _process_flood_fill_apply(budget_usec: float) -> bool:
 
 func _process_damage_task_results(budget_usec: float) -> bool:
 	var start := Time.get_ticks_usec()
-	for task in _damage_tasks.keys():  # snapshot -- safe to erase from dict below
+	for task in _damage_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var damage_results: Array = _damage_tasks[task][0][0]  # unwrap from results
 			var damager: VoxelDamager = _damage_tasks[task][1]
@@ -394,7 +397,7 @@ func _process_damage_task_results(budget_usec: float) -> bool:
 # Finished _regen_tasks are processed and added to _shapes_to_add & _shapes_to_remove
 func _process_collision_task_results(budget_usec: float) -> bool:
 	var start := Time.get_ticks_usec()
-	for task in _regen_tasks.keys():
+	for task in _regen_tasks:
 		if WorkerThreadPool.is_task_completed(task):
 			var shape_datas: Array = _regen_tasks[task][0]
 			var chunk_index: Vector3 = _regen_tasks[task][1]
@@ -410,7 +413,7 @@ func _process_collision_task_results(budget_usec: float) -> bool:
 			# Add shapes and record
 			_shapes_to_add[chunk_index] = []
 			for shape_data in shape_datas:
-				var shape_node = voxel_resource.get_collision_node()
+				var shape_node = VoxelServer.get_collision_node()
 				shape_node.position = shape_data["center"]
 				shape_node.shape.extents = shape_data["extents"]
 				_shapes_to_add[chunk_index].append(shape_node)
@@ -432,7 +435,7 @@ func _process_collision_nodes_add(budget_ms: float) -> bool:
 	var start := Time.get_ticks_usec()
 	var deadline := start + int(budget_ms * 1000.0)
 
-	for chunk_index in _shapes_to_add.keys():  # snapshot -- safe to erase from dict below
+	for chunk_index in _shapes_to_add:
 		if Time.get_ticks_usec() >= deadline:
 			break
 
@@ -440,7 +443,20 @@ func _process_collision_nodes_add(budget_ms: float) -> bool:
 		while not shapes_array.is_empty() and Time.get_ticks_usec() < deadline:
 			var shape = shapes_array.pop_back()
 			if is_instance_valid(shape):
-				_collision_body.call_deferred("add_child", shape, false, Node.INTERNAL_MODE_BACK)
+				# ASSUMPTION: shape may still be attached to a previous owner whose
+				# remove_child hasn't executed yet (pooled node reuse race). Resolve
+				# parent state at the moment this callback actually runs, not now.
+				var target_body := _collision_body
+				(func():
+					if not is_instance_valid(shape) or not is_instance_valid(target_body):
+						return
+					var current_parent = shape.get_parent()
+					if current_parent == target_body:
+						return
+					if current_parent:
+						current_parent.remove_child(shape)
+					target_body.add_child(shape, false, Node.INTERNAL_MODE_BACK)
+				).call_deferred()
 
 		if shapes_array.is_empty():
 			_shapes_to_add.erase(chunk_index)
@@ -455,10 +471,17 @@ func _process_collision_nodes_remove(budget_ms: float) -> bool:
 	while not _shapes_to_remove.is_empty() and Time.get_ticks_usec() < deadline:
 		var shape = _shapes_to_remove.pop_back()
 		if is_instance_valid(shape):
-			var shape_parent = shape.get_parent()
-			if shape_parent:
-				shape_parent.call_deferred("remove_child", shape)
-			voxel_resource.call_deferred("return_collision_node", shape)
+			# ASSUMPTION: resolve the parent inside the deferred callback (not here)
+			# and only hand the node back to the pool once it's actually detached,
+			# so a concurrent get_collision_node() can't reuse it mid-flight.
+			(func():
+				if not is_instance_valid(shape):
+					return
+				var current_parent = shape.get_parent()
+				if current_parent:
+					current_parent.remove_child(shape)
+				VoxelServer.return_collision_node(shape)
+			).call_deferred()
 
 	return not _shapes_to_remove.is_empty()
 
@@ -533,10 +556,8 @@ func _process_rigid_body_debris_creation_queue(budget_usec: float) -> bool:
 
 		# Get debris from pool or create new
 		var debri: RigidBody3D
-		if voxel_resource.debris_pool.is_empty():
-			debri = voxel_resource.get_debri()
-		else:
-			debri = voxel_resource.debris_pool.pop_back()
+		debri = VoxelServer.get_debri()
+
 
 		debri.name = "VoxelDebri"
 		debri.top_level = true
@@ -836,7 +857,8 @@ func _run_multimesh_debris_lifecycle(multi_mesh: MultiMesh, multi_mesh_instance:
 			multi_mesh.set_instance_transform(i, Transform3D(Basis(), data[0]))
 			data[1] = velocity
 		await get_tree().physics_frame
-	multi_mesh_instance.queue_free()
+	if is_instance_valid(multi_mesh_instance):
+		multi_mesh_instance.queue_free()
 
 
 func _run_rigid_body_debris_lifecycle(debris_objects: Array) -> void:
@@ -844,7 +866,8 @@ func _run_rigid_body_debris_lifecycle(debris_objects: Array) -> void:
 	await timer.timeout
 
 	if not debris_objects.is_empty():
-		var debris_tween = get_tree().create_tween()
+		var debris_tween = create_tween()
+		_tweeners.append(debris_tween)
 		for debri in debris_objects:
 			if not is_instance_valid(debri):
 				continue
@@ -863,7 +886,7 @@ func _run_rigid_body_debris_lifecycle(debris_objects: Array) -> void:
 		debri.scale = Vector3.ONE
 		debri.get_child(0).scale = Vector3.ONE
 		debri.get_child(1).scale = Vector3.ONE
-		voxel_resource.return_debri(debri)
+		VoxelServer.return_debri(debri)
 		debris_amount -= 1
 #endregion
 
@@ -1314,49 +1337,104 @@ func _cache_resource(resource: Resource) -> Resource:
 
 # Ran when all voxels are destroyed
 func _end_of_life() -> void:
-	voxel_resource._clear()
-	multimesh.instance_count = 0
 	match end_of_life:
 		1:
-			_disabled_locks.append("END OF LIFE")
-			_disabled = true
-			if lod_addon:
-				lod_addon.disabled = true
-			multimesh = null
-			_voxel_server.voxel_objects.erase(self)
-			_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
-			for key in _collision_shapes:
-				_voxel_server.shape_count -= _collision_shapes[key].size()
-				for shape in _collision_shapes[key]:
-					shape.disabled = true
-			await get_tree().create_timer(10).timeout
-			process_mode = Node.PROCESS_MODE_DISABLED
-			for key in _collision_shapes:
-				for shape in _collision_shapes[key]:
-					shape.queue_free()
-					_collision_shapes.clear()
-					_collision_body.queue_free()
-					voxel_resource = null
-					for child in get_children(true):
-						if "VoxelDebri" in child.name and child is RigidBody3D or MultiMeshInstance3D:
-							child.queue_free()
-							continue
-						if child.process_mode == Node.PROCESS_MODE_INHERIT:
-							child.process_mode = process_mode
+			await cleanup()
 		2:
+			await cleanup()
 			queue_free()
+
+
+## Call this to prepare the [VoxelObject] for [member Node.queue_free]
+func cleanup():
+	if _cleaned or _cleaning:
+		return
+	_cleaning = true
+	
+	health = 0
+	_disabled_locks.append("CLEARED")
+	_disabled = true # Physics process will do this on its own but why wait, life is short
+	# Handle Addons
+	if lod_addon:
+		lod_addon._cleanup()
+		lod_addon = null
+	# Queue removal of all collsion shapes
+	for chunk in _collision_shapes:
+		_shapes_to_remove.append_array(_collision_shapes[chunk])
+	while not _shapes_to_remove.is_empty():
+		await get_tree().process_frame
+		
+	# At this point hard kill, no more nice software dev. >=)
+	# Kill tweens
+	for tween in _tweeners:
+		tween.kill()
+		if is_instance_valid(tween):
+			tween.queue_free()
+	# Stop processing and kill remaining debris
+	process_mode = Node.PROCESS_MODE_DISABLED
+	for child in get_children(true):
+		if "VoxelDebri" in child.name and child is RigidBody3D or MultiMeshInstance3D:
+			child.queue_free()
+			continue
+		if child.process_mode == Node.PROCESS_MODE_INHERIT:
+			child.process_mode = process_mode
+	# Final clearing of some vars
+	_voxel_state = null
+	_positions_dict_snapshot.clear()
+	_positions_dict_snapshot = {}
+	_position_snapshot_edits.clear()
+	_position_snapshot_edits = PackedVector3Array()
+	for body in _collision_shapes.values():
+		if is_instance_valid(body):
+			body.queue_free()
+	_collision_shapes.clear()
+	_collision_shapes = {}
+	if is_instance_valid(_collision_body):
+		_collision_body.queue_free()
+	_collision_body = null
+	_shapes_to_add.clear()
+	_shapes_to_add = {}
+	_shapes_to_remove.clear()
+	_shapes_to_remove = []
+	_damage_tasks.clear()
+	_damage_tasks = {}
+	_regen_tasks.clear()
+	_regen_tasks = {}
+	_flood_fill_tasks.clear()
+	_flood_fill_tasks = {}
+	_flood_apply_tasks.clear()
+	_flood_apply_tasks = []
+	_rigid_body_debris_creation_queue.clear()
+	_rigid_body_debris_creation_queue = []
+	_multimesh_debris_creation_queue.clear()
+	_multimesh_debris_creation_queue = []
+	_position_snapshot_locks.clear()
+	_position_snapshot_locks = []
+	_last_hit_pos = Vector3.ZERO
+	_body_last_transform = Transform3D.IDENTITY
+	debris_amount = 0
+	health = 0
+	multimesh.instance_count = 0
+	multimesh = null
+
+	# Sync state with server 
+	_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
+	_voxel_server.voxel_objects.erase(self)
+	_voxel_server = null
+	# Handle VoxelResource than peace
+	if voxel_resource != null and not voxel_resource._cleared:
+		voxel_resource._clear()
+		voxel_resource = null
+
+	_cleaning = false
+	_cleaned = true
 
 
 # Ran when removed from tree
 func _exit_tree():
 	if not Engine.is_editor_hint():
-		_voxel_server.voxel_objects.erase(self)
-		_voxel_server.total_active_voxels -= voxel_resource.positions_dict.size()
-		for key in _collision_shapes:
-			_voxel_server.shape_count -= _collision_shapes[key].size()
-		# Free orphaned collision/debris pool nodes on the queue_free() path.
-		if voxel_resource != null and not voxel_resource._cleared:
-			voxel_resource._clear()
+		if not _cleaned:
+			push_warning("[VD ADDON] Voxel Object <", name, "> did not have | await _cleanup | called!")
 #endregion
 #endregion
 

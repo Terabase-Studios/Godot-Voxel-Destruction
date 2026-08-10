@@ -25,8 +25,11 @@ func _ready():
 	Performance.add_custom_monitor("Voxel Destruction/Visible Voxels", get_visible_voxel_count)
 	Performance.add_custom_monitor("Voxel Destruction/Shape Count", get_shape_count)
 	Performance.add_custom_monitor("Voxel Destruction/LOD Hidden Voxels", get_lod_hidden_voxels)
+	Performance.add_custom_monitor("Voxel Destruction/Pooled Debris", get_pooled_debris_count)
+	Performance.add_custom_monitor("Voxel Destruction/Pooled Collision Nodes", get_pooled_collision_node_count)
 	VoxelUtilities._init_called_from_server()
-	_setup_budget()
+	if not Engine.is_editor_hint():
+		_setup_budget()
 
 
 func _process(_delta: float) -> void:
@@ -59,6 +62,15 @@ func get_lod_hidden_voxels():
 		if object.lod_addon:
 			hidden_voxels += object.lod_addon.hidden_voxels
 	return hidden_voxels
+
+## Returns [VoxelResource]s [member debris_pool]
+func get_pooled_debris_count():
+	return debris_pool_size
+
+## Returns [VoxelResource]s [member collision_pool]
+func get_pooled_collision_node_count():
+	return collision_pool_size
+
 
 # |--------------------------------------------------|
 # |     This is the section for queue budgeting.     |
@@ -160,3 +172,96 @@ func _dispatch(voxel_object: VoxelObject, queue_type: StringName, budget_usec: i
 		&"multimesh_debris": return voxel_object._process_multimesh_debris_creation_queue(budget_usec)
 		&"rigid_body_debris": return voxel_object._process_rigid_body_debris_creation_queue(budget_usec)
 	return false
+
+
+# |--------------------------------------------------|
+# |         This is the section for pooling.         |
+# | For organizational purposes, all class variables |
+# |    and functions related to pooling live here.   |
+# |       Thank you for your understanding. =)       |
+# |--------------------------------------------------|
+
+## Pool of debris nodes
+var debris_pool: Array[RigidBody3D]
+## Size of [member VoxelResourceBase.debris_pool]
+var debris_pool_size: int = 0
+## Pool of collision nodes
+var collision_pool: Array[CollisionShape3D]
+## Size of [member VoxelResourceBase.collision_pool]
+var collision_pool_size: int = 0
+
+var _debris_id: int = 0
+var _collision_id: int = 0
+
+## Creates debris and saves them to [member debri_pool]
+func pool_rigid_bodies(vox_amount: int) -> void:
+	for i in range(0, vox_amount):
+		var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
+		debri.hide()
+		debri.name = "VoxelDebris" + str(_debris_id)
+		_debris_id += 1
+		debris_pool.append(debri)
+	debris_pool_size += vox_amount
+
+
+## Returns a debri from the [member debri_pool]
+func get_debri() -> RigidBody3D:
+	if debris_pool.size() > 0:
+		debris_pool_size -= 1
+		return debris_pool.pop_back()
+	var debri = preload("res://addons/VoxelDestruction/Scenes/debri.tscn").instantiate()
+	debri.hide()
+	debri.name = "VoxelDebris" + str(_debris_id)
+	_debris_id += 1
+	return debri
+
+
+## Adds a debri to the [member debri_pool]
+func return_debri(debri) -> void:
+	debris_pool_size += 1
+	debris_pool.append(debri)
+
+
+## Creates [CollisionShape3D]s with a [BoxShape3D] and saves them to [member collision_pool]
+func pool_collision_nodes(vox_amount: int) -> void:
+	for i in range(0, vox_amount):
+		var collision_node := CollisionShape3D.new()
+		var collision_shape := BoxShape3D.new()
+		collision_node.shape = collision_shape
+		collision_node.name = "VoxelCollisionNode" + str(_collision_id)
+		_collision_id += 1
+		collision_pool.append(collision_node)
+	collision_pool_size += vox_amount
+
+
+## Returns a [CollisionShape3D] with a [BoxShape3D] from the [member collision_pool]
+func get_collision_node() -> CollisionShape3D:
+	if collision_pool.size() > 0:
+		collision_pool_size -= 1
+		return collision_pool.pop_back()
+	var collision_node := CollisionShape3D.new()
+	var collision_shape := BoxShape3D.new()
+	collision_node.shape = collision_shape
+	collision_node.name = "VoxelCollisionNode" + str(_collision_id)
+	_collision_id += 1
+	return collision_node
+
+
+## Adds a [CollisionShape3D] with a [BoxShape3D] to the [member collision_pool]
+func return_collision_node(node: CollisionShape3D) -> void:
+	collision_pool_size += 1
+	collision_pool.append(node)
+
+
+func _clear() -> void:
+	for node in collision_pool:
+		if is_instance_valid(node):
+			node.queue_free()
+	collision_pool.clear()
+	collision_pool_size = 0
+
+	for node in debris_pool:
+		if is_instance_valid(node):
+			node.queue_free()
+	debris_pool.clear()
+	debris_pool_size = 0

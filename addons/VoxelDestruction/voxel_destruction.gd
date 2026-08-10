@@ -16,6 +16,7 @@ func _enter_tree() -> void:
 	add_custom_type("VoxelDamager", "Area3D", preload("Nodes/voxel_damager.gd"), preload("Nodes/voxel_damager.svg"))
 	add_custom_type("VoxelMarker", "Marker3D", preload("Nodes/voxel_marker.gd"), preload("Nodes/voxel_marker.svg"))
 	add_tool_menu_item("Clean Voxel Destruction Resources", func(): _clean_cache.bind(get_tree()).call_deferred())
+	add_tool_menu_item("Setup Voxel Destruction GDextension", func(): _setup_gd_extention.call_deferred())
 	if not is_connected("scene_saved", _on_scene_save):
 		connect("scene_saved", _on_scene_save)
 	selectable_gizmo = VDSelectableGizmo.new()
@@ -33,6 +34,8 @@ func _exit_tree() -> void:
 		disconnect("scene_saved", _on_scene_save)
 	call_deferred("_unregister_settings")
 	remove_node_3d_gizmo_plugin(selectable_gizmo)
+	remove_tool_menu_item("Clean Voxel Destruction Resources")
+	remove_tool_menu_item("Setup Voxel Destruction GDextension")
 
 
 func _on_scene_save(_scene):
@@ -280,3 +283,10 @@ static func _build_reference_index(dir_path: String, referenced_paths: Dictionar
 		file_name = dir.get_next()
 	dir.list_dir_end()
 #endregion
+
+
+func _setup_gd_extention():
+	var gd_extention_setup_node = GDextensionSetup.new()
+	add_child(gd_extention_setup_node)
+	await gd_extention_setup_node.setup()
+	gd_extention_setup_node.queue_free()

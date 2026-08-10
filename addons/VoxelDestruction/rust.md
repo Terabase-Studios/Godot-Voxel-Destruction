@@ -1,4 +1,8 @@
-## How to use Rust Gdextension
+# How to use Rust Gdextension
+## Run the tool
+For Windows, Linux, and Mac you can run the setup tool in `Project>Tools>Setup Voxel Destruction GDextension`   
+This will use prebuilt binaries and handle the .gdextension file automatically.
+## Compile yourself
 ### Install rust
 ```
 # Linux (distro-independent)
@@ -22,6 +26,12 @@ cargo build # Compile the project
 2. In Godot, go to your project settings and toggle `Advanced Settings` to on.  
 Then set `voxel_destruction/performance/rust_gdextention` to true and reload the editor
 
+---
+
+## Exporting
+This is more complicated. Please see the official [Godot-Rust Guide](https://godot-rust.github.io/gdnative-book/export/index.html)
+
+
 Note: You will probably see the errors:
 ```
  WARNING: platform/windows/windows_utils.cpp:184 - The original path size of 'voxel_native.pdb' in bytes was too small to fit the new name, so it was shortened to '~voxel_n_999.pdb'.
@@ -29,8 +39,3 @@ Note: You will probably see the errors:
  ERROR: Signal 'cell_selected' is already connected to given callable 'GDScript::_on_project_inspector_changed' in that object.
 ```
 This is normal. =)
-
----
-
-## Exporting
-This is more complicated. Please see the official [Godot-Rust Guide](https://godot-rust.github.io/gdnative-book/export/index.html)

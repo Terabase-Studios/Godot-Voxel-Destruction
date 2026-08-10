@@ -287,3 +287,8 @@ func _cache_resource(resource: Resource) -> Resource:
 	# Assign path to existing resource in memory instead of reloading from disk
 	resource.take_over_path(path)
 	return resource
+
+
+func _cleanup():
+	disabled = true
+	_parent = null
