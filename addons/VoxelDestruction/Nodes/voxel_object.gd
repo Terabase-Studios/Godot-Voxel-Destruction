@@ -1368,8 +1368,6 @@ func cleanup():
 	# Kill tweens
 	for tween in _tweeners:
 		tween.kill()
-		if is_instance_valid(tween):
-			tween.queue_free()
 	# Stop processing and kill remaining debris
 	process_mode = Node.PROCESS_MODE_DISABLED
 	for child in get_children(true):
