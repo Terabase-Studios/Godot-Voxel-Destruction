@@ -471,15 +471,13 @@ func _process_collision_nodes_remove(budget_ms: float) -> bool:
 	while not _shapes_to_remove.is_empty() and Time.get_ticks_usec() < deadline:
 		var shape = _shapes_to_remove.pop_back()
 		if is_instance_valid(shape):
-			# ASSUMPTION: resolve the parent inside the deferred callback (not here)
-			# and only hand the node back to the pool once it's actually detached,
-			# so a concurrent get_collision_node() can't reuse it mid-flight.
 			(func():
 				if not is_instance_valid(shape):
 					return
 				var current_parent = shape.get_parent()
 				if current_parent:
 					current_parent.remove_child(shape)
+					await shape.tree_exited
 				VoxelServer.return_collision_node(shape)
 			).call_deferred()
 
