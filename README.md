@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> This project is **NOT** vibe-coded. I do not know why copilot is listed as a *contributor* as it  
+> has no co-authors or contributions in any commit, but I guess GitHub is doing whatever now.
 # Godot Voxel Destruction
 
 ![Godot Voxel Destruction](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/blob/main/Screenshots/front_page.png)
