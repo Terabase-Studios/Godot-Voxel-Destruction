@@ -9,6 +9,9 @@ A flexible and efficient voxel-based destruction system for Godot 4.1+. This add
 Please check out the [roadmap](https://github.com/users/Terabase-Studios/projects/2)!
 
 ---
+## Community
+There is a [discord](https://discord.gg/HECcXhdvUg) server with a channel for Voxel Destruction!
+
 
 ## Features
 
