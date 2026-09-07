@@ -9,6 +9,9 @@ A flexible and efficient voxel-based destruction system for Godot 4.1+. This add
 Please check out the [roadmap](https://github.com/users/Terabase-Studios/projects/2)!
 
 ---
+## Community
+There is a [discord](https://discord.gg/HECcXhdvUg) server with a channel for Voxel Destruction!
+
 
 ## Features
 
@@ -22,13 +25,6 @@ Please check out the [roadmap](https://github.com/users/Terabase-Studios/project
 *   **Custom Project Settings:** Change VoxelDestruction specific settings built into the ProjectSettings.
 *   **Heavy Multithreading:** Takes pressure of the main thread for smooth destruction.  
 
-
-## Project State
-This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned. All issues and pull requests will be addressed promptly.
-
-## Contribution
-I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance what so ever, please reach me at support@terabasestudios.com =)
-
 ## Installation
 
 You can install Voxel Destruction using any of the following methods:
@@ -40,7 +36,7 @@ You can install Voxel Destruction using any of the following methods:
 3. Select the addon and click **Download**.
 4. Click **Install**.
 
-### 2. Download: [GitHub Releases](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/releases) / [Godot Marketplace](https://store.godotengine.org/asset/terabase-studios/voxel-destruction/) / [Asset Library](https://godotengine.org/asset-library/asset/3743)
+### 2. Download: [GitHub Releases](https://github.com/Terabase-Studios/Godot-Voxel-Destruction/releases) / [Godot Marketplace](https://store.godotengine.org/asset/terabase-studios/voxel-destruction/)
 
 1. Visit one of the project's pages linked above.
 2. Download the latest release (`.zip`).
@@ -80,6 +76,12 @@ The plugin is now ready to use.
         if Input.is_action_just_pressed("fire"):
             $VoxelDamager.hit()
     ```
+
+## Project State
+This project **is** active! I cycle back to this project here or there, so if you see a lag in commits don't worry about the project being abandoned. All issues and pull requests will be addressed promptly.
+
+## Contribution
+I want to make this the best addon it can be! Feel free to open an issue or pull request. If you need any assistance what so ever, please reach me at support@terabasestudios.com =)
 
 ## API Reference
 
