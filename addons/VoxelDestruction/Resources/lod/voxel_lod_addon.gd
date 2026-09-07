@@ -44,7 +44,7 @@ var _id: int = randi_range(0, 100) % 10
 func _init() -> void:
 	for setting in lod_settings:
 		if not setting:
-			push_error("[VD Addon] LOD Setting is NULL! Unexpected behavior may occur!")
+			push_error("[VD ADDON] LOD Setting is NULL! Unexpected behavior may occur!")
 			continue
 		setting.preview = false
 		if not setting.is_connected("preview_enabled", _update_preview):
@@ -117,7 +117,7 @@ func _update_preview():
 	var activated_preview = null
 	for setting in lod_settings:
 		if not setting:
-			push_error("[VD Addon] LOD Setting is NULL! Unexpected behavior may occur!")
+			push_error("[VD ADDON] LOD Setting is NULL! Unexpected behavior may occur!")
 			return
 		if setting.preview:
 			if setting == _last_preview:
@@ -292,3 +292,4 @@ func _cache_resource(resource: Resource) -> Resource:
 func _cleanup():
 	disabled = true
 	_parent = null
+

@@ -134,3 +134,4 @@ func _get_all_nodes(node: Node) -> Array:
 		result.append(child)
 		result.append_array(_get_all_nodes(child))
 	return result
+

@@ -59,3 +59,4 @@ func _physics_process(delta: float) -> void:
 
 	if direction != Vector3.ZERO:
 		position += direction.normalized() * move_speed * delta
+

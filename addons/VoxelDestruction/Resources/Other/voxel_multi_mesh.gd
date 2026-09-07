@@ -83,3 +83,4 @@ func voxel_set_instance_custom_data(instance: int, custom_data: Color) -> void:
 ## Use this instead of [member MultiMesh.set_instance_transform]
 func voxel_set_instance_transform(instance: int, transform: Transform3D) -> void:
 	set_instance_transform(induces[instance], transform)
+

@@ -49,3 +49,7 @@ non-godot-dev/test.exe
 non-godot-dev/voxel_native.dll
 addons/VoxelDestruction/Rust/voxel_native.gdextension
 addons/VoxelDestruction/Rust/voxel_native.gdextension.uid
+/non-godot-dev/vmmap_files
+/non-godot-dev/.vs
+/non-godot-dev/godot-from-source/tracy-server
+desktop.ini

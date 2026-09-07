@@ -34,3 +34,4 @@ var activation_range_squared: int
 signal preview_enabled
 ## Emmited when [member preview] is disabled.
 signal preview_disabled
+

@@ -57,21 +57,59 @@ if defined VSCMD_VER (
     call "%VSINSTALL%\VC\Auxiliary\Build\vcvars64.bat"
 )
 
-:: Tracy Source
-set TRACY_VERSION=v0.13.0
+:: Tracy
+set "TRACY_VERSION=v0.14.1"
 set "TRACY_DIR=%~dp0tracy"
+set "TRACY_SERVER_DIR=%~dp0tracy-server"
 
+:: Tracy client source
 if exist "%TRACY_DIR%\CMakeLists.txt" (
-    echo Tracy source already present at %TRACY_DIR%
+    echo Tracy client source already present at %TRACY_DIR%
 ) else (
-    echo Cloning Tracy %TRACY_VERSION%...
+    echo Downloading Tracy client source %TRACY_VERSION%...
     git clone -b %TRACY_VERSION% --single-branch https://github.com/wolfpld/tracy.git "%TRACY_DIR%"
     if errorlevel 1 (
-        echo Failed to clone Tracy.
+        echo Failed to download Tracy client source.
         pause
         exit /b 1
     )
 )
+
+:: Tracy profiler
+if exist "%TRACY_SERVER_DIR%" (
+    echo Tracy profiler already present at %TRACY_SERVER_DIR%
+) else (
+    echo Downloading Tracy Windows profiler %TRACY_VERSION%...
+
+    mkdir "%TRACY_SERVER_DIR%"
+
+    curl -L ^
+        -o "%TRACY_SERVER_DIR%\windows-%TRACY_VERSION:~1%.zip" ^
+        "https://github.com/wolfpld/tracy/releases/download/%TRACY_VERSION%/windows-%TRACY_VERSION:~1%.zip"
+
+    if errorlevel 1 (
+        echo Failed to download Tracy Windows release.
+        pause
+        exit /b 1
+    )
+
+    echo Extracting Tracy Windows release...
+
+    tar -xf "%TRACY_SERVER_DIR%\windows-%TRACY_VERSION:~1%.zip" ^
+        -C "%TRACY_SERVER_DIR%"
+
+    if errorlevel 1 (
+        echo Failed to extract Tracy Windows release.
+        pause
+        exit /b 1
+    )
+
+    del "%TRACY_SERVER_DIR%\windows-%TRACY_VERSION:~1%.zip"
+
+    echo Tracy Windows profiler installed successfully.
+)
+
+echo Tracy %TRACY_VERSION% ready.
 
 :: Godot Source
 set GODOT_BRANCH=master

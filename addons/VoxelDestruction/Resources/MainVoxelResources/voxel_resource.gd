@@ -38,3 +38,4 @@ func _clear():
 	chunks.clear()
 	visible_voxels.clear()
 	super()
+

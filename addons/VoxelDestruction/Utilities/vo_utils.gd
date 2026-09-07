@@ -193,3 +193,4 @@ static func create_shapes(boxes: Array, voxel_size: Vector3, chunk) -> Array:
 		shapes.append({"extents": size * 0.5, "position": center, "chunk": chunk})
 	
 	return shapes
+

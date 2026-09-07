@@ -396,3 +396,4 @@ const ERROR_DESCRIPTIONS = {
 	47: "ERR_BUG: Internal bug encountered.",
 	48: "ERR_PRINTER_ON_FIRE: Printer is on fire! (joke error, rarely used)."
 }
+

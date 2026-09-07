@@ -9,3 +9,4 @@ func start() -> void:
 	#var end_time = Time.get_ticks_usec()
 	#var duration = (end_time - start_time) / 1000.0 # Duration in milliseconds
 	#print("Snippit took: ", duration, "ms")
+

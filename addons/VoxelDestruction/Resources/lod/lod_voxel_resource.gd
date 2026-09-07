@@ -8,3 +8,4 @@ class_name LODVoxelResource
 @export var positions: PackedVector3Array ## Voxel positions array
 @export var vox_count: int ## Number of voxels stored in the resource
 @export var vox_size: Vector3 ## Scale of voxels, multiply voxel postion by this and add VoxelObject node global position for global voxel position
+

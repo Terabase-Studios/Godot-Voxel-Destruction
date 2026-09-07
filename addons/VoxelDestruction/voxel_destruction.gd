@@ -15,8 +15,7 @@ func _enter_tree() -> void:
 	add_custom_type("VoxelObject", "Gridmap", preload("Nodes/voxel_object.gd"), preload("Nodes/voxel_object.svg"))
 	add_custom_type("VoxelDamager", "Area3D", preload("Nodes/voxel_damager.gd"), preload("Nodes/voxel_damager.svg"))
 	add_custom_type("VoxelMarker", "Marker3D", preload("Nodes/voxel_marker.gd"), preload("Nodes/voxel_marker.svg"))
-	add_tool_menu_item("Clean Voxel Destruction Resources", func(): _clean_cache.bind(get_tree()).call_deferred())
-	add_tool_menu_item("Setup Voxel Destruction GDextension", func(): _setup_gd_extention.call_deferred())
+	_create_tool_menu()
 	if not is_connected("scene_saved", _on_scene_save):
 		connect("scene_saved", _on_scene_save)
 	selectable_gizmo = VDSelectableGizmo.new()
@@ -34,8 +33,24 @@ func _exit_tree() -> void:
 		disconnect("scene_saved", _on_scene_save)
 	call_deferred("_unregister_settings")
 	remove_node_3d_gizmo_plugin(selectable_gizmo)
-	remove_tool_menu_item("Clean Voxel Destruction Resources")
-	remove_tool_menu_item("Setup Voxel Destruction GDextension")
+	remove_tool_menu_item("VoxelDestruction")
+
+
+func _create_tool_menu() -> void:
+	var submenu := PopupMenu.new()
+	submenu.name = "VoxelDestructionSubMenu"
+	submenu.add_item("Clean Voxel Destruction Resources", 0)
+	submenu.add_item("Setup Voxel Destruction GDextension", 1)
+	submenu.id_pressed.connect(_on_submenu_item_pressed)
+	add_tool_submenu_item("VoxelDestruction", submenu)
+
+
+func _on_submenu_item_pressed(id: int) -> void:
+	match id:
+		0:
+			_clean_cache.bind(get_tree()).call_deferred()
+		1:
+			_setup_gd_extention.call_deferred()
 
 
 func _on_scene_save(_scene):
@@ -89,6 +104,40 @@ Default uses the project setting voxel_destruction/performance/default_collision
 		"type": TYPE_INT,
 		"hint": PROPERTY_HINT_ENUM,
 		"hint_string": "High,Medium,Low"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
+	property = "voxel_destruction/performance/max_debris_pool_size"
+	value = 300
+	description = """The maximum amount off debris to keep in the debris pool."""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,1000,1,hide_control,or_greater"
+	}
+	ProjectSettings.add_property_info(property_info)
+	ProjectSettings.set_initial_value(property, value)
+	EditorSettingsDescription.set_project_setting_desc(property, description)
+# ==================================================================================================
+
+# ==================================================================================================
+	property = "voxel_destruction/performance/max_collision_pool_size"
+	value = 500
+	description = """The maximum amount off debris to keep in the collision nodes pool."""
+	if not ProjectSettings.has_setting(property):
+		ProjectSettings.set_setting(property, value)
+	property_info = {
+		"name": property,
+		"type": TYPE_INT,
+		"hint": PROPERTY_HINT_RANGE,
+		"hint_string": "0,1000,1,hide_control,or_greater"
 	}
 	ProjectSettings.add_property_info(property_info)
 	ProjectSettings.set_initial_value(property, value)
@@ -183,6 +232,8 @@ Handle detached voxels [br]
 
 func _unregister_settings():
 	ProjectSettings.clear("voxel_destruction/performance/rust_gdextention")
+	ProjectSettings.clear("voxel_destruction/performance/max_debris_pool_size")
+	ProjectSettings.clear("voxel_destruction/performance/max_collision_pool_size")
 	ProjectSettings.clear("voxel_destruction/performance/default_collision_quality")
 	ProjectSettings.clear("voxel_destruction/performance/collision_preload_percent")
 	ProjectSettings.clear("voxel_destruction/debris/default_type")

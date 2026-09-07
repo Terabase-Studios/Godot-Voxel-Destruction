@@ -17,3 +17,4 @@ shape = SubResource("BoxShape3D_m0tjl")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 mesh = ExtResource("1_bsxci")
+

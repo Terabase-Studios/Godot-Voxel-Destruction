@@ -20,3 +20,4 @@ class_name VoxelProgressWindow
 func redraw() -> void:
 	await get_tree().process_frame
 	return
+

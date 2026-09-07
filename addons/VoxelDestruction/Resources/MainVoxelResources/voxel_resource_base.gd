@@ -18,3 +18,4 @@ func _clear() -> void:
 	_cleared = true
 	starting_shapes.clear()
 	materials.clear()
+

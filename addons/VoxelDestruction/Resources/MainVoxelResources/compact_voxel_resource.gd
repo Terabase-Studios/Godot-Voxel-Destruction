@@ -180,3 +180,4 @@ func _clear():
 	_data.clear()
 	_property_size.clear()
 	super()
+

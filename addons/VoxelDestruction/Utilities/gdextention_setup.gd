@@ -110,3 +110,4 @@ func get_plugin_version() -> String:
 		return version
 		
 	return "plugin.cfg not found"
+

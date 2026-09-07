@@ -12,3 +12,4 @@ macos.debug =            "res://addons/VoxelDestruction/Rust/voxel_native/target
 macos.release =          "res://addons/VoxelDestruction/Rust/voxel_native/target/release/libvoxel_native.dylib"
 macos.debug.arm64 =      "res://addons/VoxelDestruction/Rust/voxel_native/target/debug/libvoxel_native.dylib"
 macos.release.arm64 =    "res://addons/VoxelDestruction/Rust/voxel_native/target/release/libvoxel_native.dylib"
+

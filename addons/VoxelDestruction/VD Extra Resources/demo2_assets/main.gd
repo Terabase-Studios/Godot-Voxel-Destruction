@@ -65,3 +65,4 @@ func _shoot_at(mouse_pos: Vector2) -> void:
 	damager.global_position = result.position
 	print("Hitting VoxelObject at: ", result.position)
 	damager.hit()
+

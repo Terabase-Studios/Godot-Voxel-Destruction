@@ -31,3 +31,4 @@ func test():
 		add_child(node_to_test)
 		node_to_test.setup()
 		#node_to_test.queue_free()
+

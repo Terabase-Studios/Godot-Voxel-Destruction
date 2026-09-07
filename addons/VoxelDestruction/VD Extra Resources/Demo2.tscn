@@ -92,3 +92,4 @@ script = ExtResource("7_mmqss")
 
 [node name="VoxelGI" type="VoxelGI" parent="." unique_id=1462408287]
 data = ExtResource("8_giqsj")
+

@@ -48,11 +48,11 @@ if not defined TARGET (
 
 echo.
 echo Running (from %GODOT_SRC%):
-echo scons platform=windows target=%TARGET% debug_symbols=yes profiler=tracy profiler_path="%TRACY_PATH%" disable_path_overrides=no
+echo scons platform=windows target=%TARGET% debug_symbols=yes profiler=tracy profiler_path="%TRACY_PATH%" disable_path_overrides=no profiler_track_memory=yes  profiler_record_on_demand=no profiler_sample_callstack=yes
 echo.
  
 pushd "%GODOT_SRC%"
-scons platform=windows target=%TARGET% debug_symbols=yes profiler=tracy profiler_path="%TRACY_PATH%" disable_path_overrides=no
+scons platform=windows target=%TARGET% debug_symbols=yes profiler=tracy profiler_path="%TRACY_PATH%" disable_path_overrides=no profiler_track_memory=yes  profiler_record_on_demand=no profiler_sample_callstack=yes
 popd
 
 echo.
