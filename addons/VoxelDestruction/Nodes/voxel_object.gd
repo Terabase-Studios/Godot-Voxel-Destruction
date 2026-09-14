@@ -378,6 +378,8 @@ func _process_flood_fill_apply(budget_usec: float) -> bool:
 
 
 func _process_damage_task_results(budget_usec: float) -> bool:
+	if _damage_tasks.is_empty():
+		return false
 	var start := Time.get_ticks_usec()
 	for task in _damage_tasks.keys():
 		if WorkerThreadPool.is_task_completed(task):
