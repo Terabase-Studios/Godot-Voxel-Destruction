@@ -37,7 +37,7 @@ var _MULTIMESH_DEBRIS_MINIMUM_BATCH_SIZE: int = 10
 @export_enum("Default", "High", "Medium", "Low") var collision_quality = 0
 ## What the voxel object should do when its health reaches 0. [br]
 ## [b]Nothing[/b]: Nothing will hapen [br]
-## [b]Disable[/b]: Frees as much memory as possible. [br]
+## [b]Disable[/b]: Frees as much memory as possible. Also sets [member Node.process_mode] to disabled using [enum Node.ProcessMode].[br]
 ## [b]Queue_free()[/b]: Calls queue_free [br]
 @export_enum("Nothing", "Disable", "queue_free()") var end_of_life = 1
 @export_group("Debris")
@@ -92,9 +92,9 @@ var _MULTIMESH_DEBRIS_MINIMUM_BATCH_SIZE: int = 10
 		else:
 			lod_addon = value.duplicate(true)
 			lod_addon._parent = self
-@export_group("read-only")
-## Stores populated voxel data used at runtime.
-@export var _voxel_state: VoxelState
+#@export_group("read-only")
+# Stores populated voxel data used at runtime.
+@export_storage var _voxel_state: VoxelState
 #endregion
 #region Public Variables
 ## The amount of debris deployed by the [VoxelObject]
@@ -552,7 +552,6 @@ func _process_rigid_body_debris_creation_queue(budget_usec: float) -> bool:
 		var debri: RigidBody3D
 		debri = VoxelServer.get_debri()
 
-
 		debri.name = "VoxelDebri"
 		debri.top_level = true
 		debri.show()
@@ -925,7 +924,7 @@ func _run_rigid_body_debris_lifecycle(debris_objects: Array) -> void:
 	await timer.timeout
 
 	if not debris_objects.is_empty():
-		var debris_tween = create_tween()
+		var debris_tween = get_tree().create_tween()
 		_tweeners.append(debris_tween)
 		for debri in debris_objects:
 			if not is_instance_valid(debri):
@@ -1425,16 +1424,19 @@ func cleanup():
 		
 	# At this point hard kill, no more nice software dev. >=)
 	# Kill tweens
-	for tween in _tweeners:
-		tween.kill()
+	#for tween in _tweeners:
+	#	tween.kill()
 	# Stop processing, do not kill remaining debris as that looks bad. Leave that to queue_free()
+	var previous_process_mode := process_mode
 	process_mode = Node.PROCESS_MODE_DISABLED
 	for child in get_children(true):
 		#if "VoxelDebri" in child.name and child is RigidBody3D or MultiMeshInstance3D:
 			#child.queue_free()
 			#continue
-		if child.process_mode == Node.PROCESS_MODE_INHERIT:
-			child.process_mode = process_mode
+		if "VoxelDebri" in child.name and child is RigidBody3D or MultiMeshInstance3D:
+			child.process_mode = Node.PROCESS_MODE_ALWAYS
+		#elif child.process_mode == Node.PROCESS_MODE_INHERIT:
+		#	child.process_mode = previous_process_mode
 	# Final clearing of some vars
 	_voxel_state = null
 	_positions_dict_snapshot.clear()
